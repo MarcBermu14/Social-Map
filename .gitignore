@@ -1,0 +1,19 @@
+# Archivos sensibles
+config/db.local.php
+
+# Logs
+*.log
+error_log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Uploads (si añades subida de imágenes)
+uploads/
