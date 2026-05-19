@@ -17,6 +17,18 @@ function getDB(): PDO {
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
+            // Auto-create event_registrations if missing (new table added after initial install)
+            $pdo->exec("CREATE TABLE IF NOT EXISTS event_registrations (
+                user_id        INT NOT NULL,
+                publication_id INT NOT NULL,
+                created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, publication_id)
+            )");
+            // Auto-add min/max attendees columns if missing
+            foreach (['min_attendees', 'max_attendees'] as $col) {
+                try { $pdo->exec("ALTER TABLE publications ADD COLUMN $col INT DEFAULT NULL"); }
+                catch (PDOException $e) {}
+            }
         } catch (PDOException $e) {
             http_response_code(500);
             exit(json_encode(['error' => 'DB connection failed: ' . $e->getMessage()]));

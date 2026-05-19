@@ -52,6 +52,20 @@ $pubs = $db->prepare("
 $pubs->execute([$viewId]);
 $pubs = $pubs->fetchAll();
 
+// Registered events (own profile only)
+$regEvents = [];
+if ($isMe) {
+    $stmt3 = $db->prepare("
+        SELECT p.id, p.title, p.category, p.address, p.starts_at, p.attendees
+        FROM event_registrations er
+        JOIN publications p ON p.id = er.publication_id
+        WHERE er.user_id = ? AND p.status = 'active' AND p.type = 'event'
+        ORDER BY p.starts_at ASC
+    ");
+    $stmt3->execute([$me['id']]);
+    $regEvents = $stmt3->fetchAll();
+}
+
 $typeEmoji = ['incident' => '🚨', 'event' => '🎉', 'activity' => '⚡'];
 $typeColor = ['incident' => 'badge-red', 'event' => 'badge-yellow', 'activity' => 'badge-primary'];
 $typeLabel = ['incident' => 'Incidencia', 'event' => 'Evento', 'activity' => 'Actividad'];
@@ -168,6 +182,62 @@ include __DIR__ . '/includes/header.php';
   </div>
   <?php endif; ?>
 
+  <?php if ($isMe): ?>
+  <!-- Registered events section -->
+  <div style="font-size:16px;font-weight:700;margin-bottom:14px;">
+    🎟️ Eventos en los que me he apuntado
+  </div>
+  <?php if (empty($regEvents)): ?>
+    <div class="card mb-24" style="text-align:center;padding:32px;color:var(--text3);">
+      <div style="font-size:36px;margin-bottom:10px;">🎉</div>
+      <div>Todavía no estás apuntado a ningún evento.</div>
+      <a href="/citylive/dashboard.php" style="font-size:13px;color:var(--primary);margin-top:8px;display:inline-block;">Explorar eventos →</a>
+    </div>
+  <?php else: ?>
+    <div class="reg-events-grid mb-24">
+      <?php foreach ($regEvents as $ev): ?>
+        <?php
+          $evEmoji  = $categoryEmoji[$ev['category']] ?? '🎉';
+          $tsMs     = $ev['starts_at'] ? (new DateTime($ev['starts_at']))->getTimestamp() * 1000 : null;
+          $isPast   = $tsMs && $tsMs < time() * 1000;
+        ?>
+        <a href="/citylive/activity.php?id=<?= $ev['id'] ?>" class="reg-event-card">
+          <div class="reg-event-top">
+            <div class="reg-event-icon"><?= $evEmoji ?></div>
+            <div style="flex:1;min-width:0;">
+              <div class="reg-event-title"><?= htmlspecialchars($ev['title']) ?></div>
+              <?php if ($ev['address']): ?>
+                <div class="reg-event-addr">📍 <?= htmlspecialchars($ev['address']) ?></div>
+              <?php endif; ?>
+            </div>
+            <?php if ($ev['attendees'] > 0): ?>
+              <span class="badge badge-gray" style="flex-shrink:0;">👥 <?= $ev['attendees'] ?></span>
+            <?php endif; ?>
+          </div>
+          <?php if ($tsMs && !$isPast): ?>
+            <div class="event-countdown" data-starts="<?= $tsMs ?>">
+              <div class="countdown-blocks">
+                <div class="countdown-block"><span class="countdown-num" data-unit="d">--</span><span class="countdown-unit">días</span></div>
+                <div class="countdown-sep">:</div>
+                <div class="countdown-block"><span class="countdown-num" data-unit="h">--</span><span class="countdown-unit">hrs</span></div>
+                <div class="countdown-sep">:</div>
+                <div class="countdown-block"><span class="countdown-num" data-unit="m">--</span><span class="countdown-unit">min</span></div>
+                <div class="countdown-sep">:</div>
+                <div class="countdown-block"><span class="countdown-num" data-unit="s">--</span><span class="countdown-unit">seg</span></div>
+              </div>
+              <div class="countdown-live-dot"></div>
+            </div>
+          <?php elseif ($tsMs && $isPast): ?>
+            <div style="font-size:12px;color:var(--text3);padding:8px 0 4px;text-align:center;">Evento finalizado</div>
+          <?php else: ?>
+            <div style="font-size:12px;color:var(--text3);padding:8px 0 4px;text-align:center;">Fecha por confirmar</div>
+          <?php endif; ?>
+        </a>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+  <?php endif; ?>
+
   <!-- Publications grid -->
   <div style="font-size:16px;font-weight:700;margin-bottom:14px;">
     Publicaciones recientes
@@ -212,5 +282,32 @@ include __DIR__ . '/includes/header.php';
   <?php endif; ?>
 
 </div>
+
+<?php if ($isMe && !empty($regEvents)): ?>
+<script>
+(function () {
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    document.querySelectorAll('.event-countdown[data-starts]').forEach(function (el) {
+      var diff = parseInt(el.dataset.starts) - Date.now();
+      if (diff <= 0) {
+        el.innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;">¡El evento ha comenzado!</div>';
+        return;
+      }
+      var s = Math.floor(diff / 1000);
+      var d = Math.floor(s / 86400); s %= 86400;
+      var h = Math.floor(s / 3600);  s %= 3600;
+      var m = Math.floor(s / 60);    s %= 60;
+      el.querySelector('[data-unit="d"]').textContent = pad(d);
+      el.querySelector('[data-unit="h"]').textContent = pad(h);
+      el.querySelector('[data-unit="m"]').textContent = pad(m);
+      el.querySelector('[data-unit="s"]').textContent = pad(s);
+    });
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

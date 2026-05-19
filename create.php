@@ -16,19 +16,22 @@ const TOKEN_COSTS = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $type       = $_POST['type']        ?? '';
-    $title      = trim($_POST['title']  ?? '');
-    $desc       = trim($_POST['description'] ?? '');
-    $address    = trim($_POST['address'] ?? '');
-    $lat        = (float)($_POST['lat'] ?? 0);
-    $lng        = (float)($_POST['lng'] ?? 0);
-    $category   = trim($_POST['category'] ?? '');
-    $starts_at  = $_POST['starts_at']  ?? null;
-    $expires_at = $_POST['expires_at'] ?? null;
+    $type         = $_POST['type']        ?? '';
+    $title        = trim($_POST['title']  ?? '');
+    $desc         = trim($_POST['description'] ?? '');
+    $address      = trim($_POST['address'] ?? '');
+    $lat          = (float)($_POST['lat'] ?? 0);
+    $lng          = (float)($_POST['lng'] ?? 0);
+    $category     = trim($_POST['category'] ?? '');
+    $starts_at    = $_POST['starts_at']  ?? null;
+    $expires_at   = $_POST['expires_at'] ?? null;
+    $min_att      = (($_POST['min_attendees'] ?? '') !== '') ? (int)$_POST['min_attendees'] : null;
+    $max_att      = (($_POST['max_attendees'] ?? '') !== '') ? (int)$_POST['max_attendees'] : null;
 
     if (!in_array($type, ['incident', 'event', 'activity'])) $errors[] = 'Tipo de publicación inválido.';
     if (!$title) $errors[] = 'El título es obligatorio.';
     if (!$desc)  $errors[] = 'La descripción es obligatoria.';
+    if ($min_att !== null && $max_att !== null && $min_att > $max_att) $errors[] = 'El mínimo de asistentes no puede ser mayor que el máximo.';
 
     // Check tokens for activities
     $cost = TOKEN_COSTS[$type] ?? 0;
@@ -41,11 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$lat || !$lng) { $lat = 41.3851; $lng = 2.1734; }
 
         $db->prepare("
-            INSERT INTO publications (user_id, type, title, description, latitude, longitude, address, category, token_cost, starts_at, expires_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO publications (user_id, type, title, description, latitude, longitude, address, category, token_cost, min_attendees, max_attendees, starts_at, expires_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ")->execute([
             $user['id'], $type, $title, $desc,
             $lat, $lng, $address, $category, $cost,
+            $min_att, $max_att,
             $starts_at ?: null, $expires_at ?: null,
         ]);
         $newId = (int)$db->lastInsertId();
@@ -87,21 +91,21 @@ include __DIR__ . '/includes/header.php';
     </div>
     <div class="type-cards mb-24">
       <div class="type-card <?= ($_POST['type'] ?? 'incident') === 'incident' ? 'selected' : '' ?>"
-           onclick="selectType(this,'incident')">
+           data-type="incident">
         <div class="tc-icon">🚨</div>
         <div class="tc-name">Incidencia</div>
         <div class="tc-desc">Tráfico, obras, accidentes, cortes de luz...</div>
         <div class="tc-cost">⬡ Gratis</div>
       </div>
       <div class="type-card <?= ($_POST['type'] ?? '') === 'event' ? 'selected' : '' ?>"
-           onclick="selectType(this,'event')">
+           data-type="event">
         <div class="tc-icon">🎉</div>
         <div class="tc-name">Evento</div>
         <div class="tc-desc">Conciertos, fiestas, actos culturales...</div>
         <div class="tc-cost">⬡ Gratis</div>
       </div>
       <div class="type-card <?= ($_POST['type'] ?? '') === 'activity' ? 'selected' : '' ?>"
-           onclick="selectType(this,'activity')">
+           data-type="activity">
         <div class="tc-icon">⚡</div>
         <div class="tc-name">Actividad</div>
         <div class="tc-desc">Mercadillos, pop-ups, servicios de pago...</div>
@@ -159,9 +163,14 @@ include __DIR__ . '/includes/header.php';
 
       <div class="form-group">
         <label class="form-label" for="address">Dirección</label>
-        <input class="form-input" type="text" id="address" name="address"
-               value="<?= htmlspecialchars($_POST['address'] ?? '') ?>"
-               placeholder="Calle, plaza, barrio...">
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" type="text" id="address" name="address"
+                 value="<?= htmlspecialchars($_POST['address'] ?? '') ?>"
+                 placeholder="Calle, plaza, barrio...">
+          <button type="button" id="geocodeBtn" class="btn btn-outline" style="white-space:nowrap;flex-shrink:0;">
+            📍 Ubicar
+          </button>
+        </div>
       </div>
     </div>
 
@@ -178,11 +187,29 @@ include __DIR__ . '/includes/header.php';
       </div>
     </div>
 
+    <!-- Min / max attendees (events only) -->
+    <div id="attendeesRow" style="<?= ($_POST['type'] ?? 'incident') !== 'event' ? 'display:none;' : '' ?>">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label" for="min_attendees">Mínimo de asistentes</label>
+          <input class="form-input" type="number" id="min_attendees" name="min_attendees"
+                 min="1" placeholder="Sin mínimo"
+                 value="<?= htmlspecialchars($_POST['min_attendees'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="max_attendees">Máximo de asistentes</label>
+          <input class="form-input" type="number" id="max_attendees" name="max_attendees"
+                 min="1" placeholder="Sin límite"
+                 value="<?= htmlspecialchars($_POST['max_attendees'] ?? '') ?>">
+        </div>
+      </div>
+    </div>
+
     <!-- Location picker map -->
     <div class="form-group">
       <label class="form-label">Ubicación en el mapa</label>
       <div id="pickMap" style="height:250px;border-radius:12px;overflow:hidden;border:1px solid var(--border);"></div>
-      <div class="form-helper">Haz clic en el mapa para colocar el marcador. Por defecto: Barcelona.</div>
+      <div class="form-helper">Escribe la dirección y pulsa "📍 Ubicar", o haz clic directamente en el mapa.</div>
       <input type="hidden" name="lat" id="latInput" value="<?= htmlspecialchars($_POST['lat'] ?? '41.3851') ?>">
       <input type="hidden" name="lng" id="lngInput" value="<?= htmlspecialchars($_POST['lng'] ?? '2.1734') ?>">
     </div>
@@ -235,23 +262,63 @@ pickMarker.on('dragend', e => {
   updateCoords(e.target.getLatLng());
 });
 
-// ─── Type selector ────────────────────────────────────
-window.selectType = function (el, type) {
-  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('typeInput').value = type;
-
-  const est = document.getElementById('tokenEstimate');
-  const btn = document.getElementById('submitBtn');
-
-  if (type === 'activity') {
-    est.style.display = 'flex';
-    btn.textContent = 'Publicar actividad — 150 tokens';
-  } else {
-    est.style.display = 'none';
-    btn.textContent = type === 'incident' ? 'Publicar incidencia — Gratis' : 'Publicar evento — Gratis';
+// ─── Address geocoding ────────────────────────────────
+async function geocodeAddress() {
+  const addr = document.getElementById('address').value.trim();
+  if (!addr) return;
+  const btn = document.getElementById('geocodeBtn');
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    const res  = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(addr));
+    const data = await res.json();
+    if (data.length > 0) {
+      const lat = parseFloat(data[0].lat);
+      const lng = parseFloat(data[0].lon);
+      pickMarker.setLatLng([lat, lng]);
+      pickMap.setView([lat, lng], 16);
+      updateCoords({ lat, lng });
+    } else {
+      alert('Dirección no encontrada. Intenta ser más específico.');
+    }
+  } catch (e) {
+    alert('Error al buscar la dirección.');
   }
-};
+  btn.disabled = false;
+  btn.textContent = '📍 Ubicar';
+}
+
+document.getElementById('geocodeBtn').addEventListener('click', geocodeAddress);
+document.getElementById('address').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); geocodeAddress(); }
+});
+
+// ─── Type selector (event listeners, no onclick/global function needed) ──────
+document.querySelectorAll('.type-card[data-type]').forEach(card => {
+  card.addEventListener('click', function () {
+    const type = this.dataset.type;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+    this.classList.add('selected');
+    document.getElementById('typeInput').value = type;
+
+    const est = document.getElementById('tokenEstimate');
+    const btn = document.getElementById('submitBtn');
+    const attRow = document.getElementById('attendeesRow');
+    if (type === 'activity') {
+      est.style.display = 'flex';
+      btn.textContent = 'Publicar actividad — 150 tokens';
+      attRow.style.display = 'none';
+    } else if (type === 'event') {
+      est.style.display = 'none';
+      btn.textContent = 'Publicar evento — Gratis';
+      attRow.style.display = '';
+    } else {
+      est.style.display = 'none';
+      btn.textContent = 'Publicar incidencia — Gratis';
+      attRow.style.display = 'none';
+    }
+  });
+});
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

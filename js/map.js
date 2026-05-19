@@ -13,14 +13,12 @@
     attributionControl: true,
   });
 
-  // CartoDB dark tiles (no API key needed)
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
     maxZoom: 19,
   }).addTo(map);
 
-  // Custom zoom control (bottom-right)
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
   // ─── Marker factory ─────────────────────────────────
@@ -54,30 +52,46 @@
     return L.divIcon({ html, className: '', iconSize: [40, 48], iconAnchor: [20, 48], popupAnchor: [0, -52] });
   }
 
-  // ─── Load publications from API ──────────────────────
-  let markersLayer = L.layerGroup().addTo(map);
-  let currentFilter = 'all';
+  // ─── Marker store (all loaded, filter client-side) ───
+  let allEntries = [];
+  const markersLayer = L.layerGroup().addTo(map);
 
-  function loadPublications(filter) {
-    currentFilter = filter || 'all';
-    const url = '/citylive/api/publications.php' + (filter && filter !== 'all' ? '?type=' + filter : '');
+  let activeType = 'all';
+  let activeCat  = 'all';
 
-    fetch(url)
+  // ─── Load ALL publications once ──────────────────────
+  function loadPublications() {
+    fetch('/citylive/api/publications.php')
       .then(r => r.json())
       .then(data => {
         markersLayer.clearLayers();
+        allEntries = [];
         if (!data.features) return;
 
         data.features.forEach(feature => {
-          const pub   = feature.properties;
+          const pub    = feature.properties;
           const latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
-          const icon  = makeIcon(pub);
-
-          const marker = L.marker(latlng, { icon }).addTo(markersLayer);
+          const marker = L.marker(latlng, { icon: makeIcon(pub) });
           marker.on('click', () => openDetail(pub));
+          allEntries.push({ marker, pub });
         });
+
+        applyFilters(activeType, activeCat);
       })
       .catch(console.error);
+  }
+
+  // ─── Filter markers client-side ──────────────────────
+  function applyFilters(type, category) {
+    activeType = type || 'all';
+    activeCat  = category || 'all';
+
+    markersLayer.clearLayers();
+    allEntries.forEach(({ marker, pub }) => {
+      const matchType = activeType === 'all' || pub.type === activeType;
+      const matchCat  = activeCat  === 'all' || pub.category === activeCat;
+      if (matchType && matchCat) marker.addTo(markersLayer);
+    });
   }
 
   // ─── Detail panel ────────────────────────────────────
@@ -85,7 +99,6 @@
 
   function openDetail(pub) {
     if (!detailPanel) {
-      // No panel → navigate to full page
       window.location.href = `/citylive/activity.php?id=${pub.id}`;
       return;
     }
@@ -133,20 +146,56 @@
         </a>
       </div>
       <div class="detail-actions">
-        <a href="/citylive/activity.php?id=${pub.id}" class="btn btn-primary" style="flex:1;">Ver detalle</a>
-        <button class="btn btn-outline btn-icon" title="Guardar">🔖</button>
+        <a href="/citylive/activity.php?id=${pub.id}" class="btn btn-${pub.type === 'event' ? 'outline' : 'primary'}" style="flex:1;">Ver detalle</a>
+        ${pub.type === 'event' ? `<button class="btn btn-primary detail-join-btn" data-pub="${pub.id}" data-registered="0" style="flex:2;">🎟️ Apuntarse</button>` : ''}
+        ${pub.type !== 'event' ? `<button class="btn btn-outline btn-icon" title="Guardar">🔖</button>` : ''}
         <button class="btn btn-outline btn-icon" title="Reportar">🚩</button>
       </div>`;
 
     detailPanel.classList.add('open');
-
-    // Center map
     map.panTo([parseFloat(pub.lat), parseFloat(pub.lng)], { animate: true });
 
-    // Highlight item in left list
     document.querySelectorAll('.map-pub-item').forEach(el => {
       el.classList.toggle('selected', el.dataset.id == pub.id);
     });
+
+    // For events: check registration status and wire up join button
+    if (pub.type === 'event') {
+      const joinBtn = detailPanel.querySelector('.detail-join-btn');
+      // Check current status
+      fetch(`/citylive/api/event_register.php?pub_id=${pub.id}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.registered) {
+            joinBtn.dataset.registered = '1';
+            joinBtn.className = 'btn btn-danger detail-join-btn';
+            joinBtn.style.flex = '2';
+            joinBtn.textContent = '✗ Desapuntarse';
+          }
+        })
+        .catch(() => {});
+
+      joinBtn.addEventListener('click', async function () {
+        const registered = this.dataset.registered === '1';
+        this.disabled = true;
+        const res  = await fetch('/citylive/api/event_register.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const now = data.registered;
+          this.dataset.registered = now ? '1' : '0';
+          this.className = 'btn detail-join-btn ' + (now ? 'btn-danger' : 'btn-primary');
+          this.style.flex = '2';
+          this.textContent = now ? '✗ Desapuntarse' : '🎟️ Apuntarse';
+        } else {
+          alert(data.error || 'Error al procesar');
+        }
+        this.disabled = false;
+      });
+    }
   }
 
   window.closeDetail = function () {
@@ -154,25 +203,18 @@
     document.querySelectorAll('.map-pub-item').forEach(el => el.classList.remove('selected'));
   };
 
-  // ─── Left panel list items click ─────────────────────
+  // ─── Left panel list item click ──────────────────────
+  // Items are <a> tags so they work without JS; intercept to show panel instead
   document.addEventListener('click', e => {
     const item = e.target.closest('.map-pub-item');
     if (!item) return;
-    const id = item.dataset.id;
-    // Find feature data already loaded
-    fetch(`/citylive/api/publications.php?id=${id}`)
+    e.preventDefault();
+    fetch(`/citylive/api/publications.php?id=${item.dataset.id}`)
       .then(r => r.json())
       .then(data => {
-        if (data.features && data.features[0]) {
-          openDetail(data.features[0].properties);
-        }
+        if (data.features && data.features[0]) openDetail(data.features[0].properties);
       });
   });
-
-  // ─── Filter clicks ───────────────────────────────────
-  window.applyFilter = function (filter) {
-    loadPublications(filter === 'all' ? null : filter);
-  };
 
   // ─── Helpers ─────────────────────────────────────────
   function escHtml(str) {
@@ -193,6 +235,5 @@
   // ─── Initial load ────────────────────────────────────
   loadPublications();
 
-  // Expose for external use
-  window.CityLiveMap = { loadPublications, openDetail, map };
+  window.CityLiveMap = { loadPublications, applyFilters, openDetail, map };
 })();

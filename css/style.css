@@ -558,6 +558,8 @@ input, textarea, select { font-family: inherit; }
   display: flex; align-items: flex-start; gap: 10px;
   padding: 12px;
   border-radius: var(--r);
+  text-decoration: none;
+  color: var(--text);
   cursor: pointer; transition: all .15s;
   margin-bottom: 4px;
   border: 1px solid transparent;
@@ -771,6 +773,107 @@ input, textarea, select { font-family: inherit; }
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px;
+}
+
+/* ─── Registered events (profile) ──────────────────── */
+.reg-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 14px;
+}
+.reg-event-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color .2s, transform .2s;
+}
+.reg-event-card:hover {
+  border-color: rgba(0,212,255,.35);
+  transform: translateY(-2px);
+}
+.reg-event-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.reg-event-icon {
+  font-size: 24px;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,212,255,.08);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.reg-event-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.reg-event-addr {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.event-countdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0 2px;
+  position: relative;
+}
+.countdown-blocks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.countdown-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 36px;
+}
+.countdown-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.countdown-sep {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text3);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.countdown-unit {
+  font-size: 9px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-top: 2px;
+}
+.countdown-live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-left: 4px;
+  animation: liveRing 1.4s ease-out infinite;
+  flex-shrink: 0;
+}
+@keyframes liveRing {
+  0%   { box-shadow: 0 0 0 0 rgba(0,230,118,.5); }
+  70%  { box-shadow: 0 0 0 7px rgba(0,230,118,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,230,118,0); }
 }
 
 /* ═══════════════════════════════════════════════════════

@@ -127,6 +127,14 @@ CREATE TABLE IF NOT EXISTS saves (
     PRIMARY KEY (user_id, publication_id)
 )", "Create saves table");
 
+run($pdo, "
+CREATE TABLE IF NOT EXISTS event_registrations (
+    user_id        INT NOT NULL,
+    publication_id INT NOT NULL,
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, publication_id)
+)", "Create event_registrations table");
+
 // ─── Seed users ───────────────────────────────────────
 $users = [
     ['maria.llull',   'maria@citylive.app',   'demo1234', 'María Llull',    'Urbanista y exploradora urbana 🏙️ Comparto lo mejor de BCN en tiempo real.', 'platinum', 8450, 4.9, 284, 1],
