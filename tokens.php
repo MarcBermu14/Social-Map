@@ -5,29 +5,55 @@ requireLogin();
 $user = currentUser();
 $db   = getDB();
 
-// Handle token purchase (demo)
+// Paquetes disponibles: amount => price in cents (display only)
+$packs = [500 => 499, 2000 => 999, 5000 => 1999, 200 => 199];
+
+// Manejar compra de tokens con validación mejorada
+$error_message = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_tokens'])) {
-    $packs = [500 => 499, 2000 => 999, 5000 => 1999, 200 => 199]; // amount => price in cents (display only)
     $amount = (int)($_POST['buy_tokens']);
-    if (isset($packs[$amount])) {
-        $db->prepare('UPDATE users SET tokens_balance = tokens_balance + ? WHERE id = ?')->execute([$amount, $user['id']]);
-        $db->prepare('INSERT INTO token_transactions (user_id, amount, type, description) VALUES (?, ?, "purchase", ?)')->execute([
-            $user['id'], $amount, "Compra de $amount tokens"
-        ]);
-        header('Location: /citylive/tokens.php?ok=' . $amount);
-        exit;
+    
+    // Validar que el monto sea válido y esté en los paquetes disponibles
+    if (!isset($packs[$amount])) {
+        $error_message = 'Paquete inválido seleccionado.';
+    } elseif ($amount <= 0) {
+        $error_message = 'La cantidad debe ser mayor a cero.';
+    } else {
+        try {
+            // Iniciar transacción para consistencia de datos
+            $db->beginTransaction();
+            
+            // Actualizar saldo del usuario
+            $db->prepare('UPDATE users SET tokens_balance = tokens_balance + ? WHERE id = ?')
+                ->execute([$amount, $user['id']]);
+            
+            // Registrar la transacción
+            $db->prepare('INSERT INTO token_transactions (user_id, amount, type, description) VALUES (?, ?, "purchase", ?)')
+                ->execute([$user['id'], $amount, "Compra de $amount tokens"]);
+            
+            // Confirmar la transacción
+            $db->commit();
+            
+            // Redirigir con confirmación
+            header('Location: /citylive/tokens.php?ok=' . $amount);
+            exit;
+        } catch (Exception $e) {
+            $error_message = 'Error al procesar la compra. Intenta de nuevo.';
+            $db->rollBack();
+            error_log('Token purchase error: ' . $e->getMessage());
+        }
     }
 }
 
-// Reload user
+// Recargar datos del usuario después de la transacción
 $user = currentUser();
 
-// Transactions
+// Obtener historial de transacciones (últimas 20)
 $txs = $db->prepare('SELECT * FROM token_transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 20');
 $txs->execute([$user['id']]);
 $txs = $txs->fetchAll();
 
-// Chart data: usage by day for last 7 days
+// Generar datos de gráfico: consumo por día en los últimos 7 días
 $chart = [];
 for ($i = 6; $i >= 0; $i--) {
     $date = date('Y-m-d', strtotime("-$i days"));
@@ -37,7 +63,7 @@ for ($i = 6; $i >= 0; $i--) {
 }
 $maxChart = max(1, ...array_column($chart, 'val'));
 
-// Monthly usage
+// Calcular estadísticas del mes actual
 $used = $db->prepare("SELECT COALESCE(SUM(ABS(amount)),0) FROM token_transactions WHERE user_id = ? AND amount < 0 AND MONTH(created_at) = MONTH(NOW())");
 $used->execute([$user['id']]);
 $used = (int)$used->fetchColumn();
@@ -63,6 +89,13 @@ include __DIR__ . '/includes/header.php';
       <div class="flash flash-success">
         <i class="fa-solid fa-circle-check"></i>
         Se han añadido <?= (int)$_GET['ok'] ?> tokens a tu cuenta.
+      </div>
+    <?php endif; ?>
+    
+    <?php if ($error_message): ?>
+      <div class="flash flash-error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <?= htmlspecialchars($error_message) ?>
       </div>
     <?php endif; ?>
 
@@ -135,12 +168,19 @@ include __DIR__ . '/includes/header.php';
 
     <!-- Transaction history -->
     <div class="card">
-      <div class="card-title mb-16">Historial de transacciones</div>
+      <div class="card-title mb-16">📋 Historial de transacciones</div>
       <?php if (empty($txs)): ?>
         <p class="text-muted text-sm">No hay transacciones todavía.</p>
       <?php else: ?>
         <?php
-        $txIcons = ['subscription' => '💎', 'purchase' => '🛒', 'publication' => '⚡', 'reward' => '🎯', 'refund' => '↩️'];
+        // Mapeo de iconos según tipo de transacción
+        $txIcons = [
+            'subscription' => '💎',
+            'purchase' => '🛒',
+            'publication' => '⚡',
+            'reward' => '🎯',
+            'refund' => '↩️'
+        ];
         foreach ($txs as $tx):
           $sign = $tx['amount'] > 0 ? '+' : '';
           $cls  = $tx['amount'] > 0 ? 'pos' : 'neg';
@@ -164,17 +204,18 @@ include __DIR__ . '/includes/header.php';
       <div class="card-title mb-16">🛒 Comprar tokens extra</div>
 
       <?php
-      $packs = [
+      // Paquetes disponibles para compra
+      $purchase_packs = [
         [200,  '200 tokens',  'Pack de prueba',            '0,99€', ''],
         [500,  '500 tokens',  'Pack básico',               '2,99€', ''],
         [2000, '2.000 tokens','Pack popular · +200 bonus', '9,99€', 'var(--primary)'],
         [5000, '5.000 tokens','Pack pro · +1.000 bonus',   '19,99€','var(--purple)'],
       ];
-      foreach ($packs as [$amount, $name, $bonus, $price, $borderColor]):
+      foreach ($purchase_packs as [$amount, $name, $bonus, $price, $borderColor]):
       ?>
-      <form method="POST">
+      <form method="POST" style="margin-bottom: 8px;">
         <input type="hidden" name="buy_tokens" value="<?= $amount ?>">
-        <button type="submit" class="pack-card" style="width:100%;text-align:left;<?= $borderColor ? "border-color:$borderColor;" : '' ?>">
+        <button type="submit" class="pack-card" style="width:100%;text-align:left;<?= $borderColor ? "border-color:$borderColor;" : '' ?>" title="Comprar <?= $name ?>">
           <div class="pack-icon">⬡</div>
           <div class="pack-info">
             <div class="pack-amount"><?= $name ?></div>
@@ -190,23 +231,23 @@ include __DIR__ . '/includes/header.php';
         💎 Upgrade de plan
       </a>
       <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:10px;">
-        Pro: 1.000⬡/mes · Platinum: 10.000⬡/mes
+        <strong>Pro:</strong> 1.000⬡/mes · <strong>Platinum:</strong> 10.000⬡/mes
       </p>
     </div>
 
     <!-- Plan info -->
     <div class="card">
-      <div class="card-title mb-12">Tu plan</div>
+      <div class="card-title mb-12">📊 Tu plan actual</div>
       <div style="font-size:28px;margin-bottom:8px;">
         <?= $user['plan'] === 'platinum' ? '💎' : ($user['plan'] === 'pro' ? '⭐' : '🆓') ?>
         <?= ucfirst($user['plan']) ?>
       </div>
       <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">
-        <?= number_format($planTokens[$user['plan']]) ?> tokens mensuales incluidos
+        <strong><?= number_format($planTokens[$user['plan']]) ?></strong> tokens mensuales incluidos
       </div>
       <?php if ($user['plan'] !== 'platinum'): ?>
       <a href="/citylive/subscriptions.php" class="btn btn-outline btn-sm btn-block">
-        Ver planes →
+        Ver planes disponibles →
       </a>
       <?php endif; ?>
     </div>
