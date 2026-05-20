@@ -4,21 +4,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg:       #070B14;
-  --surface:  #0F1629;
-  --card:     #141B2D;
-  --card2:    #1C2540;
-  --primary:  #00D4FF;
-  --primary-d:rgba(0,212,255,.12);
+  --bg:       #EEF2F9;
+  --surface:  #FFFFFF;
+  --card:     #FFFFFF;
+  --card2:    #F0F4FA;
+  --primary:  #0EA5E9;
+  --primary-d:rgba(14,165,233,.1);
   --purple:   #7C3AED;
-  --orange:   #FF6B35;
-  --green:    #00E676;
-  --yellow:   #FFB300;
-  --red:      #FF4757;
-  --text:     #FFFFFF;
-  --text2:    #A8B4C8;
-  --text3:    #5A6478;
-  --border:   rgba(255,255,255,.07);
+  --orange:   #F97316;
+  --green:    #10B981;
+  --yellow:   #D97706;
+  --red:      #EF4444;
+  --text:     #0F172A;
+  --text2:    #475569;
+  --text3:    #94A3B8;
+  --border:   rgba(0,0,0,.1);
   --sidebar-w:240px;
   --topbar-h: 64px;
   --r:        12px;
@@ -65,7 +65,7 @@ input, textarea, select { font-family: inherit; }
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 40px;
-  box-shadow: 0 32px 80px rgba(0,0,0,.6);
+  box-shadow: 0 8px 32px rgba(0,0,0,.1);
 }
 
 .auth-logo {
@@ -107,7 +107,7 @@ input, textarea, select { font-family: inherit; }
   width: 100%;
   padding: 13px 16px;
   border-radius: var(--r);
-  background: var(--card);
+  background: var(--card2);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 15px;
@@ -121,7 +121,7 @@ input, textarea, select { font-family: inherit; }
   width: 100%;
   padding: 13px 16px;
   border-radius: var(--r);
-  background: var(--card);
+  background: var(--card2);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 15px;
@@ -133,7 +133,7 @@ input, textarea, select { font-family: inherit; }
   width: 100%;
   padding: 13px 16px;
   border-radius: var(--r);
-  background: var(--card);
+  background: var(--card2);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 14px;
@@ -167,10 +167,10 @@ input, textarea, select { font-family: inherit; }
 .btn:active { transform: scale(.97); }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), #0098CC);
-  color: #000;
+  background: linear-gradient(135deg, var(--primary), #0077AA);
+  color: #fff;
 }
-.btn-primary:hover { opacity: .9; color: #000; }
+.btn-primary:hover { opacity: .9; color: #fff; }
 
 .btn-purple {
   background: linear-gradient(135deg, var(--purple), #A855F7);
@@ -206,14 +206,14 @@ input, textarea, select { font-family: inherit; }
 /* ─── Sidebar ──────────────────────────────────────────── */
 .sidebar {
   width: var(--sidebar-w);
-  background: rgba(10,14,26,.98);
+  background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   position: fixed;
   top: 0; left: 0; bottom: 0;
   z-index: 300;
-  backdrop-filter: blur(20px);
+  box-shadow: 2px 0 12px rgba(0,0,0,.05);
 }
 
 .sidebar-logo {
@@ -307,7 +307,7 @@ input, textarea, select { font-family: inherit; }
   justify-content: space-between;
   padding: 0 28px;
   border-bottom: 1px solid var(--border);
-  background: rgba(10,14,26,.97);
+  background: rgba(255,255,255,.95);
   backdrop-filter: blur(12px);
   position: sticky; top: 0;
   z-index: 200;
@@ -731,7 +731,7 @@ input, textarea, select { font-family: inherit; }
 .profile-cover {
   height: 180px;
   border-radius: var(--r-lg);
-  background: linear-gradient(135deg, #0A1530, #1A0A30, #0A1530);
+  background: linear-gradient(135deg, #0EA5E9, #7C3AED);
   position: relative;
   overflow: hidden;
   margin-bottom: 50px;
@@ -739,7 +739,7 @@ input, textarea, select { font-family: inherit; }
 .profile-cover::before {
   content: '';
   position: absolute; inset: 0;
-  background: repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(0,212,255,.025) 18px, rgba(0,212,255,.025) 20px);
+  background: repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,.04) 18px, rgba(255,255,255,.04) 20px);
 }
 .profile-avatar-wrap {
   position: absolute;
@@ -1070,14 +1070,14 @@ input, textarea, select { font-family: inherit; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
 /* Leaflet overrides */
-.leaflet-container { background: #0D1320 !important; }
+.leaflet-container { background: #dde4ee !important; }
 .leaflet-control-zoom { display: none; }
 .leaflet-popup-content-wrapper {
   background: var(--card) !important;
   border: 1px solid var(--border) !important;
   border-radius: 14px !important;
   color: var(--text) !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,.5) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12) !important;
 }
 .leaflet-popup-tip { background: var(--card) !important; }
 .leaflet-popup-close-button { color: var(--text2) !important; top: 10px !important; right: 10px !important; }

@@ -79,7 +79,7 @@ include __DIR__ . '/includes/header.php';
                  class="map-pub-item" data-id="<?= $pub['id'] ?>"
                  data-lat="<?= $pub['latitude'] ?>" data-lng="<?= $pub['longitude'] ?>"
                  data-type="<?= $pub['type'] ?>" data-category="<?= htmlspecialchars($pub['category'] ?? '') ?>">
-                <div class="map-pub-icon <?= $pub['type'] ?>" style="background:rgba(0,0,0,.3);">
+                <div class="map-pub-icon <?= $pub['type'] ?>">
                   <?= $emoji ?>
                 </div>
                 <div class="map-pub-info" style="min-width:0;">
