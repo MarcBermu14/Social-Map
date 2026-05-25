@@ -1,17 +1,19 @@
 <?php
 // ─── Database configuration ───────────────────────────
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'citylive');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_CHAR', 'utf8mb4');
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_NAME', getenv('DB_NAME') ?: 'citylive');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+$dbPass = getenv('DB_PASS');
+define('DB_PASS', $dbPass === false ? '' : $dbPass);
+define('DB_CHAR', getenv('DB_CHAR') ?: 'utf8mb4');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
 
 // ─── PDO connection (singleton) ───────────────────────
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
         try {
-            $dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s', DB_HOST, DB_NAME, DB_CHAR);
+            $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=%s', DB_HOST, DB_PORT, DB_NAME, DB_CHAR);
             $pdo = new PDO($dsn, DB_USER, DB_PASS, [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
