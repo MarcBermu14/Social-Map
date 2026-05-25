@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS token_transactions (
     id          INT AUTO_INCREMENT PRIMARY KEY,
     user_id     INT          NOT NULL,
     amount      INT          NOT NULL,
-    type        ENUM('subscription','purchase','publication','reward','refund') NOT NULL,
+    type        ENUM('subscription','purchase','publication','reward','refund','spin') NOT NULL,
     description VARCHAR(255),
     created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -91,6 +91,22 @@ CREATE TABLE IF NOT EXISTS followers (
     FOREIGN KEY (follower_id)  REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- ─── SPIN HISTORY ────────────────────────────────────
+-- Tabla de auditoría de tiradas de la ruleta
+-- EV por tirada: 58,75 tokens · Margen pagada: 41,25%
+CREATE TABLE IF NOT EXISTS spin_history (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT          NOT NULL,
+    spin_type   ENUM('daily','paid')  NOT NULL,
+    cost        INT          NOT NULL DEFAULT 0,
+    reward      INT          NOT NULL DEFAULT 0,
+    prize_label VARCHAR(50),
+    created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_sh_user    (user_id),
+    INDEX idx_sh_created (created_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ─── SAVED PUBLICATIONS ───────────────────────────────
 CREATE TABLE IF NOT EXISTS saves (

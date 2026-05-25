@@ -47,6 +47,13 @@ $userPlan  = $user['plan'] ?? 'free';
         <span>Crear publicación</span>
       </a>
 
+      <a href="/citylive/spin.php"
+         class="nav-item <?= $activePage === 'spin' ? 'active' : '' ?>">
+        <i class="nav-icon fa-solid fa-circle-dot"></i>
+        <span>Ruleta</span>
+        <span style="margin-left:auto;font-size:10px;font-weight:700;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:2px 6px;border-radius:20px;">GRATIS</span>
+      </a>
+
       <div class="nav-divider"></div>
       <div class="nav-section-label">Mi cuenta</div>
 

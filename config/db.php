@@ -29,6 +29,27 @@ function getDB(): PDO {
                 try { $pdo->exec("ALTER TABLE publications ADD COLUMN $col INT DEFAULT NULL"); }
                 catch (PDOException $e) {}
             }
+            // Auto-create spin_history table
+            $pdo->exec("CREATE TABLE IF NOT EXISTS spin_history (
+                id          INT AUTO_INCREMENT PRIMARY KEY,
+                user_id     INT          NOT NULL,
+                spin_type   ENUM('daily','paid') NOT NULL,
+                cost        INT          NOT NULL DEFAULT 0,
+                reward      INT          NOT NULL DEFAULT 0,
+                prize_label VARCHAR(50),
+                created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_sh_user    (user_id),
+                INDEX idx_sh_created (created_at),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            // Add 'spin' to token_transactions ENUM if not already present
+            try {
+                $col = $pdo->query("SHOW COLUMNS FROM token_transactions LIKE 'type'")->fetch();
+                if ($col && strpos($col['Type'], 'spin') === false) {
+                    $pdo->exec("ALTER TABLE token_transactions MODIFY type
+                        ENUM('subscription','purchase','publication','reward','refund','spin') NOT NULL");
+                }
+            } catch (PDOException $e) {}
         } catch (PDOException $e) {
             http_response_code(500);
             exit(json_encode(['error' => 'DB connection failed: ' . $e->getMessage()]));
