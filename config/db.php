@@ -52,6 +52,15 @@ function getDB(): PDO {
                         ENUM('subscription','purchase','publication','reward','refund','spin') NOT NULL");
                 }
             } catch (PDOException $e) {}
+            // Auto-add profile fields to users if missing
+            $profileCols = [
+                "social_links TEXT NULL DEFAULT NULL",
+                "updated_at   TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP",
+            ];
+            foreach ($profileCols as $colDef) {
+                try { $pdo->exec("ALTER TABLE users ADD COLUMN $colDef"); }
+                catch (PDOException $e) {}
+            }
         } catch (PDOException $e) {
             http_response_code(500);
             exit(json_encode(['error' => 'DB connection failed: ' . $e->getMessage()]));

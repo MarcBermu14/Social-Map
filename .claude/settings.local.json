@@ -3,7 +3,13 @@
     "allow": [
       "Bash(Get-ChildItem -Path \"c:\\\\xampp\\\\htdocs\\\\citylive\" -Directory)",
       "Bash(Select-Object Name)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\edit_profile.php\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\profile.php\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\config\\\\db.php\")",
+      "PowerShell(& \"C:\\\\xampp\\\\php\\\\php.exe\" -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\edit_profile.php\")",
+      "PowerShell(& \"C:\\\\xampp\\\\php\\\\php.exe\" -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\profile.php\")",
+      "PowerShell(& \"C:\\\\xampp\\\\php\\\\php.exe\" -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\config\\\\db.php\")"
     ]
   }
 }

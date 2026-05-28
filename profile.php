@@ -66,6 +66,13 @@ if ($isMe) {
     $regEvents = $stmt3->fetchAll();
 }
 
+// Parse social_links
+$profileSocial = [];
+if (!empty($profile['social_links'])) {
+    $decoded = json_decode($profile['social_links'], true);
+    if (is_array($decoded)) $profileSocial = $decoded;
+}
+
 $typeEmoji = ['incident' => '🚨', 'event' => '🎉', 'activity' => '⚡'];
 $typeColor = ['incident' => 'badge-red', 'event' => 'badge-yellow', 'activity' => 'badge-primary'];
 $typeLabel = ['incident' => 'Incidencia', 'event' => 'Evento', 'activity' => 'Actividad'];
@@ -90,7 +97,12 @@ include __DIR__ . '/includes/header.php';
   <div class="profile-cover">
     <div class="profile-avatar-wrap">
       <div class="avatar avatar-xl profile-avatar" style="color:#fff;font-size:40px;">
-        <?= strtoupper(substr($profile['full_name'] ?? $profile['username'], 0, 1)) ?>
+        <?php if ($profile['avatar']): ?>
+          <img src="<?= htmlspecialchars($profile['avatar']) ?>" alt="Avatar"
+               style="width:100%;height:100%;object-fit:cover;">
+        <?php else: ?>
+          <?= strtoupper(substr($profile['full_name'] ?? $profile['username'], 0, 1)) ?>
+        <?php endif; ?>
       </div>
     </div>
   </div>
@@ -117,14 +129,41 @@ include __DIR__ . '/includes/header.php';
           <?= htmlspecialchars($profile['bio']) ?>
         </p>
       <?php endif; ?>
+      <?php if ($profileSocial): ?>
+        <?php
+          $socialMeta = [
+              'twitter'   => ['fa-brands fa-x-twitter', fn($v) => 'https://x.com/' . ltrim($v, '@')],
+              'instagram' => ['fa-brands fa-instagram',  fn($v) => 'https://instagram.com/' . ltrim($v, '@')],
+              'tiktok'    => ['fa-brands fa-tiktok',     fn($v) => 'https://tiktok.com/@' . ltrim($v, '@')],
+              'facebook'  => ['fa-brands fa-facebook',   fn($v) => str_starts_with($v, 'http') ? $v : 'https://facebook.com/' . $v],
+              'website'   => ['fa-solid fa-globe',       fn($v) => $v],
+          ];
+          $socialLabels = ['twitter' => 'Twitter', 'instagram' => 'Instagram',
+                           'tiktok'  => 'TikTok',  'facebook'  => 'Facebook', 'website' => 'Web'];
+        ?>
+        <div class="ep-social-links">
+          <?php foreach ($socialMeta as $net => [$icon, $urlFn]): ?>
+            <?php if (!empty($profileSocial[$net])): ?>
+              <a href="<?= htmlspecialchars($urlFn($profileSocial[$net])) ?>"
+                 class="ep-social-link" target="_blank" rel="noopener noreferrer">
+                <i class="<?= $icon ?>"></i>
+                <?= $net === 'website' ? htmlspecialchars(parse_url($profileSocial[$net], PHP_URL_HOST) ?: $profileSocial[$net]) : htmlspecialchars($socialLabels[$net]) ?>
+              </a>
+            <?php endif; ?>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;align-items:flex-end;">
       <?php if ($isMe): ?>
+        <a href="/citylive/edit_profile.php" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-pen"></i> Editar perfil
+        </a>
         <a href="/citylive/subscriptions.php" class="btn btn-outline btn-sm">
           <i class="fa-solid fa-crown"></i> Gestionar plan
         </a>
-        <a href="/citylive/create.php" class="btn btn-primary btn-sm">
+        <a href="/citylive/create.php" class="btn btn-outline btn-sm">
           <i class="fa-solid fa-plus"></i> Nueva publicación
         </a>
       <?php else: ?>
