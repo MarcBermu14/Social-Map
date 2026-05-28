@@ -9,7 +9,16 @@
       "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\config\\\\db.php\")",
       "PowerShell(& \"C:\\\\xampp\\\\php\\\\php.exe\" -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\edit_profile.php\")",
       "PowerShell(& \"C:\\\\xampp\\\\php\\\\php.exe\" -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\profile.php\")",
-      "PowerShell(& \"C:\\\\xampp\\\\php\\\\php.exe\" -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\config\\\\db.php\")"
+      "PowerShell(& \"C:\\\\xampp\\\\php\\\\php.exe\" -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\config\\\\db.php\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\xampp\\\\htdocs\\\\citylive\" -Recurse -Force)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(xargs grep -l \"notification\\\\|email\\\\|alert\\\\|message\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\forum.php\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\posts.php\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\comments.php\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\likes.php\")",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\upload.php\")"
     ]
   }
 }

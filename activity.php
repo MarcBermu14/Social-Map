@@ -138,6 +138,27 @@ include __DIR__ . '/includes/header.php';
           </div>
         </div>
 
+        <!-- Forum access banner -->
+        <?php
+        $forumCount = $db->prepare("SELECT COUNT(*) FROM event_forum_posts WHERE event_id = ? AND status = 'active'");
+        $forumCount->execute([$id]);
+        $fPostCount = (int)$forumCount->fetchColumn();
+        ?>
+        <div class="card mb-20" style="border: 1px solid var(--primary); background: linear-gradient(135deg,rgba(14,165,233,.06),var(--card));">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div style="font-size:28px;">💬</div>
+            <div style="flex:1;">
+              <div style="font-weight:800;font-size:15px;margin-bottom:3px;">Foro del evento</div>
+              <div style="font-size:13px;color:var(--text2);">
+                <?= $fPostCount ?> publicaci<?= $fPostCount === 1 ? 'ón' : 'ones' ?> · Participa, pregunta y comparte
+              </div>
+            </div>
+            <a href="/citylive/forum.php?event=<?= $pub['id'] ?>" class="btn btn-primary btn-sm">
+              Abrir foro →
+            </a>
+          </div>
+        </div>
+
         <!-- Reviews -->
         <div class="card">
           <div class="card-header">

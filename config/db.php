@@ -61,6 +61,95 @@ function getDB(): PDO {
                 try { $pdo->exec("ALTER TABLE users ADD COLUMN $colDef"); }
                 catch (PDOException $e) {}
             }
+            // ── Forum tables ──────────────────────────────────────────────────
+            $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_posts (
+                id            INT AUTO_INCREMENT PRIMARY KEY,
+                event_id      INT NOT NULL,
+                user_id       INT NOT NULL,
+                content       TEXT NOT NULL,
+                is_pinned     TINYINT(1) DEFAULT 0,
+                status        ENUM('active','deleted','hidden') DEFAULT 'active',
+                like_count    INT DEFAULT 0,
+                comment_count INT DEFAULT 0,
+                created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_fp_event   (event_id),
+                INDEX idx_fp_user    (user_id),
+                INDEX idx_fp_created (created_at),
+                INDEX idx_fp_likes   (like_count),
+                FOREIGN KEY (event_id) REFERENCES publications(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+            $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_comments (
+                id        INT AUTO_INCREMENT PRIMARY KEY,
+                post_id   INT NOT NULL,
+                user_id   INT NOT NULL,
+                parent_id INT DEFAULT NULL,
+                content   TEXT NOT NULL,
+                status    ENUM('active','deleted','hidden') DEFAULT 'active',
+                like_count INT DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_fc_post    (post_id),
+                INDEX idx_fc_user    (user_id),
+                INDEX idx_fc_parent  (parent_id),
+                FOREIGN KEY (post_id)   REFERENCES event_forum_posts(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id)   REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (parent_id) REFERENCES event_forum_comments(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+            $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_likes (
+                id          INT AUTO_INCREMENT PRIMARY KEY,
+                user_id     INT NOT NULL,
+                target_type ENUM('post','comment') NOT NULL,
+                target_id   INT NOT NULL,
+                created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_like (user_id, target_type, target_id),
+                INDEX idx_fl_target (target_type, target_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_reports (
+                id          INT AUTO_INCREMENT PRIMARY KEY,
+                reporter_id INT NOT NULL,
+                target_type ENUM('post','comment') NOT NULL,
+                target_id   INT NOT NULL,
+                reason      ENUM('spam','offensive','inappropriate','other') NOT NULL,
+                description TEXT,
+                status      ENUM('pending','reviewed','dismissed') DEFAULT 'pending',
+                created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_report (reporter_id, target_type, target_id),
+                INDEX idx_fr_status (status),
+                FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_images (
+                id            INT AUTO_INCREMENT PRIMARY KEY,
+                post_id       INT NOT NULL,
+                user_id       INT NOT NULL,
+                filename      VARCHAR(255) NOT NULL,
+                original_name VARCHAR(255) NOT NULL,
+                file_size     INT NOT NULL DEFAULT 0,
+                width         INT DEFAULT 0,
+                height        INT DEFAULT 0,
+                created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_fi_post (post_id),
+                FOREIGN KEY (post_id)  REFERENCES event_forum_posts(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+            // Moderación logs
+            $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_mod_log (
+                id          INT AUTO_INCREMENT PRIMARY KEY,
+                mod_id      INT NOT NULL,
+                action      VARCHAR(50) NOT NULL,
+                target_type ENUM('post','comment') NOT NULL,
+                target_id   INT NOT NULL,
+                reason      TEXT,
+                created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_fml_mod (mod_id),
+                FOREIGN KEY (mod_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         } catch (PDOException $e) {
             http_response_code(500);
             exit(json_encode(['error' => 'DB connection failed: ' . $e->getMessage()]));
