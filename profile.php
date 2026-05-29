@@ -9,7 +9,7 @@ $viewId  = isset($_GET['id']) ? (int)$_GET['id'] : $me['id'];
 $stmt = $db->prepare('SELECT * FROM users WHERE id = ?');
 $stmt->execute([$viewId]);
 $profile = $stmt->fetch();
-if (!$profile) { header('Location: /citylive/dashboard.php'); exit; }
+if (!$profile) { redirectTo('dashboard.php'); }
 
 $isMe = ($profile['id'] === $me['id']);
 
@@ -35,13 +35,13 @@ if (!$isMe) {
 
 // Handle follow / unfollow
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isMe) {
+    requireCsrf();
     if (isset($_POST['follow'])) {
         $db->prepare('INSERT IGNORE INTO followers (follower_id, following_id) VALUES (?,?)')->execute([$me['id'], $viewId]);
     } elseif (isset($_POST['unfollow'])) {
         $db->prepare('DELETE FROM followers WHERE follower_id=? AND following_id=?')->execute([$me['id'], $viewId]);
     }
-    header('Location: /citylive/profile.php?id=' . $viewId);
-    exit;
+    redirectTo('profile.php?id=' . $viewId);
 }
 
 // Publications
@@ -121,14 +121,15 @@ include __DIR__ . '/includes/header.php';
 
     <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;align-items:flex-end;">
       <?php if ($isMe): ?>
-        <a href="/citylive/subscriptions.php" class="btn btn-outline btn-sm">
+        <a href="<?= appUrl('subscriptions.php') ?>" class="btn btn-outline btn-sm">
           <i class="fa-solid fa-crown"></i> Gestionar plan
         </a>
-        <a href="/citylive/create.php" class="btn btn-primary btn-sm">
+        <a href="<?= appUrl('create.php') ?>" class="btn btn-primary btn-sm">
           <i class="fa-solid fa-plus"></i> Nueva publicación
         </a>
       <?php else: ?>
         <form method="POST">
+          <?= csrfInput() ?>
           <?php if ($isFollowing): ?>
             <button type="submit" name="unfollow" class="btn btn-outline btn-sm">Siguiendo ✓</button>
           <?php else: ?>
@@ -191,7 +192,7 @@ include __DIR__ . '/includes/header.php';
     <div class="card mb-24" style="text-align:center;padding:32px;color:var(--text3);">
       <div style="font-size:36px;margin-bottom:10px;">🎉</div>
       <div>Todavía no estás apuntado a ningún evento.</div>
-      <a href="/citylive/dashboard.php" style="font-size:13px;color:var(--primary);margin-top:8px;display:inline-block;">Explorar eventos →</a>
+      <a href="<?= appUrl('dashboard.php') ?>" style="font-size:13px;color:var(--primary);margin-top:8px;display:inline-block;">Explorar eventos →</a>
     </div>
   <?php else: ?>
     <div class="reg-events-grid mb-24">
@@ -201,7 +202,7 @@ include __DIR__ . '/includes/header.php';
           $tsMs     = $ev['starts_at'] ? (new DateTime($ev['starts_at']))->getTimestamp() * 1000 : null;
           $isPast   = $tsMs && $tsMs < time() * 1000;
         ?>
-        <a href="/citylive/activity.php?id=<?= $ev['id'] ?>" class="reg-event-card">
+        <a href="<?= appUrl('activity.php?id=' . $ev['id']) ?>" class="reg-event-card">
           <div class="reg-event-top">
             <div class="reg-event-icon"><?= $evEmoji ?></div>
             <div style="flex:1;min-width:0;">
@@ -255,7 +256,7 @@ include __DIR__ . '/includes/header.php';
           $emoji = $categoryEmoji[$p['category']] ?? $typeEmoji[$p['type']] ?? '📍';
           $badgeCls = $typeColor[$p['type']] ?? 'badge-gray';
         ?>
-        <a href="/citylive/activity.php?id=<?= $p['id'] ?>" class="pub-item" style="flex-direction:column;align-items:flex-start;gap:10px;">
+        <a href="<?= appUrl('activity.php?id=' . $p['id']) ?>" class="pub-item" style="flex-direction:column;align-items:flex-start;gap:10px;">
           <div style="display:flex;align-items:center;gap:10px;width:100%;">
             <div class="pub-icon <?= $p['type'] ?>">
               <?= $emoji ?>
@@ -311,3 +312,5 @@ include __DIR__ . '/includes/header.php';
 <?php endif; ?>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
+
+

@@ -3,13 +3,13 @@ require_once __DIR__ . '/config/db.php';
 
 // Already logged in → go to dashboard
 if (isLoggedIn()) {
-    header('Location: /citylive/dashboard.php');
-    exit;
+    redirectTo('dashboard.php');
 }
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrf();
     $email    = trim($_POST['email']    ?? '');
     $password = trim($_POST['password'] ?? '');
 
@@ -21,11 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
-            $_SESSION['user_id'] = $user['id'];
+            loginUser((int)$user['id']);
             // Update last_active
             getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
-            header('Location: /citylive/dashboard.php');
-            exit;
+            redirectTo('dashboard.php');
         } else {
             $error = 'Email o contraseña incorrectos.';
         }
@@ -39,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar sesión — CityLive</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/citylive/css/style.css">
+  <link rel="stylesheet" href="<?= appUrl('css/style.css') ?>">
 </head>
 <body>
 <div class="auth-page">
@@ -57,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST" action="">
+      <?= csrfInput() ?>
       <div class="form-group">
         <label class="form-label" for="email">Email</label>
         <input class="form-input" type="email" id="email" name="email"
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="divider"></div>
 
     <p class="text-sm text-muted" style="text-align:center;margin-bottom:16px;">
-      ¿No tienes cuenta? <a href="/citylive/register.php">Crear cuenta gratis</a>
+      ¿No tienes cuenta? <a href="<?= appUrl('register.php') ?>">Crear cuenta gratis</a>
     </p>
 
     <!-- Demo credentials -->
@@ -125,3 +125,6 @@ function fillDemo(email) {
 </script>
 </body>
 </html>
+
+
+

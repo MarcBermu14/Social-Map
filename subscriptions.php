@@ -10,6 +10,7 @@ $msgType = 'success';
 
 // Handle plan upgrade (demo: just update plan and add tokens, no real payment)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
+    requireCsrf();
     $newPlan = $_POST['plan'];
     if (in_array($newPlan, ['free', 'pro', 'platinum'])) {
         $tokens = PLAN_TOKENS[$newPlan];
@@ -23,8 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
            ->execute([$user['id'], $newPlan]);
 
         $message = "¡Plan $newPlan activado correctamente! Se han añadido $tokens tokens a tu cuenta.";
-        header('Location: /citylive/subscriptions.php?ok=1');
-        exit;
+        redirectTo('subscriptions.php?ok=1');
     }
 }
 
@@ -64,7 +64,7 @@ include __DIR__ . '/includes/header.php';
           Saldo: <strong style="color:var(--primary);"><?= number_format($user['tokens_balance']) ?> tokens ⬡</strong>
         </div>
       </div>
-      <a href="/citylive/tokens.php" class="btn btn-outline btn-sm">Ver tokens →</a>
+      <a href="<?= appUrl('tokens.php') ?>" class="btn btn-outline btn-sm">Ver tokens →</a>
     </div>
   </div>
 
@@ -94,6 +94,7 @@ include __DIR__ . '/includes/header.php';
         <li><span class="fi">❌</span> Prioridad en el mapa</li>
       </ul>
       <form method="POST">
+        <?= csrfInput() ?>
         <input type="hidden" name="plan" value="free">
         <button class="btn btn-outline btn-block <?= $user['plan'] === 'free' ? '' : '' ?>"
                 <?= $user['plan'] === 'free' ? 'disabled' : '' ?>>
@@ -131,6 +132,7 @@ include __DIR__ . '/includes/header.php';
         <li><span class="fi">❌</span> Prioridad máxima en el mapa</li>
       </ul>
       <form method="POST">
+        <?= csrfInput() ?>
         <input type="hidden" name="plan" value="pro">
         <button class="btn btn-primary btn-block"
                 <?= $user['plan'] === 'pro' ? 'disabled' : '' ?>>
@@ -169,6 +171,7 @@ include __DIR__ . '/includes/header.php';
         <li><span class="fi">✅</span> Manager de cuenta dedicado</li>
       </ul>
       <form method="POST">
+        <?= csrfInput() ?>
         <input type="hidden" name="plan" value="platinum">
         <button class="btn btn-purple btn-block"
                 <?= $user['plan'] === 'platinum' ? 'disabled' : '' ?>>
@@ -219,3 +222,5 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
+
+

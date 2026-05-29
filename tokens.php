@@ -11,6 +11,7 @@ $packs = [500 => 499, 2000 => 999, 5000 => 1999, 200 => 199];
 // Manejar compra de tokens con validación mejorada
 $error_message = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_tokens'])) {
+    requireCsrf();
     $amount = (int)($_POST['buy_tokens']);
     
     // Validar que el monto sea válido y esté en los paquetes disponibles
@@ -35,8 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_tokens'])) {
             $db->commit();
             
             // Redirigir con confirmación
-            header('Location: /citylive/tokens.php?ok=' . $amount);
-            exit;
+            redirectTo('tokens.php?ok=' . $amount);
         } catch (Exception $e) {
             $error_message = 'Error al procesar la compra. Intenta de nuevo.';
             $db->rollBack();
@@ -214,6 +214,7 @@ include __DIR__ . '/includes/header.php';
       foreach ($purchase_packs as [$amount, $name, $bonus, $price, $borderColor]):
       ?>
       <form method="POST" style="margin-bottom: 8px;">
+        <?= csrfInput() ?>
         <input type="hidden" name="buy_tokens" value="<?= $amount ?>">
         <button type="submit" class="pack-card" style="width:100%;text-align:left;<?= $borderColor ? "border-color:$borderColor;" : '' ?>" title="Comprar <?= $name ?>">
           <div class="pack-icon">⬡</div>
@@ -227,7 +228,7 @@ include __DIR__ . '/includes/header.php';
       <?php endforeach; ?>
 
       <div class="divider"></div>
-      <a href="/citylive/subscriptions.php" class="btn btn-primary btn-block">
+      <a href="<?= appUrl('subscriptions.php') ?>" class="btn btn-primary btn-block">
         💎 Upgrade de plan
       </a>
       <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:10px;">
@@ -246,7 +247,7 @@ include __DIR__ . '/includes/header.php';
         <strong><?= number_format($planTokens[$user['plan']]) ?></strong> tokens mensuales incluidos
       </div>
       <?php if ($user['plan'] !== 'platinum'): ?>
-      <a href="/citylive/subscriptions.php" class="btn btn-outline btn-sm btn-block">
+      <a href="<?= appUrl('subscriptions.php') ?>" class="btn btn-outline btn-sm btn-block">
         Ver planes disponibles →
       </a>
       <?php endif; ?>
@@ -256,3 +257,5 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
+
+

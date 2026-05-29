@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    container_name: citylive_app
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: citylive
+      DB_USER: citylive
+      DB_PASS: citylive
+      APP_BASE_PATH: ""
+      SESSION_NAME: citylive_session
+      SESSION_SECURE_COOKIE: "0"
+      INSTALLER_ENABLED: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    container_name: citylive_db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: citylive
+      MYSQL_USER: citylive
+      MYSQL_PASSWORD: citylive
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  mysql_data:

@@ -1,12 +1,13 @@
 <?php
 require_once __DIR__ . '/config/db.php';
 
-if (isLoggedIn()) { header('Location: /citylive/dashboard.php'); exit; }
+if (isLoggedIn()) { redirectTo('dashboard.php'); }
 
 $errors = [];
 $ok     = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrf();
     $username  = trim($_POST['username']  ?? '');
     $email     = trim($_POST['email']     ?? '');
     $fullName  = trim($_POST['full_name'] ?? '');
@@ -37,9 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('INSERT INTO subscriptions (user_id, plan) VALUES (?, "free")')
                ->execute([$userId]);
 
-            $_SESSION['user_id'] = $userId;
-            header('Location: /citylive/dashboard.php');
-            exit;
+            loginUser($userId);
+            redirectTo('dashboard.php');
         }
     }
 }
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crear cuenta — CityLive</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/citylive/css/style.css">
+  <link rel="stylesheet" href="<?= appUrl('css/style.css') ?>">
 </head>
 <body>
 <div class="auth-page">
@@ -69,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endforeach; ?>
 
     <form method="POST" action="">
+      <?= csrfInput() ?>
       <div class="form-group">
         <label class="form-label" for="full_name">Nombre completo</label>
         <input class="form-input" type="text" id="full_name" name="full_name"
@@ -117,9 +118,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <p class="text-sm text-muted" style="text-align:center;margin-top:20px;">
-      ¿Ya tienes cuenta? <a href="/citylive/index.php">Iniciar sesión</a>
+      ¿Ya tienes cuenta? <a href="<?= appUrl('index.php') ?>">Iniciar sesión</a>
     </p>
   </div>
 </div>
 </body>
 </html>
+
+

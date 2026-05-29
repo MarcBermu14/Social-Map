@@ -25,6 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
+requireCsrf();
+
 $data   = json_decode(file_get_contents('php://input'), true);
 $action = $data['action']         ?? ($_POST['action'] ?? '');
 $pubId  = (int)($data['pub_id']   ?? ($_POST['pub_id'] ?? 0));

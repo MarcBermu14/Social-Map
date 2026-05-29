@@ -8,6 +8,8 @@ if (!isLoggedIn()) {
     exit;
 }
 
+requireCsrf();
+
 $data  = json_decode(file_get_contents('php://input'), true);
 $pubId = (int)($data['pub_id'] ?? 0);
 $uid   = (int)$_SESSION['user_id'];

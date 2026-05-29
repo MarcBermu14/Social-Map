@@ -16,6 +16,7 @@ const TOKEN_COSTS = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrf();
     $type         = $_POST['type']        ?? '';
     $title        = trim($_POST['title']  ?? '');
     $desc         = trim($_POST['description'] ?? '');
@@ -62,8 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
 
-        header("Location: /citylive/activity.php?id=$newId");
-        exit;
+        redirectTo("activity.php?id=$newId");
     }
 }
 
@@ -84,6 +84,7 @@ include __DIR__ . '/includes/header.php';
   <?php endforeach; ?>
 
   <form method="POST" action="">
+    <?= csrfInput() ?>
 
     <!-- Type selector -->
     <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">
@@ -129,7 +130,7 @@ include __DIR__ . '/includes/header.php';
           <?= number_format($user['tokens_balance']) ?> ⬡
         </div>
         <?php if ($user['tokens_balance'] < 150): ?>
-          <a href="/citylive/tokens.php" style="font-size:11px;color:var(--primary);">+ Comprar tokens</a>
+          <a href="<?= appUrl('tokens.php') ?>" style="font-size:11px;color:var(--primary);">+ Comprar tokens</a>
         <?php endif; ?>
       </div>
     </div>
@@ -222,7 +223,7 @@ include __DIR__ . '/includes/header.php';
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--yellow);">Plan Gratuito</div>
           <div style="font-size:13px;color:var(--text2);">
-            Puedes publicar incidencias y eventos gratis. Para actividades lucrativas necesitas <a href="/citylive/subscriptions.php">Pro o Platinum</a>.
+            Puedes publicar incidencias y eventos gratis. Para actividades lucrativas necesitas <a href="<?= appUrl('subscriptions.php') ?>">Pro o Platinum</a>.
           </div>
         </div>
       </div>
@@ -322,3 +323,5 @@ document.querySelectorAll('.type-card[data-type]').forEach(card => {
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
+
+

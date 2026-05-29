@@ -20,7 +20,21 @@ $userPlan  = $user['plan'] ?? 'free';
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <!-- App CSS -->
-  <link rel="stylesheet" href="/citylive/css/style.css">
+  <link rel="stylesheet" href="<?= appUrl('css/style.css') ?>">
+  <script>
+  window.CITYLIVE_CONFIG = {
+    baseUrl: "<?= rtrim(appUrl(), '/') ?>",
+    csrfToken: "<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>"
+  };
+  window.CityLive = window.CityLive || {};
+  window.CityLive.baseUrl = window.CityLive.baseUrl || window.CITYLIVE_CONFIG.baseUrl || '';
+  window.CityLive.csrfToken = window.CityLive.csrfToken || window.CITYLIVE_CONFIG.csrfToken || '';
+  window.CityLive.url = window.CityLive.url || function (path) {
+    var cleanPath = String(path || '').replace(/^\/+/, '');
+    if (!cleanPath) return window.CityLive.baseUrl || '/';
+    return (window.CityLive.baseUrl || '') + '/' + cleanPath;
+  };
+  </script>
 </head>
 <body>
 <div class="app-shell">
@@ -35,13 +49,13 @@ $userPlan  = $user['plan'] ?? 'free';
     <nav class="sidebar-nav">
       <div class="nav-section-label">Principal</div>
 
-      <a href="/citylive/dashboard.php"
+      <a href="<?= appUrl('dashboard.php') ?>"
          class="nav-item <?= $activePage === 'map' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-map"></i>
         <span>Mapa en vivo</span>
       </a>
 
-      <a href="/citylive/create.php"
+      <a href="<?= appUrl('create.php') ?>"
          class="nav-item <?= $activePage === 'create' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-plus-circle"></i>
         <span>Crear publicación</span>
@@ -50,7 +64,7 @@ $userPlan  = $user['plan'] ?? 'free';
       <div class="nav-divider"></div>
       <div class="nav-section-label">Mi cuenta</div>
 
-      <a href="/citylive/tokens.php"
+      <a href="<?= appUrl('tokens.php') ?>"
          class="nav-item <?= $activePage === 'tokens' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-hexagon-nodes"></i>
         <span>Mis tokens</span>
@@ -61,7 +75,7 @@ $userPlan  = $user['plan'] ?? 'free';
         <?php endif; ?>
       </a>
 
-      <a href="/citylive/subscriptions.php"
+      <a href="<?= appUrl('subscriptions.php') ?>"
          class="nav-item <?= $activePage === 'subs' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-crown"></i>
         <span>Suscripción</span>
@@ -70,7 +84,7 @@ $userPlan  = $user['plan'] ?? 'free';
         </span>
       </a>
 
-      <a href="/citylive/profile.php"
+      <a href="<?= appUrl('profile.php') ?>"
          class="nav-item <?= $activePage === 'profile' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-circle-user"></i>
         <span>Mi perfil</span>
@@ -78,7 +92,7 @@ $userPlan  = $user['plan'] ?? 'free';
 
       <div class="nav-divider"></div>
 
-      <a href="/citylive/logout.php" class="nav-item" style="color:var(--red);">
+      <a href="<?= appUrl('logout.php') ?>" class="nav-item" style="color:var(--red);">
         <i class="nav-icon fa-solid fa-right-from-bracket"></i>
         <span>Cerrar sesión</span>
       </a>
@@ -124,7 +138,7 @@ $userPlan  = $user['plan'] ?? 'free';
           <span class="notif-dot"></span>
         </button>
         <?php if ($user): ?>
-        <a href="/citylive/profile.php" class="topbar-user">
+        <a href="<?= appUrl('profile.php') ?>" class="topbar-user">
           <div class="topbar-user-av">
             <?php if ($user['avatar']): ?>
               <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="">

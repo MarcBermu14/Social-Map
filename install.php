@@ -1,4 +1,12 @@
 <?php
+require_once __DIR__ . '/config/db.php';
+
+if (!envBool('INSTALLER_ENABLED', false)) {
+    http_response_code(403);
+    echo 'Installer disabled. Set INSTALLER_ENABLED=true in .env to run it.';
+    exit;
+}
+
 /**
  * CityLive — Installer
  * Run once to create tables and seed demo data.
@@ -6,13 +14,14 @@
  */
 
 // ─── DB connection (bypass config since DB may not exist yet) ─
-$host = 'localhost';
-$user = 'root';
-$pass = '';
-$dbName = 'citylive';
+$host = envVar('DB_HOST', 'localhost');
+$port = envVar('DB_PORT', '3306');
+$user = envVar('DB_USER', 'root');
+$pass = envVar('DB_PASS', '');
+$dbName = envVar('DB_NAME', 'citylive');
 
 try {
-    $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $user, $pass, [
+    $pdo = new PDO("mysql:host=$host;port=$port;charset=utf8mb4", $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
 } catch (PDOException $e) {
@@ -342,3 +351,4 @@ if (count($userIds) >= 2) {
 <p class="warn">⚠️ Elimina este archivo (install.php) después de la instalación.</p>
 </body>
 </html>
+

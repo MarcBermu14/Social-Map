@@ -1,5 +1,6 @@
 # Archivos sensibles
 config/db.local.php
+.env
 
 # Logs
 *.log
