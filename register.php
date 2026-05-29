@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $token = bin2hex(random_bytes(32));
             } catch (Exception $e) {
                 error_log('Verification token generation failed: ' . $e->getMessage());
-                $errors[] = 'Error del sistema al crear la verificación. Inténtalo más tarde.';
+                $errors[] = 'No se pudo generar el código de verificación. Por favor, contacta al soporte si el problema persiste.';
                 $token = null;
             }
             $userId = 0;
