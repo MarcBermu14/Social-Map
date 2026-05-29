@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             try {
                 $token = bin2hex(random_bytes(32));
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log('Verification token generation failed: ' . $e->getMessage());
                 $errors[] = 'No se pudo generar el código de verificación. Por favor, contacta al soporte si el problema persiste.';
                 $token = null;

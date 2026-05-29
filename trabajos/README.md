@@ -128,8 +128,10 @@ define('DB_PORT', 3306);             // puerto (3306 por defecto)
 Para publicar el proyecto en cualquier dominio, define estas variables de entorno:
 
 ```bash
-APP_BASE_PATH=/citylive        # ruta base en subcarpeta
-APP_BASE_PATH=                 # ruta base si está en la raíz del dominio
+# Subcarpeta
+APP_BASE_PATH=/citylive
+# Raíz del dominio (deja vacío)
+# APP_BASE_PATH=
 APP_URL=https://tudominio.com  # URL pública completa (incluye /citylive si aplica)
 ```
 

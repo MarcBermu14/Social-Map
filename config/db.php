@@ -214,7 +214,9 @@ function app_url(string $path = ''): string {
 }
 
 function sendVerificationEmail(string $email, string $name, string $token): bool {
-    $safeName = trim(preg_replace('/[\r\n]+/', ' ', $name));
+    $safeName = preg_replace('/[\r\n]+/', ' ', $name);
+    $safeName = preg_replace('/[\x00-\x1F\x7F]+/', '', $safeName);
+    $safeName = trim($safeName);
     if (mb_strlen($safeName) > 100) {
         $safeName = mb_substr($safeName, 0, 100);
     }
@@ -223,11 +225,14 @@ function sendVerificationEmail(string $email, string $name, string $token): bool
         return false;
     }
     $fromAddr = filter_var(MAIL_FROM_ADDRESS, FILTER_VALIDATE_EMAIL) ?: 'no-reply@citylive.app';
-    $fromNameRaw = trim(preg_replace('/[\r\n]+/', ' ', MAIL_FROM_NAME));
+    $fromNameRaw = preg_replace('/[\r\n]+/', ' ', MAIL_FROM_NAME);
+    $fromNameRaw = preg_replace('/[\x00-\x1F\x7F]+/', '', $fromNameRaw);
+    $fromNameRaw = trim($fromNameRaw);
     if (mb_strlen($fromNameRaw) > 100) {
         $fromNameRaw = mb_substr($fromNameRaw, 0, 100);
     }
     $fromName = $fromNameRaw !== '' ? mb_encode_mimeheader($fromNameRaw, 'UTF-8') : 'CityLive';
+    $fromName = preg_replace('/[\r\n]+/', '', $fromName);
     $verifyUrl = app_url('verify_email.php?token=' . urlencode($token));
     $subject = 'Confirma tu cuenta en CityLive';
     $body = sprintf(
