@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userId = 0;
             if ($token !== null) {
                 $tokenHash = hash('sha256', $token);
-                $expiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+                $expiresAt = (new DateTime())->modify('+24 hours')->format('Y-m-d H:i:s');
                 $db->prepare('
                     INSERT INTO users (username, email, password_hash, full_name, email_verification_token, email_verification_expires_at)
                     VALUES (?, ?, ?, ?, ?, ?)

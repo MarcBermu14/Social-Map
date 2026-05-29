@@ -131,8 +131,10 @@ Para publicar el proyecto en cualquier dominio, define estas variables de entorn
 # Subcarpeta
 APP_BASE_PATH=/citylive
 # Raíz del dominio (deja vacío)
-# APP_BASE_PATH=
-APP_URL=https://tudominio.com  # URL pública completa (incluye /citylive si aplica)
+# APP_BASE_PATH=''
+# Ejemplos APP_URL:
+# APP_URL=https://tudominio.com/citylive
+# APP_URL=https://tudominio.com
 ```
 
 Y configura el remitente para la verificación por email:

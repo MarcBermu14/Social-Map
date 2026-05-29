@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = 'No se pudo generar el enlace de verificación.';
             } else {
                 $tokenHash = hash('sha256', $token);
-                $expiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+                $expiresAt = (new DateTime())->modify('+24 hours')->format('Y-m-d H:i:s');
                 $db->prepare('
                     UPDATE users
                     SET email_verification_token = ?, email_verification_expires_at = ?

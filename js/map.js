@@ -5,7 +5,10 @@
   const mapEl  = document.getElementById(MAP_ID);
   if (!mapEl) return;
   const BASE_PATH = window.CITYLIVE_BASE_PATH || '';
-  const urlFor = (path) => `${BASE_PATH}/${path}`.replace(/\/+/g, '/');
+  const urlFor = (path) => {
+    const cleanPath = String(path || '').replace(/^\/+/, '');
+    return `${BASE_PATH}/${cleanPath}`.replace(/\/+/g, '/');
+  };
 
   // ─── Initialise map ─────────────────────────────────
   const map = L.map(MAP_ID, {
