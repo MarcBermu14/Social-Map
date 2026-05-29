@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
            ->execute([$user['id'], $newPlan]);
 
         $message = "¡Plan $newPlan activado correctamente! Se han añadido $tokens tokens a tu cuenta.";
-        header('Location: /citylive/subscriptions.php?ok=1');
+        header('Location: ' . url_for('subscriptions.php') . '?ok=1');
         exit;
     }
 }
@@ -64,7 +64,7 @@ include __DIR__ . '/includes/header.php';
           Saldo: <strong style="color:var(--primary);"><?= number_format($user['tokens_balance']) ?> tokens ⬡</strong>
         </div>
       </div>
-      <a href="/citylive/tokens.php" class="btn btn-outline btn-sm">Ver tokens →</a>
+      <a href="<?= url_for('tokens.php') ?>" class="btn btn-outline btn-sm">Ver tokens →</a>
     </div>
   </div>
 

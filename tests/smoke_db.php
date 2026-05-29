@@ -44,6 +44,18 @@ if ($missingColumns !== []) {
     fail('Missing publications columns: ' . implode(', ', $missingColumns));
 }
 
+$stmt = $db->query(
+    "SELECT COLUMN_NAME FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'"
+);
+$userColumns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$requiredUserColumns = ['email_verification_token', 'email_verification_expires_at'];
+$missingUserColumns = array_values(array_diff($requiredUserColumns, $userColumns));
+
+if ($missingUserColumns !== []) {
+    fail('Missing users columns: ' . implode(', ', $missingUserColumns));
+}
+
 $stmt = $db->query('SELECT COUNT(*) FROM users');
 $userCount = $stmt->fetchColumn();
 

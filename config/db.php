@@ -8,6 +8,22 @@ define('DB_PASS', $dbPass === false ? '' : $dbPass);
 define('DB_CHAR', getenv('DB_CHAR') ?: 'utf8mb4');
 define('DB_PORT', getenv('DB_PORT') ?: '3306');
 
+$basePath = getenv('APP_BASE_PATH');
+if ($basePath === false || $basePath === null) {
+    $basePath = '/citylive';
+}
+$basePath = '/' . ltrim($basePath, '/');
+$basePath = rtrim($basePath, '/');
+if ($basePath === '/') {
+    $basePath = '';
+}
+define('APP_BASE_PATH', $basePath);
+$appUrl = getenv('APP_URL');
+define('APP_URL', $appUrl === false || $appUrl === null ? '' : rtrim($appUrl, '/'));
+
+define('MAIL_FROM_ADDRESS', getenv('MAIL_FROM_ADDRESS') ?: 'no-reply@citylive.app');
+define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'CityLive');
+
 // ─── PDO connection (singleton) ───────────────────────
 function getDB(): PDO {
     static $pdo = null;
@@ -61,6 +77,17 @@ function getDB(): PDO {
                 try { $pdo->exec("ALTER TABLE users ADD COLUMN $colDef"); }
                 catch (PDOException $e) {}
             }
+            $verificationCols = [
+                "email_verification_token VARCHAR(64) NULL DEFAULT NULL",
+                "email_verification_expires_at DATETIME NULL DEFAULT NULL",
+            ];
+            foreach ($verificationCols as $colDef) {
+                try { $pdo->exec("ALTER TABLE users ADD COLUMN $colDef"); }
+                catch (PDOException $e) {}
+            }
+            try {
+                $pdo->exec("CREATE UNIQUE INDEX idx_users_email_verification_token ON users (email_verification_token)");
+            } catch (PDOException $e) {}
             // ── Forum tables ──────────────────────────────────────────────────
             $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_posts (
                 id            INT AUTO_INCREMENT PRIMARY KEY,
@@ -163,13 +190,56 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+function app_base_path(): string {
+    return APP_BASE_PATH;
+}
+
+function url_for(string $path): string {
+    $path = ltrim($path, '/');
+    if (APP_BASE_PATH === '') {
+        return '/' . $path;
+    }
+    return APP_BASE_PATH . '/' . $path;
+}
+
+function app_url(string $path = ''): string {
+    $base = APP_URL;
+    if ($base === '') {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $base   = $scheme . '://' . $host . APP_BASE_PATH;
+    }
+    if ($path === '') {
+        return $base;
+    }
+    return rtrim($base, '/') . '/' . ltrim($path, '/');
+}
+
+function sendVerificationEmail(string $email, string $name, string $token): bool {
+    $safeName = trim(preg_replace('/[\r\n]+/', ' ', $name));
+    $fromName = trim(preg_replace('/[\r\n]+/', ' ', MAIL_FROM_NAME));
+    $fromAddr = trim(preg_replace('/[\r\n]+/', '', MAIL_FROM_ADDRESS));
+    $verifyUrl = app_url('verify_email.php?token=' . urlencode($token));
+    $subject = 'Confirma tu cuenta en CityLive';
+    $body = sprintf(
+        '<p>Hola %s,</p><p>Gracias por registrarte en CityLive. Para activar tu cuenta, confirma tu email:</p><p><a href="%s">Confirmar mi cuenta</a></p><p>Si no solicitaste esta cuenta, puedes ignorar este mensaje.</p>',
+        htmlspecialchars($safeName ?: 'usuario', ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($verifyUrl, ENT_QUOTES, 'UTF-8')
+    );
+    $headers = "From: {$fromName} <{$fromAddr}>\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    return mail($email, $subject, $body, $headers);
+}
+
 function isLoggedIn(): bool {
     return !empty($_SESSION['user_id']);
 }
 
-function requireLogin(string $redirect = '/citylive/index.php'): void {
+function requireLogin(string $redirect = ''): void {
     if (!isLoggedIn()) {
-        header('Location: ' . $redirect);
+        $target = $redirect ?: url_for('index.php');
+        header('Location: ' . $target);
         exit;
     }
 }

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config/db.php';
 
-if (isLoggedIn()) { header('Location: /citylive/dashboard.php'); exit; }
+if (isLoggedIn()) { header('Location: ' . url_for('dashboard.php')); exit; }
 
 $errors = [];
 $ok     = false;
@@ -29,17 +29,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'El email o nombre de usuario ya está en uso.';
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $db->prepare('INSERT INTO users (username, email, password_hash, full_name) VALUES (?, ?, ?, ?)')
-               ->execute([$username, $email, $hash, $fullName ?: $username]);
-            $userId = (int)$db->lastInsertId();
+            try {
+                $token = bin2hex(random_bytes(32));
+            } catch (Exception $e) {
+                $errors[] = 'No se pudo generar el token de verificación.';
+                $token = null;
+            }
+            $userId = 0;
+            if ($token !== null) {
+                $tokenHash = hash('sha256', $token);
+                $expiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+                $db->prepare('
+                    INSERT INTO users (username, email, password_hash, full_name, email_verification_token, email_verification_expires_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ')->execute([$username, $email, $hash, $fullName ?: $username, $tokenHash, $expiresAt]);
+                $userId = (int)$db->lastInsertId();
+            }
+            if (!$userId) {
+                $errors[] = 'No se pudo crear la cuenta. Inténtalo de nuevo.';
+            }
 
-            // Create free subscription row
-            $db->prepare('INSERT INTO subscriptions (user_id, plan) VALUES (?, "free")')
-               ->execute([$userId]);
+            if (empty($errors)) {
+                // Create free subscription row
+                $db->prepare('INSERT INTO subscriptions (user_id, plan) VALUES (?, "free")')
+                   ->execute([$userId]);
 
-            $_SESSION['user_id'] = $userId;
-            header('Location: /citylive/dashboard.php');
-            exit;
+                $sent = sendVerificationEmail($email, $fullName ?: $username, $token);
+                $redirect = url_for('verify_email.php') . '?email=' . urlencode($email);
+                $redirect .= $sent ? '&sent=1' : '&error=mail';
+                header('Location: ' . $redirect);
+                exit;
+            }
         }
     }
 }
@@ -51,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crear cuenta — CityLive</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/citylive/css/style.css">
+  <link rel="stylesheet" href="<?= url_for('css/style.css') ?>">
 </head>
 <body>
 <div class="auth-page">
@@ -117,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <p class="text-sm text-muted" style="text-align:center;margin-top:20px;">
-      ¿Ya tienes cuenta? <a href="/citylive/index.php">Iniciar sesión</a>
+      ¿Ya tienes cuenta? <a href="<?= url_for('index.php') ?>">Iniciar sesión</a>
     </p>
   </div>
 </div>

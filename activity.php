@@ -3,7 +3,7 @@ require_once __DIR__ . '/config/db.php';
 requireLogin();
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if (!$id) { header('Location: /citylive/dashboard.php'); exit; }
+if (!$id) { header('Location: ' . url_for('dashboard.php')); exit; }
 
 $db  = getDB();
 $pub = $db->prepare("
@@ -17,7 +17,7 @@ $pub = $db->prepare("
 ");
 $pub->execute([$id]);
 $pub = $pub->fetch();
-if (!$pub || $pub['status'] !== 'active') { header('Location: /citylive/dashboard.php'); exit; }
+if (!$pub || $pub['status'] !== 'active') { header('Location: ' . url_for('dashboard.php')); exit; }
 
 // Increment view count
 $db->prepare('UPDATE publications SET views = views + 1 WHERE id = ?')->execute([$id]);
@@ -65,7 +65,7 @@ include __DIR__ . '/includes/header.php';
       <!-- MAIN COLUMN -->
       <div>
         <div style="margin-bottom:16px;">
-          <a href="/citylive/dashboard.php" class="text-muted text-sm">
+          <a href="<?= url_for('dashboard.php') ?>" class="text-muted text-sm">
             ← Volver al mapa
           </a>
         </div>
@@ -153,7 +153,7 @@ include __DIR__ . '/includes/header.php';
                 <?= $fPostCount ?> publicaci<?= $fPostCount === 1 ? 'ón' : 'ones' ?> · Participa, pregunta y comparte
               </div>
             </div>
-            <a href="/citylive/forum.php?event=<?= $pub['id'] ?>" class="btn btn-primary btn-sm">
+            <a href="<?= url_for('forum.php') ?>?event=<?= $pub['id'] ?>" class="btn btn-primary btn-sm">
               Abrir foro →
             </a>
           </div>
@@ -217,7 +217,7 @@ include __DIR__ . '/includes/header.php';
             <button class="btn btn-danger btn-sm">🚩 Reportar</button>
 
             <?php if ($isOwner): ?>
-            <a href="/citylive/edit.php?id=<?= $pub['id'] ?>" class="btn btn-outline btn-block">
+            <a href="<?= url_for('edit.php') ?>?id=<?= $pub['id'] ?>" class="btn btn-outline btn-block">
               <i class="fa-solid fa-pen"></i> Editar publicación
             </a>
             <button id="deleteBtn" class="btn btn-danger btn-block" data-pub="<?= $pub['id'] ?>">
@@ -231,7 +231,7 @@ include __DIR__ . '/includes/header.php';
         <!-- Creator card -->
         <div class="card mb-16">
           <div class="card-header"><span class="card-title">Publicado por</span></div>
-          <a href="/citylive/profile.php?id=<?= $pub['user_id'] ?>" style="text-decoration:none;color:var(--text);">
+          <a href="<?= url_for('profile.php') ?>?id=<?= $pub['user_id'] ?>" style="text-decoration:none;color:var(--text);">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
               <div class="avatar avatar-md" style="color:#fff;">
                 <?= strtoupper(substr($pub['creator_name'] ?? $pub['creator_username'], 0, 1)) ?>
@@ -272,7 +272,7 @@ include __DIR__ . '/includes/header.php';
             </div>
           </a>
 
-          <a href="/citylive/profile.php?id=<?= $pub['user_id'] ?>" class="btn btn-outline btn-block btn-sm" style="margin-top:14px;">
+          <a href="<?= url_for('profile.php') ?>?id=<?= $pub['user_id'] ?>" class="btn btn-outline btn-block btn-sm" style="margin-top:14px;">
             Ver perfil completo
           </a>
         </div>
@@ -330,7 +330,7 @@ include __DIR__ . '/includes/header.php';
         const registered = this.dataset.registered === '1';
         this.disabled = true;
 
-        const res  = await fetch('/citylive/api/event_register.php', {
+        const res  = await fetch(`${window.CITYLIVE_BASE_PATH || ''}/api/event_register.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub) })
@@ -361,14 +361,14 @@ include __DIR__ . '/includes/header.php';
         this.disabled = true;
         this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Eliminando…';
 
-        const res  = await fetch('/citylive/api/delete_publication.php', {
+        const res  = await fetch(`${window.CITYLIVE_BASE_PATH || ''}/api/delete_publication.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pub_id: parseInt(this.dataset.pub) })
         });
         const data = await res.json();
         if (data.success) {
-          window.location.href = '/citylive/dashboard.php';
+          window.location.href = `${window.CITYLIVE_BASE_PATH || ''}/dashboard.php`;
         } else {
           alert(data.error || 'Error al eliminar');
           this.disabled = false;

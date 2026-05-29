@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
 
-        header("Location: /citylive/activity.php?id=$newId");
+        header('Location: ' . url_for('activity.php') . '?id=' . $newId);
         exit;
     }
 }
@@ -129,7 +129,7 @@ include __DIR__ . '/includes/header.php';
           <?= number_format($user['tokens_balance']) ?> ⬡
         </div>
         <?php if ($user['tokens_balance'] < 150): ?>
-          <a href="/citylive/tokens.php" style="font-size:11px;color:var(--primary);">+ Comprar tokens</a>
+          <a href="<?= url_for('tokens.php') ?>" style="font-size:11px;color:var(--primary);">+ Comprar tokens</a>
         <?php endif; ?>
       </div>
     </div>
@@ -222,7 +222,7 @@ include __DIR__ . '/includes/header.php';
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--yellow);">Plan Gratuito</div>
           <div style="font-size:13px;color:var(--text2);">
-            Puedes publicar incidencias y eventos gratis. Para actividades lucrativas necesitas <a href="/citylive/subscriptions.php">Pro o Platinum</a>.
+            Puedes publicar incidencias y eventos gratis. Para actividades lucrativas necesitas <a href="<?= url_for('subscriptions.php') ?>">Pro o Platinum</a>.
           </div>
         </div>
       </div>

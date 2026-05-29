@@ -3,11 +3,12 @@ require_once __DIR__ . '/config/db.php';
 
 // Already logged in → go to dashboard
 if (isLoggedIn()) {
-    header('Location: /citylive/dashboard.php');
+    header('Location: ' . url_for('dashboard.php'));
     exit;
 }
 
 $error = '';
+$errorHtml = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email']    ?? '');
@@ -21,11 +22,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
-            $_SESSION['user_id'] = $user['id'];
-            // Update last_active
-            getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
-            header('Location: /citylive/dashboard.php');
-            exit;
+            if (!(int)($user['verified'] ?? 0)) {
+                $resendUrl = url_for('verify_email.php') . '?email=' . urlencode($email);
+                $errorHtml = 'Tu email no está verificado. Revisa tu bandeja o solicita un nuevo enlace en '
+                           . '<a href="' . htmlspecialchars($resendUrl) . '">verificación de correo</a>.';
+            } else {
+                $_SESSION['user_id'] = $user['id'];
+                // Update last_active
+                getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
+                header('Location: ' . url_for('dashboard.php'));
+                exit;
+            }
         } else {
             $error = 'Email o contraseña incorrectos.';
         }
@@ -39,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar sesión — CityLive</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/citylive/css/style.css">
+  <link rel="stylesheet" href="<?= url_for('css/style.css') ?>">
 </head>
 <body>
 <div class="auth-page">
@@ -52,7 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1 class="auth-title">Bienvenido de nuevo</h1>
     <p class="auth-subtitle">Inicia sesión para ver tu ciudad en tiempo real.</p>
 
-    <?php if ($error): ?>
+    <?php if ($errorHtml): ?>
+      <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i> <?= $errorHtml ?></div>
+    <?php elseif ($error): ?>
       <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
@@ -78,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="divider"></div>
 
     <p class="text-sm text-muted" style="text-align:center;margin-bottom:16px;">
-      ¿No tienes cuenta? <a href="/citylive/register.php">Crear cuenta gratis</a>
+      ¿No tienes cuenta? <a href="<?= url_for('register.php') ?>">Crear cuenta gratis</a>
     </p>
 
     <!-- Demo credentials -->

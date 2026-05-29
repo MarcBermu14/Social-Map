@@ -75,7 +75,7 @@ include __DIR__ . '/includes/header.php';
                 $color = $typeColor[$pub['type']] ?? 'var(--primary)';
                 $time  = (new DateTime($pub['created_at']))->format('H:i');
               ?>
-              <a href="/citylive/activity.php?id=<?= $pub['id'] ?>"
+              <a href="<?= url_for('activity.php') ?>?id=<?= $pub['id'] ?>"
                  class="map-pub-item" data-id="<?= $pub['id'] ?>"
                  data-lat="<?= $pub['latitude'] ?>" data-lng="<?= $pub['longitude'] ?>"
                  data-type="<?= $pub['type'] ?>" data-category="<?= htmlspecialchars($pub['category'] ?? '') ?>">
@@ -104,7 +104,7 @@ include __DIR__ . '/includes/header.php';
 
         <!-- Create CTA at bottom of panel -->
         <div style="padding:12px;border-top:1px solid var(--border);">
-          <a href="/citylive/create.php" class="btn btn-primary btn-block">
+          <a href="<?= url_for('create.php') ?>" class="btn btn-primary btn-block">
             <i class="fa-solid fa-plus"></i> Crear publicación
           </a>
         </div>
@@ -118,7 +118,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="/citylive/js/map.js"></script>
+    <script src="<?= url_for('js/map.js') ?>"></script>
     <script>
     let activeType = 'all';
     let activeCat  = 'all';

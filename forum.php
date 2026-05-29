@@ -3,7 +3,7 @@ require_once __DIR__ . '/config/db.php';
 requireLogin();
 
 $eventId = isset($_GET['event']) ? (int)$_GET['event'] : 0;
-if (!$eventId) { header('Location: /citylive/dashboard.php'); exit; }
+if (!$eventId) { header('Location: ' . url_for('dashboard.php')); exit; }
 
 $db = getDB();
 
@@ -17,7 +17,7 @@ $pub = $db->prepare("
 ");
 $pub->execute([$eventId]);
 $pub = $pub->fetch();
-if (!$pub) { header('Location: /citylive/dashboard.php'); exit; }
+if (!$pub) { header('Location: ' . url_for('dashboard.php')); exit; }
 
 $me        = currentUser();
 $isAdmin   = ($me['plan'] ?? 'free') === 'platinum';
@@ -340,7 +340,7 @@ include __DIR__ . '/includes/header.php';
     <div class="forum-header-emoji"><?= $emoji ?></div>
     <div class="forum-header-info">
       <div class="forum-header-title">
-        <a href="/citylive/activity.php?id=<?= $pub['id'] ?>" style="color:var(--text);">
+        <a href="<?= url_for('activity.php') ?>?id=<?= $pub['id'] ?>" style="color:var(--text);">
           <?= htmlspecialchars($pub['title']) ?>
         </a>
       </div>
@@ -352,7 +352,7 @@ include __DIR__ . '/includes/header.php';
         <?php endif; ?>
       </div>
     </div>
-    <a href="/citylive/activity.php?id=<?= $pub['id'] ?>" class="btn btn-outline btn-sm">
+    <a href="<?= url_for('activity.php') ?>?id=<?= $pub['id'] ?>" class="btn btn-outline btn-sm">
       ← Evento
     </a>
   </div>
@@ -439,6 +439,8 @@ include __DIR__ . '/includes/header.php';
 const FORUM_EVENT_ID  = <?= $eventId ?>;
 const CURRENT_USER_ID = <?= (int)$me['id'] ?>;
 const IS_ADMIN        = <?= $isAdmin ? 'true' : 'false' ?>;
+const BASE_PATH       = window.CITYLIVE_BASE_PATH || '';
+const API_BASE        = `${BASE_PATH}/api`;
 
 /* ── State ──────────────────────────────────────────────────────── */
 let currentPage  = 1;
@@ -496,7 +498,7 @@ async function loadPosts(page = 1, sort = currentSort) {
   `;
 
   try {
-    const res  = await fetch(`/citylive/api/forum/posts.php?event=${FORUM_EVENT_ID}&page=${page}&sort=${sort}`);
+    const res  = await fetch(`${API_BASE}/forum/posts.php?event=${FORUM_EVENT_ID}&page=${page}&sort=${sort}`);
     const data = await res.json();
     if (!data.success) { container.innerHTML = '<p style="color:var(--red);padding:20px;">Error al cargar posts.</p>'; return; }
 
@@ -717,7 +719,7 @@ async function toggleLike(type, id, postEl) {
   btn.disabled = true;
 
   try {
-    const res  = await fetch('/citylive/api/forum/likes.php', {
+    const res  = await fetch(`${API_BASE}/forum/likes.php`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ target_type: type, target_id: id })
     });
@@ -752,7 +754,7 @@ async function toggleComments(postId, forceOpen = false) {
   list.innerHTML = '<div class="skeleton" style="height:40px;margin:8px 0;border-radius:8px;"></div>'.repeat(2);
 
   try {
-    const res  = await fetch('/citylive/api/forum/comments.php?post_id=' + postId);
+    const res  = await fetch(`${API_BASE}/forum/comments.php?post_id=${postId}`);
     const data = await res.json();
     if (data.success) renderComments(data.comments, postId);
   } catch(e) {
@@ -809,7 +811,7 @@ function attachCommentEvents(el, postId) {
   el.querySelector('.like-comment-btn')?.addEventListener('click', async function() {
     this.disabled = true;
     try {
-      const res  = await fetch('/citylive/api/forum/likes.php', {
+      const res  = await fetch(`${API_BASE}/forum/likes.php`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ target_type: 'comment', target_id: commentId })
       });
@@ -836,7 +838,7 @@ function attachCommentEvents(el, postId) {
   el.querySelector('.delete-comment-btn')?.addEventListener('click', async () => {
     if (!confirm('¿Eliminar este comentario?')) return;
     try {
-      const res  = await fetch('/citylive/api/forum/comments.php', {
+      const res  = await fetch(`${API_BASE}/forum/comments.php`, {
         method: 'DELETE', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ comment_id: commentId })
       });
@@ -891,7 +893,7 @@ function attachCommentEvents(el, postId) {
       const newContent = input.value.trim();
       if (!newContent) return;
       try {
-        const res  = await fetch('/citylive/api/forum/comments.php', {
+        const res  = await fetch(`${API_BASE}/forum/comments.php`, {
           method: 'PATCH', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ comment_id: commentId, content: newContent })
         });
@@ -920,7 +922,7 @@ async function sendComment(postId, parentId, postEl) {
   sendBtn.disabled = true;
 
   try {
-    const res  = await fetch('/citylive/api/forum/comments.php', {
+    const res  = await fetch(`${API_BASE}/forum/comments.php`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ post_id: postId, parent_id: pid, content })
     });
@@ -995,7 +997,7 @@ async function saveEditPost(postId, postEl) {
   const content = editBox.value.trim();
   if (!content) return;
   try {
-    const res  = await fetch('/citylive/api/forum/posts.php', {
+    const res  = await fetch(`${API_BASE}/forum/posts.php`, {
       method: 'PATCH', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ post_id: postId, content })
     });
@@ -1016,7 +1018,7 @@ async function saveEditPost(postId, postEl) {
 
 async function deletePost(postId, postEl) {
   try {
-    const res  = await fetch('/citylive/api/forum/posts.php', {
+    const res  = await fetch(`${API_BASE}/forum/posts.php`, {
       method: 'DELETE', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ post_id: postId })
     });
@@ -1038,7 +1040,7 @@ async function deletePost(postId, postEl) {
 /* ── Moderation ─────────────────────────────────────────────────── */
 async function modAction(action, type, id) {
   try {
-    const res  = await fetch('/citylive/api/forum/moderate.php', {
+    const res  = await fetch(`${API_BASE}/forum/moderate.php`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ action, target_type: type, target_id: id })
     });
@@ -1069,7 +1071,7 @@ imgInput?.addEventListener('change', async function() {
   label.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
 
   try {
-    const res  = await fetch('/citylive/api/forum/upload.php', { method: 'POST', body: form });
+    const res  = await fetch(`${API_BASE}/forum/upload.php`, { method: 'POST', body: form });
     const data = await res.json();
     if (data.images?.length) {
       data.images.forEach(img => {
@@ -1128,7 +1130,7 @@ document.getElementById('btnSubmitPost')?.addEventListener('click', async functi
   this.textContent = 'Publicando...';
 
   try {
-    const res  = await fetch('/citylive/api/forum/posts.php', {
+    const res  = await fetch(`${API_BASE}/forum/posts.php`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ event_id: FORUM_EVENT_ID, content, image_ids: pendingImgIds })
     });
@@ -1246,7 +1248,7 @@ document.getElementById('btnSubmitReport')?.addEventListener('click', async func
   this.disabled = true;
 
   try {
-    const res  = await fetch('/citylive/api/forum/report.php', {
+    const res  = await fetch(`${API_BASE}/forum/report.php`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         target_type: reportTarget.type,

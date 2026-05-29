@@ -4,6 +4,8 @@
   const MAP_ID = 'map';
   const mapEl  = document.getElementById(MAP_ID);
   if (!mapEl) return;
+  const BASE_PATH = window.CITYLIVE_BASE_PATH || '';
+  const urlFor = (path) => `${BASE_PATH}/${path}`.replace(/\/+/g, '/');
 
   // ─── Initialise map ─────────────────────────────────
   const map = L.map(MAP_ID, {
@@ -61,7 +63,7 @@
 
   // ─── Load ALL publications once ──────────────────────
   function loadPublications() {
-    fetch('/citylive/api/publications.php')
+    fetch(urlFor('api/publications.php'))
       .then(r => r.json())
       .then(data => {
         markersLayer.clearLayers();
@@ -99,7 +101,7 @@
 
   function openDetail(pub) {
     if (!detailPanel) {
-      window.location.href = `/citylive/activity.php?id=${pub.id}`;
+      window.location.href = urlFor(`activity.php?id=${pub.id}`);
       return;
     }
 
@@ -134,7 +136,7 @@
         </div>
         ${pub.description ? `<div class="detail-desc">${escHtml(pub.description)}</div>` : ''}
         ${tokenHtml}
-        <a href="/citylive/profile.php?id=${pub.user_id}" class="detail-creator">
+        <a href="${urlFor(`profile.php?id=${pub.user_id}`)}" class="detail-creator">
           <div class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--purple),var(--primary));color:#fff;font-size:14px;">
             ${(pub.creator_name || 'U')[0].toUpperCase()}
           </div>
@@ -146,7 +148,7 @@
         </a>
       </div>
       <div class="detail-actions">
-        <a href="/citylive/activity.php?id=${pub.id}" class="btn btn-${pub.type === 'event' ? 'outline' : 'primary'}" style="flex:1;">Ver detalle</a>
+        <a href="${urlFor(`activity.php?id=${pub.id}`)}" class="btn btn-${pub.type === 'event' ? 'outline' : 'primary'}" style="flex:1;">Ver detalle</a>
         ${pub.type === 'event' ? `<button class="btn btn-primary detail-join-btn" data-pub="${pub.id}" data-registered="0" style="flex:2;">🎟️ Apuntarse</button>` : ''}
         ${pub.type !== 'event' ? `<button class="btn btn-outline btn-icon" title="Guardar">🔖</button>` : ''}
         <button class="btn btn-outline btn-icon" title="Reportar">🚩</button>
@@ -163,7 +165,7 @@
     if (pub.type === 'event') {
       const joinBtn = detailPanel.querySelector('.detail-join-btn');
       // Check current status
-      fetch(`/citylive/api/event_register.php?pub_id=${pub.id}`)
+      fetch(urlFor(`api/event_register.php?pub_id=${pub.id}`))
         .then(r => r.json())
         .then(data => {
           if (data.registered) {
@@ -178,7 +180,7 @@
       joinBtn.addEventListener('click', async function () {
         const registered = this.dataset.registered === '1';
         this.disabled = true;
-        const res  = await fetch('/citylive/api/event_register.php', {
+        const res  = await fetch(urlFor('api/event_register.php'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub) })
@@ -209,7 +211,7 @@
     const item = e.target.closest('.map-pub-item');
     if (!item) return;
     e.preventDefault();
-    fetch(`/citylive/api/publications.php?id=${item.dataset.id}`)
+    fetch(urlFor(`api/publications.php?id=${item.dataset.id}`))
       .then(r => r.json())
       .then(data => {
         if (data.features && data.features[0]) openDetail(data.features[0].properties);
