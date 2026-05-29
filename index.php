@@ -8,7 +8,8 @@ if (isLoggedIn()) {
 }
 
 $error = '';
-$errorHtml = '';
+$errorMessage = '';
+$errorLinkUrl = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email']    ?? '');
@@ -23,9 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($user && password_verify($password, $user['password_hash'])) {
             if (!(int)($user['verified'] ?? 0)) {
-                $resendUrl = url_for('verify_email.php') . '?email=' . urlencode($email);
-                $errorHtml = 'Tu email no está verificado. Revisa tu bandeja o solicita un nuevo enlace en '
-                           . '<a href="' . htmlspecialchars($resendUrl) . '">verificación de correo</a>.';
+                $errorMessage = 'Tu email no está verificado. Revisa tu bandeja o solicita un nuevo enlace en';
+                $errorLinkUrl = url_for('verify_email.php') . '?email=' . urlencode($email);
             } else {
                 $_SESSION['user_id'] = $user['id'];
                 // Update last_active
@@ -59,8 +59,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1 class="auth-title">Bienvenido de nuevo</h1>
     <p class="auth-subtitle">Inicia sesión para ver tu ciudad en tiempo real.</p>
 
-    <?php if ($errorHtml): ?>
-      <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i> <?= $errorHtml ?></div>
+    <?php if ($errorLinkUrl): ?>
+      <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i>
+        <?= htmlspecialchars($errorMessage) ?>
+        <a href="<?= htmlspecialchars($errorLinkUrl) ?>">verificación de correo</a>.
+      </div>
     <?php elseif ($error): ?>
       <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($error) ?></div>
     <?php endif; ?>

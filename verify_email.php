@@ -59,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $token = bin2hex(random_bytes(32));
             } catch (Exception $e) {
+                error_log('Verification token generation failed: ' . $e->getMessage());
                 $token = null;
             }
             if ($token === null) {
