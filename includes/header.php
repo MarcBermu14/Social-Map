@@ -35,7 +35,7 @@ $userPlan  = $user['plan'] ?? 'free';
     <nav class="sidebar-nav">
       <div class="nav-section-label">Principal</div>
 
-      <a href="/citylive/dashboard.php"
+      <a href="/dashboard.php"
          class="nav-item <?= $activePage === 'map' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-map"></i>
         <span>Mapa en vivo</span>
@@ -77,7 +77,7 @@ $userPlan  = $user['plan'] ?? 'free';
         </span>
       </a>
 
-      <a href="/citylive/profile.php"
+      <a href="/profile.php"
          class="nav-item <?= $activePage === 'profile' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-circle-user"></i>
         <span>Mi perfil</span>
@@ -85,7 +85,7 @@ $userPlan  = $user['plan'] ?? 'free';
 
       <div class="nav-divider"></div>
 
-      <a href="/citylive/logout.php" class="nav-item" style="color:var(--red);">
+      <a href="/logout.php" class="nav-item" style="color:var(--red);">
         <i class="nav-icon fa-solid fa-right-from-bracket"></i>
         <span>Cerrar sesión</span>
       </a>
@@ -131,7 +131,7 @@ $userPlan  = $user['plan'] ?? 'free';
           <span class="notif-dot"></span>
         </button>
         <?php if ($user): ?>
-        <a href="/citylive/profile.php" class="topbar-user">
+        <a href="/profile.php" class="topbar-user">
           <div class="topbar-user-av">
             <?php if ($user['avatar']): ?>
               <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="">

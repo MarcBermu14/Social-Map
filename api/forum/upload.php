@@ -14,7 +14,7 @@ $userId = (int)$_SESSION['user_id'];
 
 // ── Config ─────────────────────────────────────────────────────────────────
 const FORUM_UPLOAD_DIR  = __DIR__ . '/../../uploads/forum/';
-const FORUM_UPLOAD_URL  = '/citylive/uploads/forum/';
+const FORUM_UPLOAD_URL  = '/uploads/forum/';
 const MAX_FILE_BYTES    = 5 * 1024 * 1024;   // 5 MB per image
 const MAX_IMAGES_BATCH  = 5;                  // max per upload call
 const MAX_DIMENSION     = 1920;               // max pixel width/height

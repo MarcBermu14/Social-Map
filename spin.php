@@ -556,7 +556,7 @@ $jsConfig = [
     const form = new FormData();
     form.append('type', type);
 
-    fetch('/citylive/api/spin.php', { method: 'POST', body: form })
+    fetch('/api/spin.php', { method: 'POST', body: form })
       .then(r => r.json())
       .then(data => {
         clearInterval(spinAnim);

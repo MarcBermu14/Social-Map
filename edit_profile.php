@@ -22,7 +22,7 @@ if (!empty($_SESSION['flash'])) {
 
 // ── Constants ──────────────────────────────────────────────────────────────
 define('AVATAR_DIR',       __DIR__ . '/uploads/avatars/');
-define('AVATAR_URL_BASE',  '/citylive/uploads/avatars/');
+define('AVATAR_URL_BASE',  '/uploads/avatars/');
 define('MAX_AVATAR_BYTES', 5 * 1024 * 1024); // 5 MB
 define('MAX_BIO_LEN',      300);
 
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 $_SESSION['flash'] = ['type' => 'success', 'tab' => 'info',
                                       'msg'  => '✅ Perfil actualizado correctamente.'];
-                header('Location: /citylive/edit_profile.php');
+                header('Location: /edit_profile.php');
                 exit;
             }
         }
@@ -161,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            ->execute([AVATAR_URL_BASE . $filename, $userId]);
                         $_SESSION['flash'] = ['type' => 'success', 'tab' => 'info',
                                               'msg'  => '✅ Foto de perfil actualizada.'];
-                        header('Location: /citylive/edit_profile.php');
+                        header('Location: /edit_profile.php');
                         exit;
                     }
                     imagedestroy($dst);
@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            ->execute([$userId]);
         $_SESSION['flash'] = ['type' => 'success', 'tab' => 'info',
                               'msg'  => '✅ Foto de perfil eliminada.'];
-        header('Location: /citylive/edit_profile.php');
+        header('Location: /edit_profile.php');
         exit;
     }
 
@@ -209,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    ->execute([$newEmail, $userId]);
                 $_SESSION['flash'] = ['type' => 'success', 'tab' => 'security',
                                       'msg'  => '✅ Email actualizado a ' . htmlspecialchars($newEmail) . '.'];
-                header('Location: /citylive/edit_profile.php');
+                header('Location: /edit_profile.php');
                 exit;
             }
         }
@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                ->execute([password_hash($newPwd, PASSWORD_DEFAULT), $userId]);
             $_SESSION['flash'] = ['type' => 'success', 'tab' => 'security',
                                   'msg'  => '✅ Contraseña cambiada correctamente.'];
-            header('Location: /citylive/edit_profile.php');
+            header('Location: /edit_profile.php');
             exit;
         }
     }
@@ -268,7 +268,7 @@ include __DIR__ . '/includes/header.php';
       <h1>Editar perfil</h1>
       <p>Personaliza cómo te ven otros usuarios de CityLive</p>
     </div>
-    <a href="/citylive/profile.php" class="btn btn-outline btn-sm">
+    <a href="/profile.php" class="btn btn-outline btn-sm">
       <i class="fa-solid fa-arrow-left"></i> Ver mi perfil
     </a>
   </div>

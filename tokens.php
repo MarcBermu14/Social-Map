@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_tokens'])) {
             $db->commit();
             
             // Redirigir con confirmación
-            header('Location: /citylive/tokens.php?ok=' . $amount);
+            header('Location: /tokens.php?ok=' . $amount);
             exit;
         } catch (Exception $e) {
             $error_message = 'Error al procesar la compra. Intenta de nuevo.';
@@ -227,7 +227,7 @@ include __DIR__ . '/includes/header.php';
       <?php endforeach; ?>
 
       <div class="divider"></div>
-      <a href="/citylive/subscriptions.php" class="btn btn-primary btn-block">
+      <a href="/subscriptions.php" class="btn btn-primary btn-block">
         💎 Upgrade de plan
       </a>
       <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:10px;">
@@ -246,7 +246,7 @@ include __DIR__ . '/includes/header.php';
         <strong><?= number_format($planTokens[$user['plan']]) ?></strong> tokens mensuales incluidos
       </div>
       <?php if ($user['plan'] !== 'platinum'): ?>
-      <a href="/citylive/subscriptions.php" class="btn btn-outline btn-sm btn-block">
+      <a href="/subscriptions.php" class="btn btn-outline btn-sm btn-block">
         Ver planes disponibles →
       </a>
       <?php endif; ?>

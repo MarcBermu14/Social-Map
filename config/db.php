@@ -1,28 +1,32 @@
 <?php
-// ─── Load .env file if it exists ──────────────────────
+// ─── Load .env file (robust version for all environments) ──────────────────────
+$envConfig = [];
 $envFile = __DIR__ . '/../.env';
+
 if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
-        if (strpos($line, '=') !== false && $line[0] !== '#') {
-            $parts = explode('=', $line, 2);
-            $key = trim($parts[0]);
-            $value = trim($parts[1] ?? '');
-            if ($key && !isset($_ENV[$key])) {
-                putenv("$key=$value");
-            }
+        // Skip empty lines and comments
+        if (empty(trim($line)) || strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        // Parse KEY=VALUE
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            $envConfig[$key] = $value;
         }
     }
 }
 
-// ─── Database configuration ───────────────────────────
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'citylive');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-$dbPass = getenv('DB_PASS');
-define('DB_PASS', $dbPass === false ? '' : $dbPass);
-define('DB_CHAR', getenv('DB_CHAR') ?: 'utf8mb4');
-define('DB_PORT', getenv('DB_PORT') ?: '3306');
+// ─── Database configuration (use .env first, then defaults) ───────────────────
+define('DB_HOST', $envConfig['DB_HOST'] ?? 'localhost');
+define('DB_NAME', $envConfig['DB_NAME'] ?? 'citylive');
+define('DB_USER', $envConfig['DB_USER'] ?? 'root');
+define('DB_PASS', $envConfig['DB_PASS'] ?? '');
+define('DB_CHAR', $envConfig['DB_CHAR'] ?? 'utf8mb4');
+define('DB_PORT', $envConfig['DB_PORT'] ?? '3306');
 
 // ─── PDO connection (singleton) ───────────────────────
 function getDB(): PDO {
@@ -190,7 +194,7 @@ function isLoggedIn(): bool {
     return !empty($_SESSION['user_id']);
 }
 
-function requireLogin(string $redirect = '/citylive/index.php'): void {
+function requireLogin(string $redirect = '/index.php'): void {
     if (!isLoggedIn()) {
         header('Location: ' . $redirect);
         exit;

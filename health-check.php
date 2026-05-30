@@ -1,7 +1,7 @@
 <?php
 /**
  * Health Check - Verificar que todo está configurado correctamente
- * Acceder a: http://localhost/citylive/health-check.php
+ * Acceder a: http://localhost/health-check.php
  */
 
 require_once __DIR__ . '/config/db.php';
@@ -206,13 +206,13 @@ try {
       <div class="section">
         <div class="section-title">🔗 Enlaces Útiles</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <a href="/citylive/" style="display: inline-block; padding: 10px; background: #f0f0f0; border-radius: 4px; text-align: center;">
+          <a href="/" style="display: inline-block; padding: 10px; background: #f0f0f0; border-radius: 4px; text-align: center;">
             🏠 Inicio
           </a>
-          <a href="/citylive/register.php" style="display: inline-block; padding: 10px; background: #f0f0f0; border-radius: 4px; text-align: center;">
+          <a href="/register.php" style="display: inline-block; padding: 10px; background: #f0f0f0; border-radius: 4px; text-align: center;">
             📝 Registrarse
           </a>
-          <a href="/citylive/index.php" style="display: inline-block; padding: 10px; background: #f0f0f0; border-radius: 4px; text-align: center;">
+          <a href="/index.php" style="display: inline-block; padding: 10px; background: #f0f0f0; border-radius: 4px; text-align: center;">
             🔑 Login
           </a>
           <a href="/phpmyadmin/" style="display: inline-block; padding: 10px; background: #f0f0f0; border-radius: 4px; text-align: center;">
@@ -223,7 +223,7 @@ try {
     </div>
     
     <div class="footer">
-      CityLive v1.0 • <a href="/citylive/SETUP.md">Guía de Setup</a> • <a href="/citylive/DEPLOYMENT.md">Guía de Deployment</a>
+      CityLive v1.0 • <a href="/SETUP.md">Guía de Setup</a> • <a href="/DEPLOYMENT.md">Guía de Deployment</a>
     </div>
   </div>
 </body>

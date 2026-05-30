@@ -62,7 +62,7 @@ if (!$token) {
         <h1 class="auth-title">¡Email Confirmado!</h1>
         <p class="auth-subtitle">Tu cuenta está lista para usar. Ya puedes iniciar sesión.</p>
         
-        <a href="/citylive/index.php" class="btn btn-primary btn-block btn-lg" style="margin-top:30px;">
+        <a href="/index.php" class="btn btn-primary btn-block btn-lg" style="margin-top:30px;">
           <i class="fa-solid fa-arrow-right"></i> Ir a iniciar sesión
         </a>
       </div>
@@ -77,12 +77,12 @@ if (!$token) {
         <div style="margin-top:30px;padding:20px;background:var(--card);border-radius:var(--r);border:1px solid var(--border);">
           <p style="margin:0;font-size:14px;color:var(--text2);">
             <strong>¿Qué hacer?</strong><br><br>
-            • Si el enlace expiró, <a href="/citylive/register.php" style="color:var(--primary);text-decoration:none;">regístrate de nuevo</a><br>
-            • Si tienes problemas, <a href="/citylive/index.php" style="color:var(--primary);text-decoration:none;">contacta con soporte</a>
+            • Si el enlace expiró, <a href="/register.php" style="color:var(--primary);text-decoration:none;">regístrate de nuevo</a><br>
+            • Si tienes problemas, <a href="/index.php" style="color:var(--primary);text-decoration:none;">contacta con soporte</a>
           </p>
         </div>
         
-        <a href="/citylive/" class="btn btn-secondary btn-block" style="margin-top:20px;">
+        <a href="/" class="btn btn-secondary btn-block" style="margin-top:20px;">
           <i class="fa-solid fa-house"></i> Ir a inicio
         </a>
       </div>

@@ -1,12 +1,12 @@
 <?php
 /**
- * Fix URLs - Cambiar todas las rutas /citylive/ a /
- * Acceder desde navegador: http://localhost/citylive/fix-urls.php
+ * Fix URLs - Cambiar todas las rutas / a /
+ * Acceder desde navegador: http://localhost/fix-urls.php
  * O en servidor: https://miapp.infinityfree.com/fix-urls.php
  */
 
 $baseDir = __DIR__;
-$findStr = '/citylive/';
+$findStr = '/';
 $replaceStr = '/';
 
 // Archivos a procesar (incluyendo subdirectorios)
@@ -28,7 +28,7 @@ foreach ($files as $filePath) {
     
     $content = file_get_contents($filePath);
     
-    // Reemplazar /citylive/ por /
+    // Reemplazar / por /
     $newContent = str_replace($findStr, $replaceStr, $content);
     
     if ($newContent !== $content) {
@@ -100,7 +100,7 @@ foreach ($files as $filePath) {
         
         <div class="success">
             <strong>✅ ¡Proceso completado!</strong><br>
-            Se corrigieron todas las rutas de /citylive/ a /
+            Se corrigieron todas las rutas de / a /
         </div>
 
         <div>

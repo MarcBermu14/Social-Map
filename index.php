@@ -3,7 +3,7 @@ require_once __DIR__ . '/config/db.php';
 
 // Already logged in → go to dashboard
 if (isLoggedIn()) {
-    header('Location: /citylive/dashboard.php');
+    header('Location: /dashboard.php');
     exit;
 }
 
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 // Update last_active
                 getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
-                header('Location: /citylive/dashboard.php');
+                header('Location: /dashboard.php');
                 exit;
             }
         } else {
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="divider"></div>
 
     <p class="text-sm text-muted" style="text-align:center;margin-bottom:16px;">
-      ¿No tienes cuenta? <a href="/citylive/register.php">Crear cuenta gratis</a>
+      ¿No tienes cuenta? <a href="/register.php">Crear cuenta gratis</a>
     </p>
 
     <!-- Demo credentials -->
