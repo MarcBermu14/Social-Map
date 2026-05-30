@@ -21,11 +21,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
-            $_SESSION['user_id'] = $user['id'];
-            // Update last_active
-            getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
-            header('Location: /citylive/dashboard.php');
-            exit;
+            // Verificar que el email esté confirmado
+            if (!$user['verified']) {
+                $error = 'Por favor confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
+            } else {
+                $_SESSION['user_id'] = $user['id'];
+                // Update last_active
+                getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
+                header('Location: /citylive/dashboard.php');
+                exit;
+            }
         } else {
             $error = 'Email o contraseña incorrectos.';
         }
@@ -39,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar sesión — CityLive</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/citylive/css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <div class="auth-page">
