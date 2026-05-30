@@ -118,7 +118,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="/citylive/js/map.js"></script>
+    <script src="/js/map.js"></script>
     <script>
     let activeType = 'all';
     let activeCat  = 'all';

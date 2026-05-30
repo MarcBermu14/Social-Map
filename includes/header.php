@@ -20,7 +20,7 @@ $userPlan  = $user['plan'] ?? 'free';
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <!-- App CSS -->
-  <link rel="stylesheet" href="/citylive/css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <div class="app-shell">
@@ -41,13 +41,13 @@ $userPlan  = $user['plan'] ?? 'free';
         <span>Mapa en vivo</span>
       </a>
 
-      <a href="/citylive/create.php"
+      <a href="/create.php"
          class="nav-item <?= $activePage === 'create' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-plus-circle"></i>
         <span>Crear publicación</span>
       </a>
 
-      <a href="/citylive/spin.php"
+      <a href="/spin.php"
          class="nav-item <?= $activePage === 'spin' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-circle-dot"></i>
         <span>Ruleta</span>
@@ -57,7 +57,7 @@ $userPlan  = $user['plan'] ?? 'free';
       <div class="nav-divider"></div>
       <div class="nav-section-label">Mi cuenta</div>
 
-      <a href="/citylive/tokens.php"
+      <a href="/tokens.php"
          class="nav-item <?= $activePage === 'tokens' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-hexagon-nodes"></i>
         <span>Mis tokens</span>
@@ -68,7 +68,7 @@ $userPlan  = $user['plan'] ?? 'free';
         <?php endif; ?>
       </a>
 
-      <a href="/citylive/subscriptions.php"
+      <a href="/subscriptions.php"
          class="nav-item <?= $activePage === 'subs' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-crown"></i>
         <span>Suscripción</span>

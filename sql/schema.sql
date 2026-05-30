@@ -7,20 +7,22 @@ USE citylive;
 
 -- ─── USERS ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
-    id            INT AUTO_INCREMENT PRIMARY KEY,
-    username      VARCHAR(50)  UNIQUE NOT NULL,
-    email         VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    full_name     VARCHAR(100),
-    bio           TEXT,
-    avatar        VARCHAR(255) DEFAULT NULL,
-    reputation    DECIMAL(3,2) DEFAULT 0.00,
-    rep_count     INT          DEFAULT 0,
-    plan          ENUM('free','pro','platinum') DEFAULT 'free',
-    tokens_balance INT         DEFAULT 0,
-    verified      TINYINT(1)   DEFAULT 0,
-    created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-    last_active   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    id                    INT AUTO_INCREMENT PRIMARY KEY,
+    username              VARCHAR(50)  UNIQUE NOT NULL,
+    email                 VARCHAR(100) UNIQUE NOT NULL,
+    password_hash         VARCHAR(255) NOT NULL,
+    full_name             VARCHAR(100),
+    bio                   TEXT,
+    avatar                VARCHAR(255) DEFAULT NULL,
+    reputation            DECIMAL(3,2) DEFAULT 0.00,
+    rep_count             INT          DEFAULT 0,
+    plan                  ENUM('free','pro','platinum') DEFAULT 'free',
+    tokens_balance        INT          DEFAULT 0,
+    verified              TINYINT(1)   DEFAULT 0,
+    verification_token    VARCHAR(64)  DEFAULT NULL,
+    token_created_at      TIMESTAMP    DEFAULT NULL,
+    created_at            TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    last_active           TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- ─── PUBLICATIONS ─────────────────────────────────────

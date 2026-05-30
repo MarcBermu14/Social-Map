@@ -1,4 +1,20 @@
 <?php
+// ─── Load .env file if it exists ──────────────────────
+$envFile = __DIR__ . '/../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false && $line[0] !== '#') {
+            $parts = explode('=', $line, 2);
+            $key = trim($parts[0]);
+            $value = trim($parts[1] ?? '');
+            if ($key && !isset($_ENV[$key])) {
+                putenv("$key=$value");
+            }
+        }
+    }
+}
+
 // ─── Database configuration ───────────────────────────
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'citylive');
@@ -19,6 +35,13 @@ function getDB(): PDO {
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
+            
+            // ─── Auto-migrate: Add email verification columns if missing ────
+            try { $pdo->exec("ALTER TABLE users ADD COLUMN verification_token VARCHAR(64) DEFAULT NULL"); }
+            catch (PDOException $e) {} // Already exists
+            try { $pdo->exec("ALTER TABLE users ADD COLUMN token_created_at TIMESTAMP DEFAULT NULL"); }
+            catch (PDOException $e) {} // Already exists
+            
             // Auto-create event_registrations if missing (new table added after initial install)
             $pdo->exec("CREATE TABLE IF NOT EXISTS event_registrations (
                 user_id        INT NOT NULL,
