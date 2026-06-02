@@ -388,7 +388,7 @@ include __DIR__ . '/includes/header.php';
         if (navigator.share) {
           try {
             await navigator.share({
-              title: <?= json_encode($pub['title'], JSON_UNESCAPED_UNICODE) ?>,
+              title: <?= json_encode($pub['title'], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>,
               text: 'Mira esta publicación en CityLive',
               url: shareUrl
             });

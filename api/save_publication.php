@@ -10,6 +10,7 @@ if (!isLoggedIn()) {
 
 $uid = (int)$_SESSION['user_id'];
 const ALLOWED_SAVE_ACTIONS = ['save', 'unsave', 'toggle'];
+const PUBLICATION_STATUS_ACTIVE = 'active';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $pubId = (int)($_GET['pub_id'] ?? 0);
@@ -39,8 +40,8 @@ if (!$pubId || !in_array($action, ALLOWED_SAVE_ACTIONS, true)) {
 }
 
 $db = getDB();
-$stmt = $db->prepare("SELECT id FROM publications WHERE id = ? AND status = 'active'");
-$stmt->execute([$pubId]);
+$stmt = $db->prepare("SELECT 1 FROM publications WHERE id = ? AND status = ?");
+$stmt->execute([$pubId, PUBLICATION_STATUS_ACTIVE]);
 if (!$stmt->fetchColumn()) {
     http_response_code(404);
     echo json_encode(['success' => false, 'error' => 'Publicación no encontrada']);

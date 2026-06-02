@@ -13,10 +13,13 @@ $db = getDB();
 $userId = (int)$_SESSION['user_id'];
 $body = json_decode(file_get_contents('php://input'), true) ?? [];
 const ALLOWED_REPORT_REASONS = ['spam', 'offensive', 'inappropriate', 'other'];
+const SQLSTATE_INTEGRITY_CONSTRAINT = '23000';
+const MAX_REPORT_DESCRIPTION_LENGTH = 500;
+const PUBLICATION_STATUS_ACTIVE = 'active';
 
 $pubId = (int)($body['pub_id'] ?? 0);
 $reason = $body['reason'] ?? '';
-$desc = mb_substr(strip_tags(trim($body['description'] ?? '')), 0, 500);
+$desc = mb_substr(strip_tags(trim($body['description'] ?? '')), 0, MAX_REPORT_DESCRIPTION_LENGTH);
 
 if (!$pubId) {
     http_response_code(400);
@@ -29,8 +32,8 @@ if (!in_array($reason, ALLOWED_REPORT_REASONS, true)) {
     exit;
 }
 
-$chk = $db->prepare("SELECT user_id FROM publications WHERE id = ? AND status = 'active'");
-$chk->execute([$pubId]);
+$chk = $db->prepare("SELECT user_id FROM publications WHERE id = ? AND status = ?");
+$chk->execute([$pubId, PUBLICATION_STATUS_ACTIVE]);
 $pub = $chk->fetch();
 
 if (!$pub) {
@@ -51,7 +54,7 @@ try {
          VALUES (?, ?, ?, ?)"
     )->execute([$userId, $pubId, $reason, $desc ?: null]);
 } catch (PDOException $e) {
-    if ($e->getCode() === '23000') {
+    if ($e->getCode() === SQLSTATE_INTEGRITY_CONSTRAINT) {
         echo json_encode(['success' => false, 'error' => 'Ya has reportado esta publicación']);
         exit;
     }

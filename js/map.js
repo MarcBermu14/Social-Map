@@ -237,7 +237,7 @@
   function bindDetailActions(pub) {
     const saveBtn = detailPanel.querySelector('.detail-save-btn');
     if (saveBtn) {
-      fetch(`/api/save_publication.php?pub_id=${pub.id}`)
+      fetch(`/api/save_publication.php?pub_id=${encodeURIComponent(pub.id)}`)
         .then(r => r.json())
         .then(data => {
           if (data.saved) {
