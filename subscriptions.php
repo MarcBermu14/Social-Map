@@ -12,6 +12,15 @@ $msgType = 'success';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
     $newPlan = $_POST['plan'];
     if (in_array($newPlan, ['free', 'pro', 'platinum'])) {
+        // Si es un plan de pago, requerir Bizum
+        if ($newPlan !== 'free') {
+            $planPrices = ['pro' => '9,99€', 'platinum' => '29,99€'];
+            $price = $planPrices[$newPlan] ?? 'el importe';
+            header('Location: ' . BASE . '/subscriptions.php?payment_required=1&plan=' . urlencode($newPlan) . '&price=' . urlencode($price));
+            exit;
+        }
+        
+        // Solo procesar cambio a plan gratuito
         $tokens = PLAN_TOKENS[$newPlan];
 
         $db->prepare('UPDATE users SET plan = ?, tokens_balance = tokens_balance + ? WHERE id = ?')
@@ -47,6 +56,20 @@ include __DIR__ . '/includes/header.php';
     <div class="flash flash-success">
       <i class="fa-solid fa-circle-check"></i>
       Plan actualizado correctamente. Los tokens se han añadido a tu cuenta.
+    </div>
+  <?php endif; ?>
+
+  <?php if (isset($_GET['payment_required'])): ?>
+    <div class="flash flash-warning">
+      <i class="fa-solid fa-warning"></i>
+      <strong>Pago requerido:</strong> Para cambiar al plan <strong><?= htmlspecialchars(ucfirst($_GET['plan'] ?? '')) ?></strong> (<?= htmlspecialchars($_GET['price'] ?? '') ?>/mes), debes realizar un pago mediante <strong>Bizum</strong>.
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);">
+        <strong style="display:block;margin-bottom:8px;">📱 Envía un Bizum a:</strong>
+        <div style="font-size:16px;font-weight:800;color:#fff;background:rgba(0,0,0,.3);padding:12px;border-radius:8px;margin-bottom:8px;">666 666 666</div>
+        <strong style="display:block;margin-bottom:4px;">Importe:</strong>
+        <div style="color:#fff;margin-bottom:12px;"><?= htmlspecialchars($_GET['price'] ?? '') ?> (primer mes)</div>
+        <div style="font-size:12px;opacity:.9;">Una vez realizado el pago, tu plan se actualizará lo más pronto posible. ✨</div>
+      </div>
     </div>
   <?php endif; ?>
 
