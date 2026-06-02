@@ -57,6 +57,9 @@ $emoji = $categoryEmoji[$pub['category']] ?? $typeEmoji[$pub['type']] ?? '📍';
 $color = $typeColor[$pub['type']] ?? 'var(--primary)';
 
 $isOwner = ((int)$_SESSION['user_id'] === (int)$pub['user_id']);
+$saveChk = $db->prepare('SELECT 1 FROM saves WHERE user_id = ? AND publication_id = ?');
+$saveChk->execute([$_SESSION['user_id'], $id]);
+$isSaved = (bool)$saveChk->fetchColumn();
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -211,10 +214,16 @@ include __DIR__ . '/includes/header.php';
               🧭 Cómo llegar
             </a>
             <div style="display:flex;gap:8px;">
-              <button class="btn btn-outline" style="flex:1;">🔖 Guardar</button>
-              <button class="btn btn-outline" style="flex:1;">📤 Compartir</button>
+              <button id="saveBtn"
+                      class="btn btn-outline"
+                      style="flex:1;"
+                      data-pub="<?= $pub['id'] ?>"
+                      data-saved="<?= $isSaved ? '1' : '0' ?>">
+                <?= $isSaved ? '✅ Guardado' : '🔖 Guardar' ?>
+              </button>
+              <button id="shareBtn" class="btn btn-outline" style="flex:1;">📤 Compartir</button>
             </div>
-            <button class="btn btn-danger btn-sm">🚩 Reportar</button>
+            <button id="reportBtn" class="btn btn-danger btn-sm" data-pub="<?= $pub['id'] ?>">🚩 Reportar</button>
 
             <?php if ($isOwner): ?>
             <a href="/edit.php?id=<?= $pub['id'] ?>" class="btn btn-outline btn-block">
@@ -350,6 +359,80 @@ include __DIR__ . '/includes/header.php';
     }
     </script>
     <?php endif; ?>
+
+    <script>
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async function () {
+        this.disabled = true;
+        const res = await fetch('/api/save_publication.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'toggle', pub_id: parseInt(this.dataset.pub) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.dataset.saved = data.saved ? '1' : '0';
+          this.textContent = data.saved ? '✅ Guardado' : '🔖 Guardar';
+        } else {
+          alert(data.error || 'No se pudo guardar la publicación');
+        }
+        this.disabled = false;
+      });
+    }
+
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async function () {
+        const shareUrl = window.location.href;
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: <?= json_encode($pub['title'], JSON_UNESCAPED_UNICODE) ?>,
+              text: 'Mira esta publicación en CityLive',
+              url: shareUrl
+            });
+          } catch (err) {
+            // User cancelled share
+          }
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          alert('Enlace copiado al portapapeles');
+        } catch (err) {
+          alert('No se pudo compartir automáticamente. Copia este enlace: ' + shareUrl);
+        }
+      });
+    }
+
+    const reportBtn = document.getElementById('reportBtn');
+    if (reportBtn) {
+      reportBtn.addEventListener('click', async function () {
+        const reason = prompt('Motivo del reporte (spam, offensive, inappropriate, other):', 'spam');
+        if (reason === null) return;
+        const normalizedReason = reason.trim().toLowerCase();
+        if (!['spam', 'offensive', 'inappropriate', 'other'].includes(normalizedReason)) {
+          alert('Motivo inválido');
+          return;
+        }
+        const description = prompt('Descripción adicional (opcional):', '') || '';
+        this.disabled = true;
+        const res = await fetch('/api/report_publication.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pub_id: parseInt(this.dataset.pub),
+            reason: normalizedReason,
+            description
+          })
+        });
+        const data = await res.json();
+        alert(data.success ? data.message : (data.error || 'No se pudo enviar el reporte'));
+        this.disabled = false;
+      });
+    }
+    </script>
 
     <!-- Delete publication (owner only) -->
     <?php if ($isOwner): ?>
