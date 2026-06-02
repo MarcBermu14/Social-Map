@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/config/spin_config.php';
 requireLogin();
@@ -382,6 +382,7 @@ $jsConfig = [
 </div>
 
 <script>
+const CL_BASE = '<?= BASE ?>';
 (function () {
   'use strict';
 
@@ -556,7 +557,7 @@ $jsConfig = [
     const form = new FormData();
     form.append('type', type);
 
-    fetch('/api/spin.php', { method: 'POST', body: form })
+    fetch(CL_BASE + '/api/spin.php', { method: 'POST', body: form })
       .then(r => r.json())
       .then(data => {
         clearInterval(spinAnim);

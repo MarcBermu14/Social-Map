@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
@@ -40,6 +40,13 @@ include __DIR__ . '/includes/header.php';
       <!-- LEFT PANEL: filters + list -->
       <div class="map-left-panel">
 
+        <!-- Search bar -->
+        <div class="panel-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="pubSearch" placeholder="Buscar publicaciones..." autocomplete="off">
+          <button id="pubSearchClear" title="Limpiar">&#215;</button>
+        </div>
+
         <!-- Filters: type -->
         <div class="map-filters" data-filter-group="type">
           <div class="filter-chip active" data-filter="all">🌐 Todo</div>
@@ -75,7 +82,7 @@ include __DIR__ . '/includes/header.php';
                 $color = $typeColor[$pub['type']] ?? 'var(--primary)';
                 $time  = (new DateTime($pub['created_at']))->format('H:i');
               ?>
-              <a href="/activity.php?id=<?= $pub['id'] ?>"
+              <a href="<?= BASE ?>/activity.php?id=<?= $pub['id'] ?>"
                  class="map-pub-item" data-id="<?= $pub['id'] ?>"
                  data-lat="<?= $pub['latitude'] ?>" data-lng="<?= $pub['longitude'] ?>"
                  data-type="<?= $pub['type'] ?>" data-category="<?= htmlspecialchars($pub['category'] ?? '') ?>">
@@ -104,7 +111,7 @@ include __DIR__ . '/includes/header.php';
 
         <!-- Create CTA at bottom of panel -->
         <div style="padding:12px;border-top:1px solid var(--border);">
-          <a href="/create.php" class="btn btn-primary btn-block">
+          <a href="<?= BASE ?>/create.php" class="btn btn-primary btn-block">
             <i class="fa-solid fa-plus"></i> Crear publicación
           </a>
         </div>
@@ -118,23 +125,49 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="/js/map.js"></script>
+    <script>window.CL_BASE = '<?= BASE ?>';</script>
+    <script src="<?= BASE ?>/js/map.js?v=2"></script>
     <script>
-    let activeType = 'all';
-    let activeCat  = 'all';
+    let activeType  = 'all';
+    let activeCat   = 'all';
+    let activeQuery = '';
 
     function applyAllFilters() {
-      // Map markers
+      const q = activeQuery.trim().toLowerCase();
+
+      // Map markers (no filtra por texto, solo tipo y categoría)
       if (window.CityLiveMap) {
         window.CityLiveMap.applyFilters(activeType, activeCat);
       }
+
       // Left panel list
       document.querySelectorAll('.map-pub-item').forEach(item => {
-        const matchType = activeType === 'all' || item.dataset.type === activeType;
-        const matchCat  = activeCat  === 'all' || item.dataset.category === activeCat;
-        item.style.display = (matchType && matchCat) ? '' : 'none';
+        const matchType  = activeType === 'all' || item.dataset.type === activeType;
+        const matchCat   = activeCat  === 'all' || item.dataset.category === activeCat;
+        const title      = (item.querySelector('.pub-title')?.textContent || '').toLowerCase();
+        const matchQuery = !q || title.includes(q);
+        item.style.display = (matchType && matchCat && matchQuery) ? '' : 'none';
       });
+
+      // Mostrar/ocultar botón limpiar
+      document.getElementById('pubSearchClear').style.display = q ? 'inline' : 'none';
     }
+
+    // Búsqueda
+    const searchInput = document.getElementById('pubSearch');
+    const searchClear = document.getElementById('pubSearchClear');
+
+    searchInput.addEventListener('input', function () {
+      activeQuery = this.value;
+      applyAllFilters();
+    });
+
+    searchClear.addEventListener('click', function () {
+      searchInput.value = '';
+      activeQuery = '';
+      applyAllFilters();
+      searchInput.focus();
+    });
 
     document.querySelectorAll('[data-filter-group="type"] .filter-chip').forEach(chip => {
       chip.addEventListener('click', function () {

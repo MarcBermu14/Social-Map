@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 
 // Already logged in → go to dashboard
 if (isLoggedIn()) {
-    header('Location: /dashboard.php');
+    header('Location: ' . BASE . '/dashboard.php');
     exit;
 }
 
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 // Update last_active
                 getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
-                header('Location: /dashboard.php');
+                header('Location: ' . BASE . '/dashboard.php');
                 exit;
             }
         } else {
@@ -43,8 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar sesión — CityLive</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/fontawesome.min.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/style.css">
 </head>
 <body>
 <div class="auth-page">
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="divider"></div>
 
     <p class="text-sm text-muted" style="text-align:center;margin-bottom:16px;">
-      ¿No tienes cuenta? <a href="/register.php">Crear cuenta gratis</a>
+      ¿No tienes cuenta? <a href="<?= BASE ?>/register.php">Crear cuenta gratis</a>
     </p>
 
     <!-- Demo credentials -->
