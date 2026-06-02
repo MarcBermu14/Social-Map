@@ -245,7 +245,7 @@
             saveBtn.title = 'Guardado';
           }
         })
-        .catch(() => {});
+        .catch(err => console.error('No se pudo comprobar el estado de guardado:', err));
 
       saveBtn.addEventListener('click', async function () {
         this.disabled = true;

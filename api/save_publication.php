@@ -9,6 +9,7 @@ if (!isLoggedIn()) {
 }
 
 $uid = (int)$_SESSION['user_id'];
+const ALLOWED_SAVE_ACTIONS = ['save', 'unsave', 'toggle'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $pubId = (int)($_GET['pub_id'] ?? 0);
@@ -31,7 +32,7 @@ $data = json_decode(file_get_contents('php://input'), true);
 $action = $data['action'] ?? ($_POST['action'] ?? '');
 $pubId = (int)($data['pub_id'] ?? ($_POST['pub_id'] ?? 0));
 
-if (!$pubId || !in_array($action, ['save', 'unsave', 'toggle'], true)) {
+if (!$pubId || !in_array($action, ALLOWED_SAVE_ACTIONS, true)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Parámetros inválidos']);
     exit;

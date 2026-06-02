@@ -12,18 +12,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $db = getDB();
 $userId = (int)$_SESSION['user_id'];
 $body = json_decode(file_get_contents('php://input'), true) ?? [];
+const ALLOWED_REPORT_REASONS = ['spam', 'offensive', 'inappropriate', 'other'];
 
 $pubId = (int)($body['pub_id'] ?? 0);
 $reason = $body['reason'] ?? '';
 $desc = mb_substr(strip_tags(trim($body['description'] ?? '')), 0, 500);
-$allowedReasons = ['spam', 'offensive', 'inappropriate', 'other'];
 
 if (!$pubId) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Parámetros inválidos']);
     exit;
 }
-if (!in_array($reason, $allowedReasons, true)) {
+if (!in_array($reason, ALLOWED_REPORT_REASONS, true)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Motivo de reporte inválido']);
     exit;
