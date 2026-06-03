@@ -250,31 +250,31 @@ $jsConfig = [
       <div class="balance-glow"></div>
       <div class="balance-label">Saldo de tokens</div>
       <div class="balance-amount"><span id="balanceDisplay"><?= number_format($user['tokens_balance']) ?></span></div>
-      <div class="balance-unit">tokens ⬡</div>
+      <div class="balance-unit"><i class="fa-solid fa-coins"></i> tokens</div>
     </div>
 
     <!-- Estadísticas del usuario -->
     <div class="stats-grid mb-24" style="grid-template-columns:repeat(3,1fr);">
       <div class="stat-card">
-        <div class="stat-icon">🎰</div>
+        <div class="stat-icon"><i class="fa-solid fa-dice"></i></div>
         <div class="stat-val"><?= number_format($stats['total']) ?></div>
         <div class="stat-lbl">Tiradas totales</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">📈</div>
-        <div class="stat-val" style="color:var(--green);">+<?= number_format($stats['total_earned']) ?> ⬡</div>
+        <div class="stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div class="stat-val" style="color:var(--green);">+<?= number_format($stats['total_earned']) ?> tokens</div>
         <div class="stat-lbl">Tokens ganados</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">📉</div>
-        <div class="stat-val" style="color:var(--red);">-<?= number_format($stats['total_spent']) ?> ⬡</div>
+        <div class="stat-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+        <div class="stat-val" style="color:var(--red);">-<?= number_format($stats['total_spent']) ?> tokens</div>
         <div class="stat-lbl">Tokens gastados</div>
       </div>
     </div>
 
     <!-- Controles de tirada -->
     <div class="card mb-24">
-      <div class="card-title mb-16">🎰 Jugar a la ruleta</div>
+      <div class="card-title mb-16"><i class="fa-solid fa-dice" style="color:var(--red);margin-right:8px;"></i>Jugar a la ruleta</div>
 
       <!-- Resultado (se muestra tras la tirada) -->
       <div id="spinResult" class="spin-result mb-16"></div>
@@ -310,13 +310,13 @@ $jsConfig = [
 
       <div class="divider" style="margin:16px 0;"></div>
       <p style="font-size:12px;color:var(--text3);text-align:center;">
-        EV por tirada: <strong>58,75 ⬡</strong> · Margen ruleta: 41,25 % en tiradas pagadas
+        EV por tirada: <strong>58,75 tokens</strong> · Margen ruleta: 41,25 % en tiradas pagadas
       </p>
     </div>
 
     <!-- Historial de tiradas -->
     <div class="card">
-      <div class="card-title mb-16">📋 Historial de tiradas</div>
+      <div class="card-title mb-16"><i class="fa-solid fa-clock-rotate-left" style="color:var(--red);margin-right:8px;"></i>Historial de tiradas</div>
       <?php if (empty($history)): ?>
         <p class="text-muted text-sm">Aún no has hecho ninguna tirada.</p>
       <?php else: ?>
@@ -327,17 +327,17 @@ $jsConfig = [
         ?>
         <div class="spin-hist-item">
           <div class="spin-hist-icon" style="background:<?= $isWin ? 'rgba(16,185,129,.12)' : 'rgba(100,116,139,.1)' ?>;">
-            <?= $isFree ? '🎁' : '💰' ?>
+            <i class="<?= $isFree ? 'fa-solid fa-gift' : 'fa-solid fa-coins' ?>"></i>
           </div>
           <div style="flex:1;">
             <div style="font-weight:600;"><?= htmlspecialchars($h['prize_label']) ?></div>
             <div style="font-size:11px;color:var(--text3);">
-              <?= $isFree ? 'Gratis' : '-' . number_format($h['cost']) . ' ⬡' ?>
+              <?= $isFree ? 'Gratis' : '-' . number_format($h['cost']) . ' tokens' ?>
               · <?= (new DateTime($h['created_at']))->format('d M · H:i') ?>
             </div>
           </div>
           <div style="font-weight:700;font-size:14px;color:<?= $net > 0 ? 'var(--green)' : ($net < 0 ? 'var(--red)' : 'var(--text3)') ?>;">
-            <?= $net > 0 ? '+' : '' ?><?= number_format($net) ?> ⬡
+            <?= $net > 0 ? '+' : '' ?><?= number_format($net) ?> tokens
           </div>
         </div>
         <?php endforeach; ?>
@@ -361,7 +361,7 @@ $jsConfig = [
 
     <!-- Leyenda de premios -->
     <div class="card">
-      <div class="card-title mb-12">🏆 Tabla de premios</div>
+      <div class="card-title mb-12"><i class="fa-solid fa-trophy" style="color:var(--red);margin-right:8px;"></i>Tabla de premios</div>
       <div class="prize-legend">
         <?php foreach (SPIN_PRIZES as $prize): ?>
         <div class="prize-row">
@@ -373,7 +373,7 @@ $jsConfig = [
       </div>
       <div class="divider" style="margin:12px 0;"></div>
       <p style="font-size:11px;color:var(--text3);text-align:center;line-height:1.5;">
-        Tirada pagada: <strong><?= SPIN_COST ?> ⬡</strong> ·
+        Tirada pagada: <strong><?= SPIN_COST ?> tokens</strong> ·
         Tirada gratis: cada <strong><?= SPIN_FREE_INTERVAL / 3600 ?>h</strong>
       </p>
     </div>
@@ -470,7 +470,7 @@ const CL_BASE = '<?= BASE ?>';
     ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('⬡', cx, cy);
+    ctx.fillText('C', cx, cy);
   }
 
   drawWheel(0);
@@ -525,13 +525,13 @@ const CL_BASE = '<?= BASE ?>';
 
     el.innerHTML = `
       <div class="result-tokens" style="color:${win ? 'var(--green)' : 'var(--text3)'}">
-        ${win ? '+' + prize.tokens.toLocaleString('es') + ' ⬡' : '😕'}
+        ${win ? '+' + prize.tokens.toLocaleString('es') + ' tokens' : 'Sin premio'}
       </div>
       <div class="result-label">
         ${win ? '¡Has ganado <strong>' + prize.label + '</strong>!' : 'Sin premio esta vez. ¡Suerte la próxima!'}
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--text3);">
-        Saldo actual: <strong>${balance.toLocaleString('es')} ⬡</strong>
+        Saldo actual: <strong>${balance.toLocaleString('es')} tokens</strong>
       </div>`;
     el.classList.add('show');
 

@@ -1,14 +1,14 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
 $pageTitle  = 'Mapa en vivo';
 $activePage = 'map';
+$bodyClass  = 'page-dashboard';
 
 $db   = getDB();
 $user = currentUser();
 
-// Fetch publications for left panel
 $stmt = $db->query("
     SELECT p.id, p.type, p.title, p.address, p.category, p.attendees, p.token_cost,
            p.latitude, p.longitude, p.created_at,
@@ -21,139 +21,241 @@ $stmt = $db->query("
 ");
 $publications = $stmt->fetchAll();
 
-$typeEmoji = ['incident' => '🚨', 'event' => '🎉', 'activity' => '⚡'];
-$typeColor = ['incident' => 'var(--red)', 'event' => 'var(--yellow)', 'activity' => 'var(--primary)'];
-$typeLabel = ['incident' => 'Incidencia', 'event' => 'Evento', 'activity' => 'Actividad'];
-
-$categoryEmoji = [
-    'Arte y Cultura' => '🎨', 'Música' => '🎵', 'Gastronomía' => '🍕',
-    'Compras' => '🛍️', 'Deporte' => '🏃', 'Tráfico' => '🚗',
-    'Obras' => '🚧', 'Avería' => '⚡', 'Cultura' => '🎭',
+$typeMeta = [
+    'incident' => ['icon' => 'fa-solid fa-triangle-exclamation', 'label' => 'Incidencia', 'accent' => 'incident'],
+    'event' => ['icon' => 'fa-solid fa-calendar-days', 'label' => 'Evento', 'accent' => 'event'],
+    'activity' => ['icon' => 'fa-solid fa-bolt', 'label' => 'Actividad', 'accent' => 'activity'],
 ];
+
+$categoryMeta = [
+    'Arte y Cultura' => ['icon' => 'fa-solid fa-palette', 'short' => 'Arte'],
+    'Música' => ['icon' => 'fa-solid fa-music', 'short' => 'Música'],
+    'Gastronomía' => ['icon' => 'fa-solid fa-utensils', 'short' => 'Gastro'],
+    'Compras' => ['icon' => 'fa-solid fa-bag-shopping', 'short' => 'Compras'],
+    'Deporte' => ['icon' => 'fa-solid fa-basketball', 'short' => 'Deporte'],
+    'Tráfico' => ['icon' => 'fa-solid fa-car-side', 'short' => 'Tráfico'],
+    'Obras' => ['icon' => 'fa-solid fa-helmet-safety', 'short' => 'Obras'],
+    'Avería' => ['icon' => 'fa-solid fa-screwdriver-wrench', 'short' => 'Avería'],
+    'Cultura' => ['icon' => 'fa-solid fa-masks-theater', 'short' => 'Cultura'],
+];
+
+$typeTotals = ['all' => count($publications), 'incident' => 0, 'event' => 0, 'activity' => 0];
+foreach ($publications as $publication) {
+    if (isset($typeTotals[$publication['type']])) {
+        $typeTotals[$publication['type']]++;
+    }
+}
 
 include __DIR__ . '/includes/header.php';
 ?>
 
-    <!-- Dashboard: full-width map + panels -->
     <div class="dashboard-shell">
-
-      <!-- LEFT PANEL: filters + list -->
-      <div class="map-left-panel">
-
-        <!-- Search bar -->
-        <div class="panel-search">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="pubSearch" placeholder="Buscar publicaciones..." autocomplete="off">
-          <button id="pubSearchClear" title="Limpiar">&#215;</button>
-        </div>
-
-        <!-- Filters: type -->
-        <div class="map-filters" data-filter-group="type">
-          <div class="filter-chip active" data-filter="all">🌐 Todo</div>
-          <div class="filter-chip" data-filter="incident">🚨 Incidencias</div>
-          <div class="filter-chip" data-filter="event">🎉 Eventos</div>
-          <div class="filter-chip" data-filter="activity">⚡ Actividades</div>
-        </div>
-
-        <!-- Filters: category -->
-        <div class="map-filters map-filters--category" data-filter-group="category">
-          <div class="filter-chip active" data-filter="all">Todas</div>
-          <div class="filter-chip" data-filter="Arte y Cultura">🎨 Arte</div>
-          <div class="filter-chip" data-filter="Música">🎵 Música</div>
-          <div class="filter-chip" data-filter="Gastronomía">🍕 Gastro</div>
-          <div class="filter-chip" data-filter="Deporte">🏃 Deporte</div>
-          <div class="filter-chip" data-filter="Compras">🛍️ Compras</div>
-          <div class="filter-chip" data-filter="Tráfico">🚗 Tráfico</div>
-          <div class="filter-chip" data-filter="Obras">🚧 Obras</div>
-          <div class="filter-chip" data-filter="Avería">⚡ Avería</div>
-          <div class="filter-chip" data-filter="Cultura">🎭 Cultura</div>
-        </div>
-
-        <!-- Publication list -->
-        <div class="map-pub-list">
-          <?php if (empty($publications)): ?>
-            <div style="padding:24px;text-align:center;color:var(--text3);font-size:14px;">
-              No hay publicaciones activas.
-            </div>
-          <?php else: ?>
-            <?php foreach ($publications as $pub): ?>
-              <?php
-                $emoji = $categoryEmoji[$pub['category']] ?? $typeEmoji[$pub['type']] ?? '📍';
-                $color = $typeColor[$pub['type']] ?? 'var(--primary)';
-                $time  = (new DateTime($pub['created_at']))->format('H:i');
-              ?>
-              <a href="<?= BASE ?>/activity.php?id=<?= $pub['id'] ?>"
-                 class="map-pub-item" data-id="<?= $pub['id'] ?>"
-                 data-lat="<?= $pub['latitude'] ?>" data-lng="<?= $pub['longitude'] ?>"
-                 data-type="<?= $pub['type'] ?>" data-category="<?= htmlspecialchars($pub['category'] ?? '') ?>">
-                <div class="map-pub-icon <?= $pub['type'] ?>">
-                  <?= $emoji ?>
-                </div>
-                <div class="map-pub-info" style="min-width:0;">
-                  <div class="pub-title"><?= htmlspecialchars($pub['title']) ?></div>
-                  <div class="pub-addr" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    <?= htmlspecialchars($pub['address'] ?? '') ?>
-                  </div>
-                  <div class="pub-bottom">
-                    <span class="badge badge-<?= $pub['type'] === 'incident' ? 'red' : ($pub['type'] === 'event' ? 'yellow' : 'primary') ?>" style="font-size:10px;padding:2px 7px;">
-                      <?= $typeLabel[$pub['type']] ?>
-                    </span>
-                    <?php if ($pub['token_cost'] > 0): ?>
-                      <span class="badge badge-primary" style="font-size:10px;padding:2px 7px;">⬡ <?= $pub['token_cost'] ?></span>
-                    <?php endif; ?>
-                    <span style="font-size:10px;color:var(--text3);margin-left:auto;"><?= $time ?></span>
-                  </div>
-                </div>
-              </a>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </div>
-
-        <!-- Create CTA at bottom of panel -->
-        <div style="padding:12px;border-top:1px solid var(--border);">
-          <a href="<?= BASE ?>/create.php" class="btn btn-primary btn-block">
-            <i class="fa-solid fa-plus"></i> Crear publicación
+      <aside class="map-left-panel">
+        <div class="map-panel-toolbar">
+          <div class="map-panel-toolbar-copy">
+            <span class="map-panel-toolbar-kicker">Explorar</span>
+            <h1>Publicaciones cercanas</h1>
+          </div>
+          <a href="<?= BASE ?>/create.php" class="map-panel-toolbar-btn">
+            <i class="fa-solid fa-plus"></i>
+            <span>Crear</span>
           </a>
         </div>
-      </div>
 
-      <!-- MAP -->
+        <div class="map-quick-actions">
+          <a href="<?= BASE ?>/spin.php" class="map-quick-action">
+            <i class="fa-solid fa-dice"></i>
+            <span>Ruleta</span>
+          </a>
+          <a href="<?= BASE ?>/tokens.php" class="map-quick-action">
+            <i class="fa-solid fa-coins"></i>
+            <span>Tokens</span>
+          </a>
+          <a href="<?= BASE ?>/profile.php" class="map-quick-action">
+            <i class="fa-solid fa-user-circle"></i>
+            <span>Perfil</span>
+          </a>
+        </div>
+
+        <div class="map-left-scroll">
+          <div class="panel-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="pubSearch" placeholder="Buscar publicaciones, zonas o planes..." autocomplete="off">
+            <button id="pubSearchClear" title="Limpiar">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <section class="filter-block">
+            <div class="filter-block-title">Vista principal</div>
+            <div class="map-filters" data-filter-group="type">
+              <button type="button" class="filter-chip active" data-filter="all">
+                <i class="fa-solid fa-globe"></i><span>Todo</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="incident">
+                <i class="fa-solid fa-triangle-exclamation"></i><span>Incidencias</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="event">
+                <i class="fa-solid fa-calendar-days"></i><span>Eventos</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="activity">
+                <i class="fa-solid fa-bolt"></i><span>Actividades</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="filter-block filter-block-categories">
+            <div class="filter-block-title">Categorías</div>
+            <div class="map-filters map-filters--category" data-filter-group="category">
+              <button type="button" class="filter-chip active" data-filter="all">
+                <i class="fa-solid fa-layer-group"></i><span>Todas</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Arte y Cultura">
+                <i class="fa-solid fa-palette"></i><span>Arte</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Música">
+                <i class="fa-solid fa-music"></i><span>Música</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Gastronomía">
+                <i class="fa-solid fa-utensils"></i><span>Gastro</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Deporte">
+                <i class="fa-solid fa-basketball"></i><span>Deporte</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Compras">
+                <i class="fa-solid fa-bag-shopping"></i><span>Compras</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Tráfico">
+                <i class="fa-solid fa-car-side"></i><span>Tráfico</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Obras">
+                <i class="fa-solid fa-helmet-safety"></i><span>Obras</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Avería">
+                <i class="fa-solid fa-screwdriver-wrench"></i><span>Avería</span>
+              </button>
+              <button type="button" class="filter-chip" data-filter="Cultura">
+                <i class="fa-solid fa-masks-theater"></i><span>Cultura</span>
+              </button>
+            </div>
+          </section>
+
+          <div class="map-feed-header">
+            <div>
+              <h2>Publicaciones activas</h2>
+              <p>Las 50 más recientes en el mapa.</p>
+            </div>
+            <span class="map-feed-counter"><?= $typeTotals['all'] ?></span>
+          </div>
+
+          <div class="map-pub-list">
+            <?php if (empty($publications)): ?>
+              <div class="map-empty-state">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <strong>No hay publicaciones activas.</strong>
+                <span>Cuando la comunidad publique algo nuevo, aparecerá aquí automáticamente.</span>
+              </div>
+            <?php else: ?>
+              <?php foreach ($publications as $pub): ?>
+                <?php
+                  $type = $typeMeta[$pub['type']] ?? $typeMeta['activity'];
+                  $category = $categoryMeta[$pub['category']] ?? ['icon' => $type['icon'], 'short' => $pub['category'] ?: 'Comunidad'];
+                  $time = (new DateTime($pub['created_at']))->format('H:i');
+                ?>
+                <a href="<?= BASE ?>/activity.php?id=<?= $pub['id'] ?>"
+                   class="map-pub-item" data-id="<?= $pub['id'] ?>"
+                   data-lat="<?= $pub['latitude'] ?>" data-lng="<?= $pub['longitude'] ?>"
+                   data-type="<?= $pub['type'] ?>" data-category="<?= htmlspecialchars($pub['category'] ?? '') ?>">
+                  <div class="map-pub-icon <?= $pub['type'] ?>">
+                    <i class="<?= htmlspecialchars($category['icon']) ?>"></i>
+                  </div>
+
+                  <div class="map-pub-info">
+                    <div class="pub-topline">
+                      <span class="pub-type-badge type-<?= htmlspecialchars($type['accent']) ?>">
+                        <i class="<?= htmlspecialchars($type['icon']) ?>"></i>
+                        <span><?= $type['label'] ?></span>
+                      </span>
+                      <span class="pub-time">
+                        <i class="fa-regular fa-clock"></i>
+                        <span><?= $time ?></span>
+                      </span>
+                    </div>
+
+                    <div class="pub-title"><?= htmlspecialchars($pub['title']) ?></div>
+
+                    <div class="pub-addr">
+                      <i class="fa-solid fa-location-dot"></i>
+                      <span><?= htmlspecialchars($pub['address'] ?? 'Ubicación por confirmar') ?></span>
+                    </div>
+
+                    <div class="pub-bottom">
+                      <span class="pub-category-chip">
+                        <i class="<?= htmlspecialchars($category['icon']) ?>"></i>
+                        <span><?= htmlspecialchars($category['short']) ?></span>
+                      </span>
+
+                      <?php if ($pub['token_cost'] > 0): ?>
+                        <span class="pub-token-chip">
+                          <i class="fa-solid fa-coins"></i>
+                          <span><?= (int)$pub['token_cost'] ?></span>
+                        </span>
+                      <?php endif; ?>
+
+                      <span class="pub-open-indicator">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </div>
+        </div>
+
+        <div class="map-panel-footer">
+          <a href="<?= BASE ?>/create.php" class="dashboard-create-btn">
+            <i class="fa-solid fa-plus"></i>
+            <span>Crear publicación</span>
+          </a>
+        </div>
+      </aside>
+
       <div class="map-container">
-        <div id="map"></div>
-        <div class="map-detail-panel" id="detailPanel"></div>
+        <div class="map-stage">
+          <div id="map"></div>
+          <div class="map-detail-panel" id="detailPanel"></div>
+        </div>
       </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>window.CL_BASE = '<?= BASE ?>';</script>
-    <script src="<?= BASE ?>/js/map.js?v=2"></script>
+    <script src="<?= BASE ?>/js/map.js?v=3"></script>
     <script>
-    let activeType  = 'all';
-    let activeCat   = 'all';
+    let activeType = 'all';
+    let activeCat = 'all';
     let activeQuery = '';
 
     function applyAllFilters() {
       const q = activeQuery.trim().toLowerCase();
 
-      // Map markers (no filtra por texto, solo tipo y categoría)
       if (window.CityLiveMap) {
         window.CityLiveMap.applyFilters(activeType, activeCat);
       }
 
-      // Left panel list
       document.querySelectorAll('.map-pub-item').forEach(item => {
-        const matchType  = activeType === 'all' || item.dataset.type === activeType;
-        const matchCat   = activeCat  === 'all' || item.dataset.category === activeCat;
-        const title      = (item.querySelector('.pub-title')?.textContent || '').toLowerCase();
-        const matchQuery = !q || title.includes(q);
+        const matchType = activeType === 'all' || item.dataset.type === activeType;
+        const matchCat = activeCat === 'all' || item.dataset.category === activeCat;
+        const title = (item.querySelector('.pub-title')?.textContent || '').toLowerCase();
+        const address = (item.querySelector('.pub-addr span')?.textContent || '').toLowerCase();
+        const matchQuery = !q || title.includes(q) || address.includes(q);
         item.style.display = (matchType && matchCat && matchQuery) ? '' : 'none';
       });
 
-      // Mostrar/ocultar botón limpiar
-      document.getElementById('pubSearchClear').style.display = q ? 'inline' : 'none';
+      document.getElementById('pubSearchClear').style.display = q ? 'inline-flex' : 'none';
     }
 
-    // Búsqueda
     const searchInput = document.getElementById('pubSearch');
     const searchClear = document.getElementById('pubSearchClear');
 

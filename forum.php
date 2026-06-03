@@ -34,8 +34,8 @@ $stats = $db->prepare("
 $stats->execute([$eventId, $eventId]);
 $stats = $stats->fetch();
 
-$typeEmoji = ['incident' => '🚨', 'event' => '🎉', 'activity' => '⚡'];
-$emoji     = $typeEmoji[$pub['type']] ?? '📍';
+$typeIcon = ['incident' => 'fa-solid fa-triangle-exclamation', 'event' => 'fa-solid fa-calendar-days', 'activity' => 'fa-solid fa-bolt'];
+$iconClass = $typeIcon[$pub['type']] ?? 'fa-solid fa-location-dot';
 
 $pageTitle  = 'Foro · ' . htmlspecialchars($pub['title']);
 $activePage = '';
@@ -337,7 +337,7 @@ include __DIR__ . '/includes/header.php';
 
   <!-- Header -->
   <div class="forum-header">
-    <div class="forum-header-emoji"><?= $emoji ?></div>
+    <div class="forum-header-emoji"><i class="<?= $iconClass ?>" style="color:var(--red);"></i></div>
     <div class="forum-header-info">
       <div class="forum-header-title">
         <a href="<?= BASE ?>/activity.php?id=<?= $pub['id'] ?>" style="color:var(--text);">
@@ -345,23 +345,23 @@ include __DIR__ . '/includes/header.php';
         </a>
       </div>
       <div class="forum-header-meta">
-        <span>💬 <b id="stat-posts"><?= $stats['post_count'] ?></b> publicaciones</span>
-        <span>↩ <b><?= $stats['comment_count'] ?></b> respuestas</span>
+        <span><i class="fa-solid fa-comments"></i> <b id="stat-posts"><?= $stats['post_count'] ?></b> publicaciones</span>
+        <span><i class="fa-solid fa-reply"></i> <b><?= $stats['comment_count'] ?></b> respuestas</span>
         <?php if ($isOrgUser): ?>
           <span class="post-badge-org">Organizador</span>
         <?php endif; ?>
       </div>
     </div>
     <a href="<?= BASE ?>/activity.php?id=<?= $pub['id'] ?>" class="btn btn-outline btn-sm">
-      ← Evento
+      <i class="fa-solid fa-arrow-left"></i> Evento
     </a>
   </div>
 
   <!-- Toolbar -->
   <div class="forum-toolbar">
-    <button class="forum-sort-btn active" data-sort="recent">🕐 Recientes</button>
-    <button class="forum-sort-btn" data-sort="popular">🔥 Populares</button>
-    <button class="forum-sort-btn" data-sort="most_comments">💬 Más comentados</button>
+    <button class="forum-sort-btn active" data-sort="recent"><i class="fa-regular fa-clock"></i> Recientes</button>
+    <button class="forum-sort-btn" data-sort="popular"><i class="fa-solid fa-fire"></i> Populares</button>
+    <button class="forum-sort-btn" data-sort="most_comments"><i class="fa-solid fa-comments"></i> Más comentados</button>
     <button class="forum-btn-post" id="btnOpenCompose">
       <i class="fa-solid fa-plus"></i> Nueva publicación
     </button>
@@ -408,17 +408,17 @@ include __DIR__ . '/includes/header.php';
 
 <!-- Lightbox -->
 <div class="forum-lightbox" id="lightbox">
-  <button class="lightbox-close" id="lightboxClose">✕</button>
-  <button class="lightbox-nav prev" id="lightboxPrev">‹</button>
+  <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
+  <button class="lightbox-nav prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
   <img id="lightboxImg" src="" alt="">
-  <button class="lightbox-nav next" id="lightboxNext">›</button>
-  <a class="lightbox-download" id="lightboxDownload" download>⬇ Descargar</a>
+  <button class="lightbox-nav next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+  <a class="lightbox-download" id="lightboxDownload" download><i class="fa-solid fa-download"></i> Descargar</a>
 </div>
 
 <!-- Report modal -->
 <div class="forum-modal-overlay" id="reportModal">
   <div class="forum-modal">
-    <h3>🚩 Reportar contenido</h3>
+    <h3><i class="fa-solid fa-flag" style="color:var(--red);margin-right:8px;"></i>Reportar contenido</h3>
     <label>Motivo</label>
     <select id="reportReason">
       <option value="spam">Spam o publicidad</option>
@@ -514,7 +514,7 @@ function renderPosts(posts, container) {
   if (!posts.length) {
     container.innerHTML = `
       <div class="forum-empty">
-        <div class="forum-empty-icon">💬</div>
+        <div class="forum-empty-icon"><i class="fa-solid fa-comments" style="color:var(--red);"></i></div>
         <h3>Sin publicaciones aún</h3>
         <p>Sé el primero en escribir algo en el foro de este evento.</p>
       </div>`;
@@ -562,16 +562,16 @@ function renderPostHtml(p) {
         <div class="forum-dropdown" id="menu-${p.id}" style="display:none;right:0;top:28px;">
           ${p.can_edit ? `
             <button class="edit-post-btn" data-post-id="${p.id}">✏️ Editar</button>
-            <button class="delete-post-btn danger" data-post-id="${p.id}">🗑️ Eliminar</button>
+            <button class="delete-post-btn danger" data-post-id="${p.id}"><i class="fa-solid fa-trash"></i> Eliminar</button>
           ` : `
-            <button class="report-btn" data-type="post" data-id="${p.id}">🚩 Reportar</button>
+            <button class="report-btn" data-type="post" data-id="${p.id}"><i class="fa-solid fa-flag"></i> Reportar</button>
           `}
           ${IS_ADMIN && !p.can_edit ? `
             <button class="mod-pin-btn" data-post-id="${p.id}" data-pinned="${p.is_pinned ? '1' : '0'}">
               ${p.is_pinned ? '📌 Desfijar' : '📌 Fijar'}
             </button>
             <button class="mod-hide-btn danger" data-post-id="${p.id}">🙈 Ocultar</button>
-            <button class="mod-del-btn danger" data-post-id="${p.id}">🗑️ Eliminar (mod)</button>
+            <button class="mod-del-btn danger" data-post-id="${p.id}"><i class="fa-solid fa-trash"></i> Eliminar (mod)</button>
           ` : ''}
         </div>
       </div>
@@ -590,12 +590,12 @@ function renderPostHtml(p) {
 
     <div class="post-actions">
       <button class="post-action-btn like-btn ${p.user_liked ? 'liked' : ''}" data-post-id="${p.id}">
-        ${p.user_liked ? '❤️' : '🤍'} <span class="like-count">${p.like_count}</span>
+        <i class="${p.user_liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> <span class="like-count">${p.like_count}</span>
       </button>
       <button class="post-action-btn toggle-comments-btn" data-post-id="${p.id}">
-        💬 <span class="comment-count">${p.comment_count}</span>
+        <i class="fa-solid fa-comments"></i> <span class="comment-count">${p.comment_count}</span>
       </button>
-      <button class="post-action-btn reply-btn" data-post-id="${p.id}">↩ Responder</button>
+      <button class="post-action-btn reply-btn" data-post-id="${p.id}"><i class="fa-solid fa-reply"></i> Responder</button>
     </div>
 
     <!-- Comments section -->
@@ -726,7 +726,7 @@ async function toggleLike(type, id, postEl) {
     if (data.success) {
       btn.classList.toggle('liked', data.liked);
       btn.querySelector('.like-count').textContent = data.like_count;
-      btn.innerHTML = (data.liked ? '❤️' : '🤍') + ' <span class="like-count">' + data.like_count + '</span>';
+      btn.innerHTML = '<i class="' + (data.liked ? 'fa-solid' : 'fa-regular') + ' fa-heart"></i> <span class="like-count">' + data.like_count + '</span>';
       // Update currentPosts state
       const p = currentPosts.find(p => p.id === id);
       if (p) { p.user_liked = data.liked; p.like_count = data.like_count; }
@@ -791,7 +791,7 @@ function renderCommentHtml(c, postId, isReply) {
         <span class="comment-time">${timeAgo(c.created_at)}</span>
         <button class="comment-action like-comment-btn ${c.user_liked ? 'liked' : ''}"
                 data-comment-id="${c.id}" data-post-id="${postId}">
-          ${c.user_liked ? '❤️' : '🤍'} <span class="comment-like-count">${c.like_count}</span>
+          <i class="${c.user_liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> <span class="comment-like-count">${c.like_count}</span>
         </button>
         ${!isReply ? `<button class="comment-action reply-comment-btn" data-comment-id="${c.id}" data-post-id="${postId}">Responder</button>` : ''}
         ${c.can_edit ? `<button class="comment-action edit-comment-btn" data-comment-id="${c.id}">Editar</button>
@@ -818,7 +818,7 @@ function attachCommentEvents(el, postId) {
       if (data.success) {
         this.classList.toggle('liked', data.liked);
         this.querySelector('.comment-like-count').textContent = data.like_count;
-        this.innerHTML = (data.liked ? '❤️' : '🤍') + ' <span class="comment-like-count">' + data.like_count + '</span>';
+        this.innerHTML = '<i class="' + (data.liked ? 'fa-solid' : 'fa-regular') + ' fa-heart"></i> <span class="comment-like-count">' + data.like_count + '</span>';
       }
     } catch(e) {}
     this.disabled = false;
@@ -1079,7 +1079,7 @@ imgInput?.addEventListener('change', async function() {
         item.className = 'forum-img-preview-item';
         item.dataset.imgId = img.id;
         item.innerHTML = `<img src="${esc(img.url)}" alt="">
-          <button class="rm-img" data-img-id="${img.id}">✕</button>`;
+          <button class="rm-img" data-img-id="${img.id}"><i class="fa-solid fa-xmark"></i></button>`;
         imgPreview.appendChild(item);
         item.querySelector('.rm-img').addEventListener('click', function() {
           const id = parseInt(this.dataset.imgId);

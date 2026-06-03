@@ -45,20 +45,20 @@ $reviews = $db->prepare("
 $reviews->execute([$id]);
 $reviews = $reviews->fetchAll();
 
-$typeEmoji = ['incident' => '🚨', 'event' => '🎉', 'activity' => '⚡'];
+$typeIcon = ['incident' => 'fa-solid fa-triangle-exclamation', 'event' => 'fa-solid fa-calendar-days', 'activity' => 'fa-solid fa-bolt'];
 $typeColor = ['incident' => 'var(--red)', 'event' => 'var(--yellow)', 'activity' => 'var(--primary)'];
 $typeLabel = ['incident' => 'Incidencia', 'event' => 'Evento', 'activity' => 'Actividad'];
-$planLabel = ['free' => '🆓 Gratuita', 'pro' => '⭐ Pro', 'platinum' => '💎 Platinum'];
+$planLabel = ['free' => 'Gratuita', 'pro' => 'Pro', 'platinum' => 'Platinum'];
 
 $pageTitle  = htmlspecialchars($pub['title']);
 $activePage = '';
 
-$categoryEmoji = [
-    'Arte y Cultura' => '🎨', 'Música' => '🎵', 'Gastronomía' => '🍕',
-    'Compras' => '🛍️', 'Deporte' => '🏃', 'Tráfico' => '🚗',
-    'Obras' => '🚧', 'Avería' => '⚡', 'Cultura' => '🎭',
+$categoryIcon = [
+    'Arte y Cultura' => 'fa-solid fa-palette', 'Música' => 'fa-solid fa-music', 'Gastronomía' => 'fa-solid fa-utensils',
+    'Compras' => 'fa-solid fa-bag-shopping', 'Deporte' => 'fa-solid fa-dumbbell', 'Tráfico' => 'fa-solid fa-car-side',
+    'Obras' => 'fa-solid fa-hammer', 'Avería' => 'fa-solid fa-screwdriver-wrench', 'Cultura' => 'fa-solid fa-landmark',
 ];
-$emoji = $categoryEmoji[$pub['category']] ?? $typeEmoji[$pub['type']] ?? '📍';
+$iconClass = $categoryIcon[$pub['category']] ?? $typeIcon[$pub['type']] ?? 'fa-solid fa-location-dot';
 $color = $typeColor[$pub['type']] ?? 'var(--primary)';
 
 $isOwner = ((int)$_SESSION['user_id'] === (int)$pub['user_id']);
@@ -79,11 +79,11 @@ include __DIR__ . '/includes/header.php';
         </div>
 
         <!-- Hero -->
-        <div class="activity-hero"><?= $emoji ?></div>
+        <div class="activity-hero"><i class="<?= $iconClass ?>"></i></div>
 
         <!-- Category + title -->
         <div style="font-size:12px;font-weight:700;color:<?= $color ?>;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">
-          <?= $typeEmoji[$pub['type']] ?> <?= $typeLabel[$pub['type']] ?>
+          <i class="<?= $typeIcon[$pub['type']] ?>" style="margin-right:6px;"></i><?= $typeLabel[$pub['type']] ?>
           <?php if ($pub['category']): ?> · <?= htmlspecialchars($pub['category']) ?><?php endif; ?>
         </div>
 
@@ -94,11 +94,11 @@ include __DIR__ . '/includes/header.php';
         <!-- Meta chips -->
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
           <?php if ($pub['address']): ?>
-            <div class="badge badge-gray">📍 <?= htmlspecialchars($pub['address']) ?></div>
+            <div class="badge badge-gray"><i class="fa-solid fa-location-dot"></i> <?= htmlspecialchars($pub['address']) ?></div>
           <?php endif; ?>
           <?php if ($pub['attendees'] > 0 || $pub['max_attendees']): ?>
             <div class="badge badge-gray">
-              👥 <?= $pub['attendees'] ?> personas
+              <i class="fa-solid fa-users"></i> <?= $pub['attendees'] ?> personas
               <?php if ($pub['max_attendees']): ?>
                 / <?= $pub['max_attendees'] ?> máx
                 <?php if ((int)$pub['attendees'] >= (int)$pub['max_attendees']): ?>
@@ -108,15 +108,15 @@ include __DIR__ . '/includes/header.php';
             </div>
           <?php endif; ?>
           <?php if ($pub['min_attendees'] && (int)$pub['attendees'] < (int)$pub['min_attendees']): ?>
-            <div class="badge badge-yellow">⚠ Mínimo: <?= $pub['min_attendees'] ?> (faltan <?= $pub['min_attendees'] - $pub['attendees'] ?>)</div>
+            <div class="badge badge-yellow"><i class="fa-solid fa-triangle-exclamation"></i> Mínimo: <?= $pub['min_attendees'] ?> (faltan <?= $pub['min_attendees'] - $pub['attendees'] ?>)</div>
           <?php endif; ?>
           <?php if ($pub['starts_at']): ?>
-            <div class="badge badge-gray">🕐 <?= (new DateTime($pub['starts_at']))->format('d M · H:i') ?></div>
+            <div class="badge badge-gray"><i class="fa-regular fa-clock"></i> <?= (new DateTime($pub['starts_at']))->format('d M · H:i') ?></div>
           <?php endif; ?>
           <?php if ($pub['expires_at']): ?>
-            <div class="badge badge-yellow">⏱ Hasta <?= (new DateTime($pub['expires_at']))->format('H:i') ?></div>
+            <div class="badge badge-yellow"><i class="fa-solid fa-hourglass-end"></i> Hasta <?= (new DateTime($pub['expires_at']))->format('H:i') ?></div>
           <?php endif; ?>
-          <div class="badge badge-gray">👁 <?= $pub['views'] ?> vistas</div>
+          <div class="badge badge-gray"><i class="fa-regular fa-eye"></i> <?= $pub['views'] ?> vistas</div>
         </div>
 
         <!-- Description -->
@@ -127,7 +127,7 @@ include __DIR__ . '/includes/header.php';
         <!-- Token cost box (if activity) -->
         <?php if ($pub['token_cost'] > 0): ?>
         <div class="token-estimate-box" style="margin-bottom:24px;">
-          <div style="font-size:32px;">⬡</div>
+          <div style="font-size:32px;color:var(--primary);"><i class="fa-solid fa-coins"></i></div>
           <div>
             <div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Coste de publicación (actividad lucrativa)</div>
             <div class="te-val"><?= $pub['token_cost'] ?> tokens</div>
@@ -139,7 +139,7 @@ include __DIR__ . '/includes/header.php';
 
         <!-- Map mini -->
         <div class="card mb-20">
-          <div class="card-header"><span class="card-title">📍 Ubicación</span></div>
+          <div class="card-header"><span class="card-title"><i class="fa-solid fa-location-dot" style="color:var(--red);margin-right:8px;"></i>Ubicación</span></div>
           <div id="miniMap" style="height:220px;border-radius:10px;overflow:hidden;"></div>
           <div style="margin-top:12px;font-size:13px;color:var(--text2);">
             <?= htmlspecialchars($pub['address'] ?? '') ?>
@@ -155,7 +155,7 @@ include __DIR__ . '/includes/header.php';
         ?>
         <div class="card mb-20" style="border: 1px solid var(--primary); background: linear-gradient(135deg,rgba(14,165,233,.06),var(--card));">
           <div style="display:flex;align-items:center;gap:14px;">
-            <div style="font-size:28px;">💬</div>
+            <div style="font-size:28px;color:var(--red);"><i class="fa-solid fa-comments"></i></div>
             <div style="flex:1;">
               <div style="font-weight:800;font-size:15px;margin-bottom:3px;">Foro del evento</div>
               <div style="font-size:13px;color:var(--text2);">
@@ -163,7 +163,7 @@ include __DIR__ . '/includes/header.php';
               </div>
             </div>
             <a href="<?= BASE ?>/forum.php?event=<?= $pub['id'] ?>" class="btn btn-primary btn-sm">
-              Abrir foro →
+              Abrir foro <i class="fa-solid fa-arrow-right"></i>
             </a>
           </div>
         </div>
@@ -212,25 +212,25 @@ include __DIR__ . '/includes/header.php';
                     class="btn btn-block <?= $isRegistered ? 'btn-danger' : 'btn-primary' ?>"
                     data-pub="<?= $pub['id'] ?>"
                     data-registered="<?= $isRegistered ? '1' : '0' ?>">
-              <?= $isRegistered ? '✗ Desapuntarse' : '🎟️ Apuntarse al evento' ?>
+              <?= $isRegistered ? 'Desapuntarse' : 'Apuntarse al evento' ?>
             </button>
             <?php endif; ?>
 
             <a href="https://maps.google.com/?q=<?= $pub['latitude'] ?>,<?= $pub['longitude'] ?>" target="_blank"
                class="btn btn-<?= $pub['type'] === 'event' ? 'outline' : 'primary' ?> btn-block">
-              🧭 Cómo llegar
+              <i class="fa-solid fa-diamond-turn-right"></i> Cómo llegar
             </a>
             <div style="display:flex;gap:8px;">
               <button id="shareBtn" class="btn btn-outline" style="flex:1;"
                       data-title="<?= htmlspecialchars($pub['title']) ?>">
-                📤 Compartir
+                <i class="fa-solid fa-share-nodes"></i> Compartir
               </button>
               <button id="reportBtn"
                       class="btn btn-outline btn-icon"
                       title="<?= $isOwner ? 'No puedes reportar tu propia publicación' : 'Reportar publicación' ?>"
                       data-pub="<?= $id ?>"
                       <?= $isOwner ? 'disabled style="opacity:.4;cursor:not-allowed;"' : '' ?>>
-                🚩
+                <i class="fa-solid fa-flag"></i>
               </button>
             </div>
 
@@ -257,13 +257,13 @@ include __DIR__ . '/includes/header.php';
               <div style="flex:1;">
                 <div style="font-size:15px;font-weight:700;">
                   <?= htmlspecialchars($pub['creator_name'] ?? $pub['creator_username']) ?>
-                  <?php if ($pub['verified']): ?> <span style="color:var(--primary);">✓</span><?php endif; ?>
+                  <?php if ($pub['verified']): ?> <span style="color:var(--primary);"><i class="fa-solid fa-circle-check"></i></span><?php endif; ?>
                 </div>
                 <div style="font-size:12px;color:var(--text2);">@<?= htmlspecialchars($pub['creator_username']) ?></div>
               </div>
               <?php if ($pub['reputation'] > 0): ?>
                 <div style="font-size:16px;font-weight:800;color:var(--yellow);">
-                  ⭐ <?= number_format($pub['reputation'], 1) ?>
+                  <i class="fa-solid fa-star"></i> <?= number_format($pub['reputation'], 1) ?>
                 </div>
               <?php endif; ?>
             </div>
@@ -314,7 +314,7 @@ include __DIR__ . '/includes/header.php';
             <?php if ($pub['token_cost'] > 0): ?>
             <div style="display:flex;justify-content:space-between;font-size:13px;">
               <span class="text-muted">Coste tokens</span>
-              <span class="fw-bold" style="color:var(--primary);">⬡ <?= $pub['token_cost'] ?></span>
+              <span class="fw-bold" style="color:var(--primary);"><i class="fa-solid fa-coins"></i> <?= $pub['token_cost'] ?></span>
             </div>
             <?php endif; ?>
           </div>
@@ -333,7 +333,7 @@ include __DIR__ . '/includes/header.php';
     miniMap.setView(latlng, 16);
 
     const icon = L.divIcon({
-      html: `<div style="width:38px;height:38px;border-radius:12px;background:<?= $color ?>;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid rgba(255,255,255,.2);box-shadow:0 4px 14px rgba(0,0,0,.5);"><?= $emoji ?></div>`,
+      html: `<div style="width:38px;height:38px;border-radius:12px;background:<?= $color ?>;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid rgba(255,255,255,.2);box-shadow:0 4px 14px rgba(0,0,0,.5);"><i class="<?= $iconClass ?>" style="color:#fff;"></i></div>`,
       className: '', iconSize: [38, 38], iconAnchor: [19, 19]
     });
     L.marker(latlng, { icon }).addTo(miniMap);
@@ -360,7 +360,7 @@ include __DIR__ . '/includes/header.php';
           const now = data.registered;
           this.dataset.registered = now ? '1' : '0';
           this.className = 'btn btn-block ' + (now ? 'btn-danger' : 'btn-primary');
-          this.textContent = now ? '✗ Desapuntarse' : '🎟️ Apuntarse al evento';
+          this.textContent = now ? 'Desapuntarse' : 'Apuntarse al evento';
         } else {
           alert(data.error || 'Error al procesar la solicitud');
         }
@@ -369,80 +369,6 @@ include __DIR__ . '/includes/header.php';
     }
     </script>
     <?php endif; ?>
-
-    <script>
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', async function () {
-        this.disabled = true;
-        const res = await fetch('/api/save_publication.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'toggle', pub_id: parseInt(this.dataset.pub) })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.dataset.saved = data.saved ? '1' : '0';
-          this.textContent = data.saved ? '✅ Guardado' : '🔖 Guardar';
-        } else {
-          alert(data.error || 'No se pudo guardar la publicación');
-        }
-        this.disabled = false;
-      });
-    }
-
-    const shareBtn = document.getElementById('shareBtn');
-    if (shareBtn) {
-      shareBtn.addEventListener('click', async function () {
-        const shareUrl = window.location.href;
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: <?= json_encode($pub['title'], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>,
-              text: 'Mira esta publicación en CityLive',
-              url: shareUrl
-            });
-          } catch (err) {
-            // User cancelled share
-          }
-          return;
-        }
-        try {
-          await navigator.clipboard.writeText(shareUrl);
-          alert('Enlace copiado al portapapeles');
-        } catch (err) {
-          alert('No se pudo compartir automáticamente. Copia este enlace: ' + shareUrl);
-        }
-      });
-    }
-
-    const reportBtn = document.getElementById('reportBtn');
-    if (reportBtn) {
-      reportBtn.addEventListener('click', async function () {
-        const reason = prompt('Motivo del reporte (spam, offensive, inappropriate, other):', 'spam');
-        if (reason === null) return;
-        const normalizedReason = reason.trim().toLowerCase();
-        if (!['spam', 'offensive', 'inappropriate', 'other'].includes(normalizedReason)) {
-          alert('Motivo inválido');
-          return;
-        }
-        const description = prompt('Descripción adicional (opcional):', '') || '';
-        this.disabled = true;
-        const res = await fetch('/api/report_publication.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            pub_id: parseInt(this.dataset.pub),
-            reason: normalizedReason,
-            description
-          })
-        });
-        const data = await res.json();
-        alert(data.success ? data.message : (data.error || 'No se pudo enviar el reporte'));
-        this.disabled = false;
-      });
-    }
-    </script>
 
     <!-- Delete publication (owner only) -->
     <?php if ($isOwner): ?>
@@ -476,7 +402,7 @@ include __DIR__ . '/includes/header.php';
 <!-- Report modal -->
 <div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--card);border-radius:var(--r-lg);padding:28px;max-width:400px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.2);">
-    <h3 style="font-size:17px;font-weight:800;margin-bottom:16px;">🚩 Reportar publicación</h3>
+    <h3 style="font-size:17px;font-weight:800;margin-bottom:16px;"><i class="fa-solid fa-flag" style="color:var(--red);margin-right:8px;"></i>Reportar publicación</h3>
     <label class="form-label">Motivo</label>
     <select id="reportReason" class="form-select" style="margin-bottom:14px;">
       <option value="spam">Spam o publicidad</option>

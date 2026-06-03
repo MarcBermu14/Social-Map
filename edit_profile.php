@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $userId,
                 ]);
                 $_SESSION['flash'] = ['type' => 'success', 'tab' => 'info',
-                                      'msg'  => '✅ Perfil actualizado correctamente.'];
+                                      'msg'  => 'Perfil actualizado correctamente.'];
                 header('Location: ' . BASE . '/edit_profile.php');
                 exit;
             }
@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $db->prepare('UPDATE users SET avatar = ?, updated_at = NOW() WHERE id = ?')
                            ->execute([AVATAR_URL_BASE . $filename, $userId]);
                         $_SESSION['flash'] = ['type' => 'success', 'tab' => 'info',
-                                              'msg'  => '✅ Foto de perfil actualizada.'];
+                                              'msg'  => 'Foto de perfil actualizada.'];
                         header('Location: ' . BASE . '/edit_profile.php');
                         exit;
                     }
@@ -180,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->prepare('UPDATE users SET avatar = NULL, updated_at = NOW() WHERE id = ?')
            ->execute([$userId]);
         $_SESSION['flash'] = ['type' => 'success', 'tab' => 'info',
-                              'msg'  => '✅ Foto de perfil eliminada.'];
+                              'msg'  => 'Foto de perfil eliminada.'];
         header('Location: ' . BASE . '/edit_profile.php');
         exit;
     }
@@ -208,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->prepare('UPDATE users SET email = ?, updated_at = NOW() WHERE id = ?')
                    ->execute([$newEmail, $userId]);
                 $_SESSION['flash'] = ['type' => 'success', 'tab' => 'security',
-                                      'msg'  => '✅ Email actualizado a ' . htmlspecialchars($newEmail) . '.'];
+                                      'msg'  => 'Email actualizado a ' . htmlspecialchars($newEmail) . '.'];
                 header('Location: ' . BASE . '/edit_profile.php');
                 exit;
             }
@@ -236,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?')
                ->execute([password_hash($newPwd, PASSWORD_DEFAULT), $userId]);
             $_SESSION['flash'] = ['type' => 'success', 'tab' => 'security',
-                                  'msg'  => '✅ Contraseña cambiada correctamente.'];
+                                  'msg'  => 'Contraseña cambiada correctamente.'];
             header('Location: ' . BASE . '/edit_profile.php');
             exit;
         }
@@ -285,7 +285,7 @@ include __DIR__ . '/includes/header.php';
     <div class="flash flash-error" style="margin-bottom:20px;">
       <div style="display:flex;flex-direction:column;gap:3px;">
         <?php foreach ($errors as $err): ?>
-          <div>❌ <?= htmlspecialchars($err) ?></div>
+          <div><i class="fa-solid fa-circle-exclamation" style="color:var(--red);margin-right:6px;"></i><?= htmlspecialchars($err) ?></div>
         <?php endforeach; ?>
       </div>
     </div>
@@ -645,10 +645,10 @@ function epPwdMatch() {
   var b   = document.getElementById('ep-confirm-pwd').value;
   if (!b) { lbl.textContent = ''; return; }
   if (a === b) {
-    lbl.textContent = '✅ Las contraseñas coinciden';
+    lbl.textContent = 'Las contraseñas coinciden';
     lbl.style.color = 'var(--green)';
   } else {
-    lbl.textContent = '❌ No coinciden todavía';
+    lbl.textContent = 'No coinciden todavía';
     lbl.style.color = 'var(--red)';
   }
 }

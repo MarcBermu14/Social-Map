@@ -1,16 +1,10 @@
-﻿/* CityLive — Leaflet Map */
+/* CityLive - Leaflet Map */
 
 (function () {
   const MAP_ID = 'map';
-  const mapEl  = document.getElementById(MAP_ID);
+  const mapEl = document.getElementById(MAP_ID);
   if (!mapEl) return;
-  const BASE_PATH = window.CITYLIVE_BASE_PATH || '';
-  const urlFor = (path) => {
-    const cleanPath = String(path || '').replace(/^\/+/, '');
-    return `${BASE_PATH}/${cleanPath}`.replace(/\/+/g, '/');
-  };
 
-  // ─── Initialise map ─────────────────────────────────
   const map = L.map(MAP_ID, {
     center: [41.3851, 2.1734],
     zoom: 14,
@@ -24,49 +18,80 @@
     maxZoom: 19,
   }).addTo(map);
 
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.zoom({ position: 'topleft' }).addTo(map);
 
-  // ─── Marker factory ─────────────────────────────────
   const TYPE_META = {
-    incident: { emoji: '🚨', color: 'var(--red)',     label: 'Incidencia' },
-    event:    { emoji: '🎉', color: 'var(--yellow)',  label: 'Evento'     },
-    activity: { emoji: '⚡', color: 'var(--primary)', label: 'Actividad'  },
+    incident: {
+      icon: 'fa-solid fa-triangle-exclamation',
+      color: 'var(--red)',
+      label: 'Incidencia',
+      markerClass: 'incident'
+    },
+    event: {
+      icon: 'fa-solid fa-calendar-days',
+      color: 'var(--yellow)',
+      label: 'Evento',
+      markerClass: 'event'
+    },
+    activity: {
+      icon: 'fa-solid fa-bolt',
+      color: 'var(--primary)',
+      label: 'Actividad',
+      markerClass: 'activity'
+    },
   };
 
-  const CATEGORY_EMOJI = {
-    'Arte y Cultura': '🎨',
-    'Música':         '🎵',
-    'Gastronomía':    '🍕',
-    'Compras':        '🛍️',
-    'Deporte':        '🏃',
-    'Tráfico':        '🚗',
-    'Obras':          '🚧',
-    'Avería':         '⚡',
-    'Cultura':        '🎭',
-    'default':        '📍',
+  const CATEGORY_META = {
+    'Arte y Cultura': { icon: 'fa-solid fa-palette', markerClass: 'culture', short: 'Arte y Cultura' },
+    'Música': { icon: 'fa-solid fa-music', markerClass: 'culture', short: 'Música' },
+    'Gastronomía': { icon: 'fa-solid fa-utensils', markerClass: 'event', short: 'Gastronomía' },
+    'Compras': { icon: 'fa-solid fa-bag-shopping', markerClass: 'activity', short: 'Compras' },
+    'Deporte': { icon: 'fa-solid fa-basketball', markerClass: 'activity', short: 'Deporte' },
+    'Tráfico': { icon: 'fa-solid fa-car-side', markerClass: 'mobility', short: 'Tráfico' },
+    'Obras': { icon: 'fa-solid fa-helmet-safety', markerClass: 'mobility', short: 'Obras' },
+    'Avería': { icon: 'fa-solid fa-screwdriver-wrench', markerClass: 'mobility', short: 'Avería' },
+    'Cultura': { icon: 'fa-solid fa-masks-theater', markerClass: 'culture', short: 'Cultura' },
+    default: { icon: 'fa-solid fa-location-dot', markerClass: 'activity', short: 'Comunidad' }
   };
 
-  function makeIcon(pub) {
-    const meta  = TYPE_META[pub.type] || TYPE_META.activity;
-    const emoji = CATEGORY_EMOJI[pub.category] || meta.emoji;
-    const html  = `
-      <div class="cl-marker ${pub.type}">
-        <div class="cl-marker-pin">${emoji}</div>
-        <div class="cl-marker-tail"></div>
-      </div>`;
-    return L.divIcon({ html, className: '', iconSize: [40, 48], iconAnchor: [20, 48], popupAnchor: [0, -52] });
+  function getCategoryMeta(category, type) {
+    const fallbackType = TYPE_META[type] || TYPE_META.activity;
+    const categoryMeta = CATEGORY_META[category] || CATEGORY_META.default;
+    return {
+      icon: categoryMeta.icon || fallbackType.icon,
+      markerClass: categoryMeta.markerClass || fallbackType.markerClass,
+      short: categoryMeta.short || category || fallbackType.label
+    };
   }
 
-  // ─── Marker store (all loaded, filter client-side) ───
+  function makeIcon(pub) {
+    const typeMeta = TYPE_META[pub.type] || TYPE_META.activity;
+    const categoryMeta = getCategoryMeta(pub.category, pub.type);
+    const html = `
+      <div class="cl-marker ${typeMeta.markerClass} ${categoryMeta.markerClass}">
+        <div class="cl-marker-pin">
+          <i class="marker-icon ${categoryMeta.icon}"></i>
+        </div>
+        <div class="cl-marker-tail"></div>
+      </div>`;
+
+    return L.divIcon({
+      html,
+      className: '',
+      iconSize: [54, 64],
+      iconAnchor: [27, 58],
+      popupAnchor: [0, -54]
+    });
+  }
+
   let allEntries = [];
   const markersLayer = L.layerGroup().addTo(map);
-
   let activeType = 'all';
-  let activeCat  = 'all';
+  let activeCat = 'all';
 
   const B = window.CL_BASE || '';
+  const detailPanel = document.getElementById('detailPanel');
 
-  // ─── Load ALL publications once ──────────────────────
   function loadPublications() {
     fetch(B + '/api/publications.php')
       .then(r => r.json())
@@ -76,7 +101,7 @@
         if (!data.features) return;
 
         data.features.forEach(feature => {
-          const pub    = feature.properties;
+          const pub = feature.properties;
           const latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
           const marker = L.marker(latlng, { icon: makeIcon(pub) });
           marker.on('click', () => openDetail(pub));
@@ -88,21 +113,17 @@
       .catch(console.error);
   }
 
-  // ─── Filter markers client-side ──────────────────────
   function applyFilters(type, category) {
     activeType = type || 'all';
-    activeCat  = category || 'all';
+    activeCat = category || 'all';
 
     markersLayer.clearLayers();
     allEntries.forEach(({ marker, pub }) => {
       const matchType = activeType === 'all' || pub.type === activeType;
-      const matchCat  = activeCat  === 'all' || pub.category === activeCat;
+      const matchCat = activeCat === 'all' || pub.category === activeCat;
       if (matchType && matchCat) marker.addTo(markersLayer);
     });
   }
-
-  // ─── Detail panel ────────────────────────────────────
-  const detailPanel = document.getElementById('detailPanel');
 
   function openDetail(pub) {
     if (!detailPanel) {
@@ -110,87 +131,114 @@
       return;
     }
 
-    const meta  = TYPE_META[pub.type] || TYPE_META.activity;
-    const emoji = CATEGORY_EMOJI[pub.category] || meta.emoji;
-
+    const typeMeta = TYPE_META[pub.type] || TYPE_META.activity;
+    const categoryMeta = getCategoryMeta(pub.category, pub.type);
+    const lat = parseFloat(pub.lat || pub.latitude || 41.3851);
+    const lng = parseFloat(pub.lng || pub.longitude || 2.1734);
     const tokenHtml = pub.token_cost > 0 ? `
       <div class="detail-token-box">
-        <div class="token-icon">⬡</div>
+        <div class="token-icon"><i class="fa-solid fa-coins"></i></div>
         <div>
-          <div class="detail-token-lbl">Coste de publicación</div>
+          <div class="detail-token-lbl">Acceso lucrativo</div>
           <div class="detail-token-val">${pub.token_cost} tokens</div>
         </div>
-        <span class="badge badge-primary" style="margin-left:auto;">Lucrativa</span>
+        <span class="badge badge-primary" style="margin-left:auto;">Pro</span>
       </div>` : '';
-
-    const creatorRep = pub.reputation ? `⭐ ${parseFloat(pub.reputation).toFixed(1)}` : '';
+    const creatorRep = pub.reputation ? `${parseFloat(pub.reputation).toFixed(1)}` : '';
 
     detailPanel.innerHTML = `
-      <button class="detail-close" onclick="closeDetail()">✕</button>
+      <button class="detail-close" onclick="closeDetail()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
       <div class="detail-hero">
-        <span>${emoji}</span>
+        <div class="detail-hero-icon ${typeMeta.markerClass}">
+          <i class="${categoryMeta.icon}"></i>
+        </div>
+        <div class="detail-hero-actions">
+          <button class="detail-mini-btn detail-share-btn" data-pub="${pub.id}" data-title="${escAttr(pub.title)}" title="Compartir">
+            <i class="fa-solid fa-share-nodes"></i>
+          </button>
+          <button class="detail-mini-btn detail-save-btn" data-pub="${pub.id}" title="Guardar">
+            <i class="fa-regular fa-bookmark"></i>
+          </button>
+          <button class="detail-mini-btn detail-report-btn" data-pub="${pub.id}" title="Reportar">
+            <i class="fa-regular fa-flag"></i>
+          </button>
+        </div>
         <div class="detail-hero-overlay"></div>
       </div>
       <div class="detail-body">
-        <div class="detail-category" style="color:${meta.color}">${meta.emoji} ${meta.label} · ${pub.category || ''}</div>
+        <div class="detail-category" style="color:${typeMeta.color}">
+          <i class="${typeMeta.icon}"></i>
+          <span>${typeMeta.label}${pub.category ? ' · ' + escHtml(pub.category) : ''}</span>
+        </div>
         <div class="detail-title">${escHtml(pub.title)}</div>
         <div class="detail-meta">
-          ${pub.address ? `<div class="detail-meta-chip">📍 ${escHtml(pub.address)}</div>` : ''}
-          ${pub.attendees > 0 ? `<div class="detail-meta-chip">👥 ${pub.attendees} personas</div>` : ''}
-          ${pub.starts_at ? `<div class="detail-meta-chip">🕐 ${formatDateShort(pub.starts_at)}</div>` : ''}
+          ${pub.address ? `<div class="detail-meta-chip"><i class="fa-solid fa-location-dot"></i><span>${escHtml(pub.address)}</span></div>` : ''}
+          ${pub.attendees > 0 ? `<div class="detail-meta-chip"><i class="fa-solid fa-users"></i><span>${pub.attendees} personas</span></div>` : ''}
+          ${pub.starts_at ? `<div class="detail-meta-chip"><i class="fa-regular fa-clock"></i><span>${formatDateShort(pub.starts_at)}</span></div>` : ''}
         </div>
         ${pub.description ? `<div class="detail-desc">${escHtml(pub.description)}</div>` : ''}
         ${tokenHtml}
         <a href="${B}/profile.php?id=${pub.user_id}" class="detail-creator">
-          <div class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--purple),var(--primary));color:#fff;font-size:14px;">
+          <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#ff7b61,#8b73ea);color:#fff;font-size:14px;">
             ${(pub.creator_name || 'U')[0].toUpperCase()}
           </div>
           <div class="detail-creator-info">
             <div class="detail-creator-name">${escHtml(pub.creator_name || 'Usuario')}</div>
-            <div class="detail-creator-sub">@${escHtml(pub.creator_username || '')} · ${pub.plan_label || ''}</div>
+            <div class="detail-creator-sub">@${escHtml(pub.creator_username || '')}${pub.plan_label ? ' · ' + escHtml(pub.plan_label) : ''}</div>
           </div>
-          ${creatorRep ? `<div class="detail-creator-rep">${creatorRep}</div>` : ''}
+          ${creatorRep ? `<div class="detail-creator-rep"><i class="fa-solid fa-star"></i> ${creatorRep}</div>` : ''}
         </a>
       </div>
       <div class="detail-actions">
-        <a href="${B}/activity.php?id=${pub.id}" class="btn btn-${pub.type === 'event' ? 'outline' : 'primary'}" style="flex:1;">Ver detalle</a>
-        ${pub.type === 'event' ? `<button class="btn btn-primary detail-join-btn" data-pub="${pub.id}" data-registered="0" style="flex:2;">🎟️ Apuntarse</button>` : ''}
+        <a href="${B}/activity.php?id=${pub.id}" class="btn btn-outline" style="flex:1;">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>Ver detalle</span>
+        </a>
+        ${pub.type === 'event' ? `
+          <button class="btn btn-primary detail-join-btn" data-pub="${pub.id}" data-registered="0" style="flex:2;">
+            <i class="fa-solid fa-ticket"></i>
+            <span>Apuntarse</span>
+          </button>` : `
+          <a href="${B}/create.php" class="btn btn-primary" style="flex:2;">
+            <i class="fa-solid fa-plus"></i>
+            <span>Crear publicación</span>
+          </a>`}
       </div>`;
 
     detailPanel.classList.add('open');
-    map.panTo([parseFloat(pub.lat), parseFloat(pub.lng)], { animate: true });
+    map.panTo([lat, lng], { animate: true });
 
     document.querySelectorAll('.map-pub-item').forEach(el => {
       el.classList.toggle('selected', el.dataset.id == pub.id);
     });
 
-    // ── Compartir ─────────────────────────────────────────
     const shareMapBtn = detailPanel.querySelector('.detail-share-btn');
     if (shareMapBtn) {
       shareMapBtn.addEventListener('click', async function () {
-        const url   = location.origin + B + '/activity.php?id=' + this.dataset.pub;
+        const url = location.origin + B + '/activity.php?id=' + this.dataset.pub;
         const title = this.dataset.title || 'CityLive';
         if (navigator.share) {
           try { await navigator.share({ title, url }); } catch (_) {}
         } else {
-          try { await navigator.clipboard.writeText(url); mapToast('¡Enlace copiado!'); }
-          catch (_) { prompt('Copia este enlace:', url); }
+          try {
+            await navigator.clipboard.writeText(url);
+            mapToast('Enlace copiado al portapapeles');
+          } catch (_) {
+            prompt('Copia este enlace:', url);
+          }
         }
       });
     }
 
-    // For events: check registration status and wire up join button
     if (pub.type === 'event') {
       const joinBtn = detailPanel.querySelector('.detail-join-btn');
-      // Check current status
       fetch(B + `/api/event_register.php?pub_id=${pub.id}`)
         .then(r => r.json())
         .then(data => {
           if (data.registered) {
-            joinBtn.dataset.registered = '1';
-            joinBtn.className = 'btn btn-danger detail-join-btn';
-            joinBtn.style.flex = '2';
-            joinBtn.textContent = '✗ Desapuntarse';
+            setJoinButtonState(joinBtn, true);
           }
         })
         .catch(() => {});
@@ -198,18 +246,14 @@
       joinBtn.addEventListener('click', async function () {
         const registered = this.dataset.registered === '1';
         this.disabled = true;
-        const res  = await fetch(B + '/api/event_register.php', {
+        const res = await fetch(B + '/api/event_register.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub) })
+          body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub, 10) })
         });
         const data = await res.json();
         if (data.success) {
-          const now = data.registered;
-          this.dataset.registered = now ? '1' : '0';
-          this.className = 'btn detail-join-btn ' + (now ? 'btn-danger' : 'btn-primary');
-          this.style.flex = '2';
-          this.textContent = now ? '✗ Desapuntarse' : '🎟️ Apuntarse';
+          setJoinButtonState(this, !!data.registered);
         } else {
           alert(data.error || 'Error al procesar');
         }
@@ -220,13 +264,21 @@
     bindDetailActions(pub);
   }
 
+  function setJoinButtonState(button, registered) {
+    if (!button) return;
+    button.dataset.registered = registered ? '1' : '0';
+    button.className = 'btn detail-join-btn ' + (registered ? 'btn-danger' : 'btn-primary');
+    button.style.flex = '2';
+    button.innerHTML = registered
+      ? '<i class="fa-solid fa-user-minus"></i><span>Desapuntarse</span>'
+      : '<i class="fa-solid fa-ticket"></i><span>Apuntarse</span>';
+  }
+
   window.closeDetail = function () {
     if (detailPanel) detailPanel.classList.remove('open');
     document.querySelectorAll('.map-pub-item').forEach(el => el.classList.remove('selected'));
   };
 
-  // ─── Left panel list item click ──────────────────────
-  // Items are <a> tags so they work without JS; intercept to show panel instead
   document.addEventListener('click', e => {
     const item = e.target.closest('.map-pub-item');
     if (!item) return;
@@ -238,7 +290,6 @@
       });
   });
 
-  // ─── Helpers ─────────────────────────────────────────
   function escHtml(str) {
     return String(str || '')
       .replace(/&/g, '&amp;')
@@ -247,29 +298,33 @@
       .replace(/"/g, '&quot;');
   }
 
+  function escAttr(str) {
+    return escHtml(str).replace(/'/g, '&#39;');
+  }
+
   function mapToast(msg) {
     const el = document.createElement('div');
     el.textContent = msg;
-    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#131a4b;color:#fff;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 10px 24px rgba(19,26,75,.22);white-space:nowrap;';
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 3000);
+    setTimeout(() => el.remove(), 2800);
   }
 
   function formatDateShort(dt) {
     if (!dt) return '';
     const d = new Date(dt);
-    return d.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
-      + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }) +
+      ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   }
 
   function bindDetailActions(pub) {
     const saveBtn = detailPanel.querySelector('.detail-save-btn');
     if (saveBtn) {
-      fetch(`/api/save_publication.php?pub_id=${encodeURIComponent(pub.id)}`)
+      fetch(B + `/api/save_publication.php?pub_id=${encodeURIComponent(pub.id)}`)
         .then(r => r.json())
         .then(data => {
           if (data.saved) {
-            saveBtn.textContent = '✅';
+            saveBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i>';
             saveBtn.title = 'Guardado';
           }
         })
@@ -277,14 +332,16 @@
 
       saveBtn.addEventListener('click', async function () {
         this.disabled = true;
-        const res = await fetch('/api/save_publication.php', {
+        const res = await fetch(B + '/api/save_publication.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'toggle', pub_id: parseInt(this.dataset.pub) })
+          body: JSON.stringify({ action: 'toggle', pub_id: parseInt(this.dataset.pub, 10) })
         });
         const data = await res.json();
         if (data.success) {
-          this.textContent = data.saved ? '✅' : '🔖';
+          this.innerHTML = data.saved
+            ? '<i class="fa-solid fa-bookmark"></i>'
+            : '<i class="fa-regular fa-bookmark"></i>';
           this.title = data.saved ? 'Guardado' : 'Guardar';
         } else {
           alert(data.error || 'No se pudo guardar');
@@ -305,11 +362,11 @@
         }
         const description = prompt('Descripción adicional (opcional):', '') || '';
         this.disabled = true;
-        const res = await fetch('/api/report_publication.php', {
+        const res = await fetch(B + '/api/report_publication.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            pub_id: parseInt(this.dataset.pub),
+            pub_id: parseInt(this.dataset.pub, 10),
             reason: normalizedReason,
             description
           })
@@ -321,7 +378,6 @@
     }
   }
 
-  // ─── Initial load ────────────────────────────────────
   loadPublications();
 
   window.CityLiveMap = { loadPublications, applyFilters, openDetail, map };

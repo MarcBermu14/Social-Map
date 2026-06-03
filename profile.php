@@ -73,16 +73,16 @@ if (!empty($profile['social_links'])) {
     if (is_array($decoded)) $profileSocial = $decoded;
 }
 
-$typeEmoji = ['incident' => '🚨', 'event' => '🎉', 'activity' => '⚡'];
+$typeIcon = ['incident' => 'fa-solid fa-triangle-exclamation', 'event' => 'fa-solid fa-calendar-days', 'activity' => 'fa-solid fa-bolt'];
 $typeColor = ['incident' => 'badge-red', 'event' => 'badge-yellow', 'activity' => 'badge-primary'];
 $typeLabel = ['incident' => 'Incidencia', 'event' => 'Evento', 'activity' => 'Actividad'];
-$planLabel = ['free' => '🆓 Gratuita', 'pro' => '⭐ Pro', 'platinum' => '💎 Platinum'];
+$planLabel = ['free' => 'Gratuita', 'pro' => 'Pro', 'platinum' => 'Platinum'];
 $planColor = ['free' => 'badge-gray', 'pro' => 'badge-primary', 'platinum' => 'badge-purple'];
 
-$categoryEmoji = [
-    'Arte y Cultura' => '🎨', 'Música' => '🎵', 'Gastronomía' => '🍕',
-    'Compras' => '🛍️', 'Deporte' => '🏃', 'Tráfico' => '🚗',
-    'Obras' => '🚧', 'Avería' => '⚡', 'Cultura' => '🎭',
+$categoryIcon = [
+    'Arte y Cultura' => 'fa-solid fa-palette', 'Música' => 'fa-solid fa-music', 'Gastronomía' => 'fa-solid fa-utensils',
+    'Compras' => 'fa-solid fa-bag-shopping', 'Deporte' => 'fa-solid fa-dumbbell', 'Tráfico' => 'fa-solid fa-car-side',
+    'Obras' => 'fa-solid fa-hammer', 'Avería' => 'fa-solid fa-screwdriver-wrench', 'Cultura' => 'fa-solid fa-landmark',
 ];
 
 $pageTitle  = htmlspecialchars($profile['full_name'] ?? $profile['username']);
@@ -114,7 +114,7 @@ include __DIR__ . '/includes/header.php';
         <h1 style="font-size:22px;font-weight:800;">
           <?= htmlspecialchars($profile['full_name'] ?? $profile['username']) ?>
           <?php if ($profile['verified']): ?>
-            <span style="color:var(--primary);font-size:18px;">✓</span>
+            <span style="color:var(--primary);font-size:18px;"><i class="fa-solid fa-circle-check"></i></span>
           <?php endif; ?>
         </h1>
         <span class="badge <?= $planColor[$profile['plan']] ?>">
@@ -169,7 +169,7 @@ include __DIR__ . '/includes/header.php';
       <?php else: ?>
         <form method="POST">
           <?php if ($isFollowing): ?>
-            <button type="submit" name="unfollow" class="btn btn-outline btn-sm">Siguiendo ✓</button>
+            <button type="submit" name="unfollow" class="btn btn-outline btn-sm"><i class="fa-solid fa-check"></i> Siguiendo</button>
           <?php else: ?>
             <button type="submit" name="follow" class="btn btn-primary btn-sm">+ Seguir</button>
           <?php endif; ?>
@@ -194,13 +194,13 @@ include __DIR__ . '/includes/header.php';
     </div>
     <div class="profile-stat">
       <div class="profile-stat-val" style="color:var(--yellow);">
-        <?= $profile['rep_count'] > 0 ? '⭐ ' . number_format($profile['reputation'], 1) : '—' ?>
+        <?= $profile['rep_count'] > 0 ? '<i class="fa-solid fa-star"></i> ' . number_format($profile['reputation'], 1) : '—' ?>
       </div>
       <div class="profile-stat-lbl">Reputación</div>
     </div>
     <div class="profile-stat">
       <div class="profile-stat-val" style="color:var(--primary);">
-        <?= number_format($profile['tokens_balance']) ?> ⬡
+        <i class="fa-solid fa-coins"></i> <?= number_format($profile['tokens_balance']) ?>
       </div>
       <div class="profile-stat-lbl">Tokens</div>
     </div>
@@ -224,33 +224,33 @@ include __DIR__ . '/includes/header.php';
   <?php if ($isMe): ?>
   <!-- Registered events section -->
   <div style="font-size:16px;font-weight:700;margin-bottom:14px;">
-    🎟️ Eventos en los que me he apuntado
+    Eventos en los que me he apuntado
   </div>
   <?php if (empty($regEvents)): ?>
     <div class="card mb-24" style="text-align:center;padding:32px;color:var(--text3);">
-      <div style="font-size:36px;margin-bottom:10px;">🎉</div>
+      <div style="font-size:36px;margin-bottom:10px;"><i class="fa-regular fa-calendar-check" style="color:var(--red);"></i></div>
       <div>Todavía no estás apuntado a ningún evento.</div>
-      <a href="<?= BASE ?>/dashboard.php" style="font-size:13px;color:var(--primary);margin-top:8px;display:inline-block;">Explorar eventos →</a>
+      <a href="<?= BASE ?>/dashboard.php" style="font-size:13px;color:var(--primary);margin-top:8px;display:inline-block;">Explorar eventos <i class="fa-solid fa-arrow-right"></i></a>
     </div>
   <?php else: ?>
     <div class="reg-events-grid mb-24">
       <?php foreach ($regEvents as $ev): ?>
         <?php
-          $evEmoji  = $categoryEmoji[$ev['category']] ?? '🎉';
+          $evIcon  = $categoryIcon[$ev['category']] ?? 'fa-solid fa-calendar-days';
           $tsMs     = $ev['starts_at'] ? (new DateTime($ev['starts_at']))->getTimestamp() * 1000 : null;
           $isPast   = $tsMs && $tsMs < time() * 1000;
         ?>
         <a href="<?= BASE ?>/activity.php?id=<?= $ev['id'] ?>" class="reg-event-card">
           <div class="reg-event-top">
-            <div class="reg-event-icon"><?= $evEmoji ?></div>
+            <div class="reg-event-icon"><i class="<?= $evIcon ?>"></i></div>
             <div style="flex:1;min-width:0;">
               <div class="reg-event-title"><?= htmlspecialchars($ev['title']) ?></div>
               <?php if ($ev['address']): ?>
-                <div class="reg-event-addr">📍 <?= htmlspecialchars($ev['address']) ?></div>
+                <div class="reg-event-addr"><i class="fa-solid fa-location-dot"></i> <?= htmlspecialchars($ev['address']) ?></div>
               <?php endif; ?>
             </div>
             <?php if ($ev['attendees'] > 0): ?>
-              <span class="badge badge-gray" style="flex-shrink:0;">👥 <?= $ev['attendees'] ?></span>
+              <span class="badge badge-gray" style="flex-shrink:0;"><i class="fa-solid fa-users"></i> <?= $ev['attendees'] ?></span>
             <?php endif; ?>
           </div>
           <?php if ($tsMs && !$isPast): ?>
@@ -284,20 +284,20 @@ include __DIR__ . '/includes/header.php';
 
   <?php if (empty($pubs)): ?>
     <div class="card" style="text-align:center;padding:40px;color:var(--text3);">
-      <div style="font-size:40px;margin-bottom:12px;">📭</div>
+      <div style="font-size:40px;margin-bottom:12px;"><i class="fa-regular fa-folder-open" style="color:var(--red);"></i></div>
       <div>Todavía no hay publicaciones.</div>
     </div>
   <?php else: ?>
     <div class="pub-grid">
       <?php foreach ($pubs as $p): ?>
         <?php
-          $emoji = $categoryEmoji[$p['category']] ?? $typeEmoji[$p['type']] ?? '📍';
+          $iconClass = $categoryIcon[$p['category']] ?? $typeIcon[$p['type']] ?? 'fa-solid fa-location-dot';
           $badgeCls = $typeColor[$p['type']] ?? 'badge-gray';
         ?>
         <a href="<?= BASE ?>/activity.php?id=<?= $p['id'] ?>" class="pub-item" style="flex-direction:column;align-items:flex-start;gap:10px;">
           <div style="display:flex;align-items:center;gap:10px;width:100%;">
             <div class="pub-icon <?= $p['type'] ?>">
-              <?= $emoji ?>
+              <i class="<?= $iconClass ?>"></i>
             </div>
             <div style="flex:1;min-width:0;">
               <div class="pub-title"><?= htmlspecialchars($p['title']) ?></div>
@@ -309,10 +309,10 @@ include __DIR__ . '/includes/header.php';
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <span class="badge <?= $badgeCls ?>"><?= $typeLabel[$p['type']] ?></span>
             <?php if ($p['token_cost'] > 0): ?>
-              <span class="badge badge-primary">⬡ <?= $p['token_cost'] ?></span>
+              <span class="badge badge-primary"><i class="fa-solid fa-coins"></i> <?= $p['token_cost'] ?></span>
             <?php endif; ?>
             <?php if ($p['attendees'] > 0): ?>
-              <span class="badge badge-gray">👥 <?= $p['attendees'] ?></span>
+              <span class="badge badge-gray"><i class="fa-solid fa-users"></i> <?= $p['attendees'] ?></span>
             <?php endif; ?>
           </div>
         </a>

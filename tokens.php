@@ -54,7 +54,7 @@ $earned = $db->prepare("SELECT COALESCE(SUM(amount),0) FROM token_transactions W
 $earned->execute([$user['id']]);
 $earned = (int)$earned->fetchColumn();
 
-$planLabel = ['free' => '🆓 Gratuita', 'pro' => '⭐ Pro', 'platinum' => '💎 Platinum'];
+$planLabel = ['free' => 'Gratuita', 'pro' => 'Pro', 'platinum' => 'Platinum'];
 $planTokens = PLAN_TOKENS;
 
 $pageTitle  = 'Mis Tokens';
@@ -79,11 +79,11 @@ include __DIR__ . '/includes/header.php';
         <i class="fa-solid fa-warning"></i>
         <strong>Pago requerido:</strong> Para comprar <strong><?= htmlspecialchars($_GET['amount'] ?? '') ?> tokens</strong>, debes realizar un pago mediante <strong>Bizum</strong>.
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);">
-          <strong style="display:block;margin-bottom:8px;">📱 Envía un Bizum a:</strong>
+          <strong style="display:block;margin-bottom:8px;"><i class="fa-solid fa-mobile-screen-button" style="margin-right:6px;"></i>Envía un Bizum a:</strong>
           <div style="font-size:16px;font-weight:800;color:#fff;background:rgba(0,0,0,.3);padding:12px;border-radius:8px;margin-bottom:8px;">666 666 666</div>
           <strong style="display:block;margin-bottom:4px;">Importe:</strong>
           <div style="color:#fff;margin-bottom:12px;"><?= htmlspecialchars($_GET['price'] ?? '') ?></div>
-          <div style="font-size:12px;opacity:.9;">Una vez realizado el pago, los tokens se añadirán a tu cuenta lo más pronto posible. ✨</div>
+          <div style="font-size:12px;opacity:.9;">Una vez realizado el pago, los tokens se añadirán a tu cuenta lo más pronto posible.</div>
         </div>
       </div>
     <?php endif; ?>
@@ -100,7 +100,7 @@ include __DIR__ . '/includes/header.php';
       <div class="balance-glow"></div>
       <div class="balance-label">Saldo de tokens</div>
       <div class="balance-amount"><span><?= number_format($user['tokens_balance']) ?></span></div>
-      <div class="balance-unit">tokens ⬡</div>
+      <div class="balance-unit"><i class="fa-solid fa-coins"></i> tokens</div>
       <div style="margin-top:14px;position:relative;">
         <span class="badge badge-purple">
           <?= $planLabel[$user['plan']] ?>
@@ -112,17 +112,17 @@ include __DIR__ . '/includes/header.php';
     <!-- Stats -->
     <div class="stats-grid mb-24" style="grid-template-columns:repeat(3,1fr);">
       <div class="stat-card">
-        <div class="stat-icon">📉</div>
-        <div class="stat-val" style="color:var(--red);"><?= number_format($used) ?> ⬡</div>
+        <div class="stat-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+        <div class="stat-val" style="color:var(--red);"><?= number_format($used) ?> tokens</div>
         <div class="stat-lbl">Usados este mes</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">📈</div>
-        <div class="stat-val" style="color:var(--green);">+<?= number_format($earned) ?> ⬡</div>
+        <div class="stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div class="stat-val" style="color:var(--green);">+<?= number_format($earned) ?> tokens</div>
         <div class="stat-lbl">Ganados este mes</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">💼</div>
+        <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
         <div class="stat-val"><?= count($txs) ?></div>
         <div class="stat-lbl">Transacciones</div>
       </div>
@@ -143,19 +143,19 @@ include __DIR__ . '/includes/header.php';
 
     <!-- Earn tokens -->
     <div class="card mb-24">
-      <div class="card-title mb-16">🎯 Gana tokens gratis</div>
+      <div class="card-title mb-16"><i class="fa-solid fa-bullseye" style="color:var(--red);margin-right:8px;"></i>Gana tokens gratis</div>
       <?php
       $earn = [
-        ['📍', 'Publicar una incidencia verificada', '+25 ⬡'],
-        ['✅', 'Que tu publicación sea confirmada x5', '+50 ⬡'],
-        ['⭐', 'Recibir 5 valoraciones positivas',    '+50 ⬡'],
-        ['🎯', 'Completar 10 actividades al mes',     '+200 ⬡'],
-        ['🔗', 'Invitar a un amigo que se registre',  '+100 ⬡'],
+        ['fa-solid fa-location-dot', 'Publicar una incidencia verificada', '+25 tokens'],
+        ['fa-solid fa-circle-check', 'Que tu publicación sea confirmada x5', '+50 tokens'],
+        ['fa-solid fa-star', 'Recibir 5 valoraciones positivas', '+50 tokens'],
+        ['fa-solid fa-bullseye', 'Completar 10 actividades al mes', '+200 tokens'],
+        ['fa-solid fa-link', 'Invitar a un amigo que se registre', '+100 tokens'],
       ];
       foreach ($earn as [$icon, $label, $reward]):
       ?>
       <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
-        <span style="font-size:20px;"><?= $icon ?></span>
+        <span style="font-size:20px;color:var(--red);"><i class="<?= $icon ?>"></i></span>
         <div style="flex:1;font-size:13px;color:var(--text2);"><?= $label ?></div>
         <span class="badge badge-primary"><?= $reward ?></span>
       </div>
@@ -164,30 +164,30 @@ include __DIR__ . '/includes/header.php';
 
     <!-- Transaction history -->
     <div class="card">
-      <div class="card-title mb-16">📋 Historial de transacciones</div>
+      <div class="card-title mb-16"><i class="fa-solid fa-clock-rotate-left" style="color:var(--red);margin-right:8px;"></i>Historial de transacciones</div>
       <?php if (empty($txs)): ?>
         <p class="text-muted text-sm">No hay transacciones todavía.</p>
       <?php else: ?>
         <?php
         // Mapeo de iconos según tipo de transacción
         $txIcons = [
-            'subscription' => '💎',
-            'purchase' => '🛒',
-            'publication' => '⚡',
-            'reward' => '🎯',
-            'refund' => '↩️'
+            'subscription' => 'fa-solid fa-crown',
+            'purchase' => 'fa-solid fa-cart-shopping',
+            'publication' => 'fa-solid fa-bolt',
+            'reward' => 'fa-solid fa-bullseye',
+            'refund' => 'fa-solid fa-rotate-left'
         ];
         foreach ($txs as $tx):
           $sign = $tx['amount'] > 0 ? '+' : '';
           $cls  = $tx['amount'] > 0 ? 'pos' : 'neg';
         ?>
         <div class="tx-item">
-          <div class="tx-icon-box"><?= $txIcons[$tx['type']] ?? '⬡' ?></div>
+          <div class="tx-icon-box"><i class="<?= $txIcons[$tx['type']] ?? 'fa-solid fa-coins' ?>"></i></div>
           <div style="flex:1;">
             <div class="tx-name"><?= htmlspecialchars($tx['description'] ?? ucfirst($tx['type'])) ?></div>
             <div class="tx-date"><?= (new DateTime($tx['created_at']))->format('d M Y · H:i') ?></div>
           </div>
-          <div class="tx-amount <?= $cls ?>"><?= $sign . number_format($tx['amount']) ?> ⬡</div>
+          <div class="tx-amount <?= $cls ?>"><?= $sign . number_format($tx['amount']) ?> tokens</div>
         </div>
         <?php endforeach; ?>
       <?php endif; ?>
@@ -197,7 +197,7 @@ include __DIR__ . '/includes/header.php';
   <!-- RIGHT COLUMN -->
   <div>
     <div class="card mb-16" style="position:sticky;top:calc(var(--topbar-h) + 16px);">
-      <div class="card-title mb-16">🛒 Comprar tokens extra</div>
+      <div class="card-title mb-16"><i class="fa-solid fa-cart-shopping" style="color:var(--red);margin-right:8px;"></i>Comprar tokens extra</div>
 
       <?php
       // Paquetes disponibles para compra
@@ -212,7 +212,7 @@ include __DIR__ . '/includes/header.php';
       <form method="POST" style="margin-bottom: 8px;">
         <input type="hidden" name="buy_tokens" value="<?= $amount ?>">
         <button type="submit" class="pack-card" style="width:100%;text-align:left;<?= $borderColor ? "border-color:$borderColor;" : '' ?>" title="Comprar <?= $name ?>">
-          <div class="pack-icon">⬡</div>
+          <div class="pack-icon"><i class="fa-solid fa-coins"></i></div>
           <div class="pack-info">
             <div class="pack-amount"><?= $name ?></div>
             <div class="pack-bonus"><?= $bonus ?></div>
@@ -224,18 +224,18 @@ include __DIR__ . '/includes/header.php';
 
       <div class="divider"></div>
       <a href="<?= BASE ?>/subscriptions.php" class="btn btn-primary btn-block">
-        💎 Upgrade de plan
+        <i class="fa-solid fa-crown"></i> Upgrade de plan
       </a>
       <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:10px;">
-        <strong>Pro:</strong> 1.000⬡/mes · <strong>Platinum:</strong> 10.000⬡/mes
+        <strong>Pro:</strong> 1.000 tokens/mes · <strong>Platinum:</strong> 10.000 tokens/mes
       </p>
     </div>
 
     <!-- Plan info -->
     <div class="card">
-      <div class="card-title mb-12">📊 Tu plan actual</div>
+      <div class="card-title mb-12"><i class="fa-solid fa-chart-pie" style="color:var(--red);margin-right:8px;"></i>Tu plan actual</div>
       <div style="font-size:28px;margin-bottom:8px;">
-        <?= $user['plan'] === 'platinum' ? '💎' : ($user['plan'] === 'pro' ? '⭐' : '🆓') ?>
+        <i class="<?= $user['plan'] === 'platinum' ? 'fa-solid fa-crown' : ($user['plan'] === 'pro' ? 'fa-solid fa-bolt' : 'fa-regular fa-compass') ?>" style="color:var(--red);margin-right:8px;"></i>
         <?= ucfirst($user['plan']) ?>
       </div>
       <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">
@@ -243,7 +243,7 @@ include __DIR__ . '/includes/header.php';
       </div>
       <?php if ($user['plan'] !== 'platinum'): ?>
       <a href="<?= BASE ?>/subscriptions.php" class="btn btn-outline btn-sm btn-block">
-        Ver planes disponibles →
+        Ver planes disponibles <i class="fa-solid fa-arrow-right"></i>
       </a>
       <?php endif; ?>
     </div>

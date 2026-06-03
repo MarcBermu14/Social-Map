@@ -48,7 +48,7 @@ include __DIR__ . '/includes/header.php';
 
 <div class="page-content" style="max-width:1000px;">
   <div class="page-header">
-    <h1>💎 Planes y suscripciones</h1>
+    <h1><i class="fa-solid fa-crown" style="color:var(--red);margin-right:10px;"></i>Planes y suscripciones</h1>
     <p>Elige el plan que mejor se adapte a tu actividad en la ciudad.</p>
   </div>
 
@@ -64,11 +64,11 @@ include __DIR__ . '/includes/header.php';
       <i class="fa-solid fa-warning"></i>
       <strong>Pago requerido:</strong> Para cambiar al plan <strong><?= htmlspecialchars(ucfirst($_GET['plan'] ?? '')) ?></strong> (<?= htmlspecialchars($_GET['price'] ?? '') ?>/mes), debes realizar un pago mediante <strong>Bizum</strong>.
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);">
-        <strong style="display:block;margin-bottom:8px;">📱 Envía un Bizum a:</strong>
+        <strong style="display:block;margin-bottom:8px;"><i class="fa-solid fa-mobile-screen-button" style="margin-right:6px;"></i>Envía un Bizum a:</strong>
         <div style="font-size:16px;font-weight:800;color:#fff;background:rgba(0,0,0,.3);padding:12px;border-radius:8px;margin-bottom:8px;">666 666 666</div>
         <strong style="display:block;margin-bottom:4px;">Importe:</strong>
         <div style="color:#fff;margin-bottom:12px;"><?= htmlspecialchars($_GET['price'] ?? '') ?> (primer mes)</div>
-        <div style="font-size:12px;opacity:.9;">Una vez realizado el pago, tu plan se actualizará lo más pronto posible. ✨</div>
+        <div style="font-size:12px;opacity:.9;">Una vez realizado el pago, tu plan se actualizará lo más pronto posible.</div>
       </div>
     </div>
   <?php endif; ?>
@@ -77,17 +77,17 @@ include __DIR__ . '/includes/header.php';
   <div class="card mb-24" style="background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06));border-color:rgba(0,212,255,.2);">
     <div style="display:flex;align-items:center;gap:14px;">
       <div style="font-size:36px;">
-        <?= $user['plan'] === 'platinum' ? '💎' : ($user['plan'] === 'pro' ? '⭐' : '🆓') ?>
+        <i class="<?= $user['plan'] === 'platinum' ? 'fa-solid fa-crown' : ($user['plan'] === 'pro' ? 'fa-solid fa-bolt' : 'fa-regular fa-compass') ?>" style="color:var(--red);"></i>
       </div>
       <div style="flex:1;">
         <div style="font-size:18px;font-weight:800;margin-bottom:3px;">
           Plan actual: <?= ucfirst($user['plan']) ?>
         </div>
         <div style="font-size:13px;color:var(--text2);">
-          Saldo: <strong style="color:var(--primary);"><?= number_format($user['tokens_balance']) ?> tokens ⬡</strong>
+          Saldo: <strong style="color:var(--primary);"><i class="fa-solid fa-coins"></i> <?= number_format($user['tokens_balance']) ?> tokens</strong>
         </div>
       </div>
-      <a href="<?= BASE ?>/tokens.php" class="btn btn-outline btn-sm">Ver tokens →</a>
+      <a href="<?= BASE ?>/tokens.php" class="btn btn-outline btn-sm">Ver tokens <i class="fa-solid fa-arrow-right"></i></a>
     </div>
   </div>
 
@@ -101,20 +101,20 @@ include __DIR__ . '/includes/header.php';
       <div class="plan-name">Gratuita</div>
       <div class="plan-price"><span class="gratis">Gratis</span></div>
       <div class="plan-tokens-row t-free">
-        <span style="font-size:20px;">⬡</span>
+        <span style="font-size:20px;color:var(--primary);"><i class="fa-solid fa-coins"></i></span>
         <div>
           <div class="tok-amount" style="color:var(--text2);">0 tokens</div>
           <div class="tok-lbl">al mes</div>
         </div>
       </div>
       <ul class="plan-features">
-        <li><span class="fi">✅</span> Publicar incidencias y eventos</li>
-        <li><span class="fi">✅</span> Ver el mapa en tiempo real</li>
-        <li><span class="fi">✅</span> Perfil público básico</li>
-        <li><span class="fi">✅</span> Comentar y valorar</li>
-        <li><span class="fi">❌</span> Actividades lucrativas</li>
-        <li><span class="fi">❌</span> Estadísticas avanzadas</li>
-        <li><span class="fi">❌</span> Prioridad en el mapa</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Publicar incidencias y eventos</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Ver el mapa en tiempo real</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Perfil público básico</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Comentar y valorar</li>
+        <li><span class="fi"><i class="fa-solid fa-xmark"></i></span> Actividades lucrativas</li>
+        <li><span class="fi"><i class="fa-solid fa-xmark"></i></span> Estadísticas avanzadas</li>
+        <li><span class="fi"><i class="fa-solid fa-xmark"></i></span> Prioridad en el mapa</li>
       </ul>
       <form method="POST">
         <input type="hidden" name="plan" value="free">
@@ -131,27 +131,27 @@ include __DIR__ . '/includes/header.php';
       <?php if ($user['plan'] === 'pro'): ?>
         <div class="plan-badge-top popular">Plan actual</div>
       <?php else: ?>
-        <div class="plan-badge-top popular">⭐ Popular</div>
+        <div class="plan-badge-top popular"><i class="fa-solid fa-star"></i> Popular</div>
       <?php endif; ?>
       <div class="plan-name">Pro</div>
       <div class="plan-price">
         <span class="amount">9,99</span><span class="period">€/mes</span>
       </div>
       <div class="plan-tokens-row t-pro">
-        <span style="font-size:20px;">⬡</span>
+        <span style="font-size:20px;color:var(--primary);"><i class="fa-solid fa-coins"></i></span>
         <div>
           <div class="tok-amount" style="color:var(--primary);">1.000 tokens</div>
           <div class="tok-lbl">al mes</div>
         </div>
       </div>
       <ul class="plan-features">
-        <li><span class="fi">✅</span> Todo lo de Gratuita</li>
-        <li><span class="fi">✅</span> Actividades lucrativas (≤500 tokens)</li>
-        <li><span class="fi">✅</span> Estadísticas básicas de publicaciones</li>
-        <li><span class="fi">✅</span> Badge ⭐ Pro en tu perfil</li>
-        <li><span class="fi">✅</span> Soporte prioritario</li>
-        <li><span class="fi">❌</span> Actividades de gran alcance (&gt;500 tokens)</li>
-        <li><span class="fi">❌</span> Prioridad máxima en el mapa</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Todo lo de Gratuita</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Actividades lucrativas (≤500 tokens)</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Estadísticas básicas de publicaciones</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Badge Pro en tu perfil</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Soporte prioritario</li>
+        <li><span class="fi"><i class="fa-solid fa-xmark"></i></span> Actividades de gran alcance (&gt;500 tokens)</li>
+        <li><span class="fi"><i class="fa-solid fa-xmark"></i></span> Prioridad máxima en el mapa</li>
       </ul>
       <form method="POST">
         <input type="hidden" name="plan" value="pro">
@@ -169,27 +169,27 @@ include __DIR__ . '/includes/header.php';
       <?php if ($user['plan'] === 'platinum'): ?>
         <div class="plan-badge-top premium">Plan actual</div>
       <?php else: ?>
-        <div class="plan-badge-top premium">💎 Premium</div>
+        <div class="plan-badge-top premium"><i class="fa-solid fa-crown"></i> Premium</div>
       <?php endif; ?>
       <div class="plan-name">Platinum</div>
       <div class="plan-price">
         <span class="amount">29,99</span><span class="period">€/mes</span>
       </div>
       <div class="plan-tokens-row t-plat">
-        <span style="font-size:20px;">⬡</span>
+        <span style="font-size:20px;color:var(--purple);"><i class="fa-solid fa-coins"></i></span>
         <div>
           <div class="tok-amount" style="color:var(--purple);">10.000 tokens</div>
           <div class="tok-lbl">al mes</div>
         </div>
       </div>
       <ul class="plan-features">
-        <li><span class="fi">✅</span> Todo lo de Pro</li>
-        <li><span class="fi">✅</span> Actividades de máximo alcance</li>
-        <li><span class="fi">✅</span> Estadísticas avanzadas y KPIs</li>
-        <li><span class="fi">✅</span> Prioridad máxima en el mapa</li>
-        <li><span class="fi">✅</span> Badge 💎 Platinum verificado</li>
-        <li><span class="fi">✅</span> Acceso a API de integración</li>
-        <li><span class="fi">✅</span> Manager de cuenta dedicado</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Todo lo de Pro</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Actividades de máximo alcance</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Estadísticas avanzadas y KPIs</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Prioridad máxima en el mapa</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Badge Platinum verificado</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Acceso a API de integración</li>
+        <li><span class="fi"><i class="fa-solid fa-check"></i></span> Manager de cuenta dedicado</li>
       </ul>
       <form method="POST">
         <input type="hidden" name="plan" value="platinum">
@@ -205,7 +205,7 @@ include __DIR__ . '/includes/header.php';
 
   <!-- Token cost table -->
   <div class="card" style="margin-top:28px;max-width:600px;">
-    <div class="card-title mb-16">📊 Coste de tokens por tipo de actividad</div>
+    <div class="card-title mb-16"><i class="fa-solid fa-chart-column" style="color:var(--red);margin-right:8px;"></i>Coste de tokens por tipo de actividad</div>
     <table style="width:100%;border-collapse:collapse;font-size:14px;">
       <thead>
         <tr style="border-bottom:1px solid var(--border);color:var(--text3);font-size:12px;text-transform:uppercase;letter-spacing:.06em;">
@@ -217,12 +217,12 @@ include __DIR__ . '/includes/header.php';
       <tbody>
         <?php
         $rows = [
-          ['🚨 Incidencia',         'Gratis',     '🆓 Free'],
-          ['🎉 Evento social',       'Gratis',     '🆓 Free'],
-          ['⚡ Actividad pequeña',   '50–150 ⬡',  '⭐ Pro'],
-          ['⚡ Actividad mediana',   '150–300 ⬡', '⭐ Pro'],
-          ['⚡ Actividad grande',    '300–500 ⬡', '⭐ Pro'],
-          ['⚡ Gran alcance',        '500–2000 ⬡','💎 Platinum'],
+          ['<i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;color:#bf5347;"></i>Incidencia', 'Gratis', 'Free'],
+          ['<i class="fa-solid fa-calendar-days" style="margin-right:8px;color:#d17b2f;"></i>Evento social', 'Gratis', 'Free'],
+          ['<i class="fa-solid fa-bolt" style="margin-right:8px;color:#1690a7;"></i>Actividad pequeña', '50–150 tokens', 'Pro'],
+          ['<i class="fa-solid fa-bolt" style="margin-right:8px;color:#1690a7;"></i>Actividad mediana', '150–300 tokens', 'Pro'],
+          ['<i class="fa-solid fa-bolt" style="margin-right:8px;color:#1690a7;"></i>Actividad grande', '300–500 tokens', 'Pro'],
+          ['<i class="fa-solid fa-bolt" style="margin-right:8px;color:#1690a7;"></i>Gran alcance', '500–2000 tokens', 'Platinum'],
         ];
         foreach ($rows as [$t, $tok, $plan]):
         ?>
