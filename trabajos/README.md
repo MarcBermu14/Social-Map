@@ -125,6 +125,27 @@ define('DB_PASS', '');               // contraseña (vacía en XAMPP)
 define('DB_PORT', 3306);             // puerto (3306 por defecto)
 ```
 
+Para publicar el proyecto en cualquier dominio, define estas variables de entorno:
+
+```bash
+# Subcarpeta
+APP_BASE_PATH=/citylive
+# Raíz del dominio (deja vacío)
+# APP_BASE_PATH=''
+# Ejemplos APP_URL:
+# APP_URL=https://tudominio.com/citylive
+# APP_URL=https://tudominio.com
+```
+
+Y configura el remitente para la verificación por email:
+
+```bash
+MAIL_FROM_ADDRESS=no-reply@tudominio.com
+MAIL_FROM_NAME=CityLive
+```
+
+> ⚠️ La función `mail()` de PHP requiere que el servidor tenga SMTP o sendmail configurado.
+
 ### Paso 5: Ejecutar instalador
 
 Abre en el navegador:
@@ -148,6 +169,14 @@ http://localhost/citylive/
 ```
 
 ---
+
+## 🌐 Despliegue público
+
+1. Configura `APP_URL` con tu dominio público (ej: `https://citylive.tudominio.com`).
+2. Si publicas en la raíz del dominio, usa `APP_BASE_PATH=` (vacío).
+3. Activa HTTPS para que los enlaces de verificación funcionen correctamente.
+4. Elimina `install.php` una vez creada la base de datos.
+5. Verifica que el correo saliente del servidor esté habilitado.
 
 ## 👤 Cuentas de demostración
 
@@ -347,5 +376,3 @@ Consulta [Criterios-de-aceptación.md](Criterios-de-aceptación.md) para:
 ## 📄 Licencia
 
 Este proyecto está bajo licencia **MIT** — libre para uso educativo, personal y comercial.
-
-

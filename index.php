@@ -8,6 +8,8 @@ if (isLoggedIn()) {
 }
 
 $error = '';
+$errorMessage = '';
+$errorLinkUrl = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email']    ?? '');
@@ -57,7 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1 class="auth-title">Bienvenido de nuevo</h1>
     <p class="auth-subtitle">Inicia sesión para ver tu ciudad en tiempo real.</p>
 
-    <?php if ($error): ?>
+    <?php if ($errorLinkUrl): ?>
+      <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i>
+        <?= htmlspecialchars($errorMessage) ?>
+        <a href="<?= htmlspecialchars($errorLinkUrl) ?>">verificación de correo</a>.
+      </div>
+    <?php elseif ($error): ?>
       <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
