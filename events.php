@@ -13,7 +13,7 @@ $now = new DateTime();
 
 $stmt = $db->prepare("
     SELECT p.id, p.title, p.description, p.address, p.category,
-           p.latitude, p.longitude, p.attendees, p.token_cost,
+           p.latitude, p.longitude, p.attendees,
            p.starts_at, p.expires_at, p.created_at,
            u.username AS creator_username, u.full_name AS creator_name,
            er.created_at AS registered_at

@@ -198,12 +198,14 @@ include __DIR__ . '/includes/header.php';
       </div>
       <div class="profile-stat-lbl">Reputación</div>
     </div>
+    <?php if ($isMe || isAdmin()): ?>
     <div class="profile-stat">
       <div class="profile-stat-val" style="color:var(--primary);">
         <?= number_format($profile['tokens_balance']) ?> ⬡
       </div>
       <div class="profile-stat-lbl">Tokens</div>
     </div>
+    <?php endif; ?>
   </div>
 
   <!-- Reputation bar -->
@@ -308,7 +310,7 @@ include __DIR__ . '/includes/header.php';
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <span class="badge <?= $badgeCls ?>"><?= $typeLabel[$p['type']] ?></span>
-            <?php if ($p['token_cost'] > 0): ?>
+            <?php if ($p['token_cost'] > 0 && ($isMe || isAdmin())): ?>
               <span class="badge badge-primary">⬡ <?= $p['token_cost'] ?></span>
             <?php endif; ?>
             <?php if ($p['attendees'] > 0): ?>

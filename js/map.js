@@ -113,16 +113,6 @@
     const meta  = TYPE_META[pub.type] || TYPE_META.activity;
     const emoji = CATEGORY_EMOJI[pub.category] || meta.emoji;
 
-    const tokenHtml = pub.token_cost > 0 ? `
-      <div class="detail-token-box">
-        <div class="token-icon">⬡</div>
-        <div>
-          <div class="detail-token-lbl">Coste de publicación</div>
-          <div class="detail-token-val">${pub.token_cost} tokens</div>
-        </div>
-        <span class="badge badge-primary" style="margin-left:auto;">Lucrativa</span>
-      </div>` : '';
-
     const creatorRep = pub.reputation ? `⭐ ${parseFloat(pub.reputation).toFixed(1)}` : '';
 
     detailPanel.innerHTML = `
@@ -140,7 +130,6 @@
           ${pub.starts_at ? `<div class="detail-meta-chip">🕐 ${formatDateShort(pub.starts_at)}</div>` : ''}
         </div>
         ${pub.description ? `<div class="detail-desc">${escHtml(pub.description)}</div>` : ''}
-        ${tokenHtml}
         <a href="${B}/profile.php?id=${pub.user_id}" class="detail-creator">
           <div class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--purple),var(--primary));color:#fff;font-size:14px;">
             ${(pub.creator_name || 'U')[0].toUpperCase()}

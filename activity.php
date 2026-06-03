@@ -124,14 +124,14 @@ include __DIR__ . '/includes/header.php';
           <?= nl2br(htmlspecialchars($pub['description'] ?? '')) ?>
         </div>
 
-        <!-- Token cost box (if activity) -->
-        <?php if ($pub['token_cost'] > 0): ?>
+        <!-- Token cost box: only visible to the owner or admins -->
+        <?php if ($pub['token_cost'] > 0 && ($isOwner || isAdmin())): ?>
         <div class="token-estimate-box" style="margin-bottom:24px;">
           <div style="font-size:32px;">⬡</div>
           <div>
-            <div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Coste de publicación (actividad lucrativa)</div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:3px;">Coste de publicación</div>
             <div class="te-val"><?= $pub['token_cost'] ?> tokens</div>
-            <div class="te-note">Basado en el alcance y potencial comercial de la actividad</div>
+            <div class="te-note">Información visible solo para ti y los administradores.</div>
           </div>
           <span class="badge badge-primary" style="margin-left:auto;">Lucrativa</span>
         </div>
@@ -311,7 +311,7 @@ include __DIR__ . '/includes/header.php';
               <span class="text-muted">Asistentes</span>
               <span class="fw-bold"><?= $pub['attendees'] ?></span>
             </div>
-            <?php if ($pub['token_cost'] > 0): ?>
+            <?php if ($pub['token_cost'] > 0 && ($isOwner || isAdmin())): ?>
             <div style="display:flex;justify-content:space-between;font-size:13px;">
               <span class="text-muted">Coste tokens</span>
               <span class="fw-bold" style="color:var(--primary);">⬡ <?= $pub['token_cost'] ?></span>

@@ -10,7 +10,7 @@ $user = currentUser();
 
 // Fetch publications for left panel
 $stmt = $db->query("
-    SELECT p.id, p.type, p.title, p.address, p.category, p.attendees, p.token_cost,
+    SELECT p.id, p.type, p.title, p.address, p.category, p.attendees,
            p.latitude, p.longitude, p.created_at,
            u.username AS creator_username, u.full_name AS creator_name
     FROM publications p
@@ -98,9 +98,6 @@ include __DIR__ . '/includes/header.php';
                     <span class="badge badge-<?= $pub['type'] === 'incident' ? 'red' : ($pub['type'] === 'event' ? 'yellow' : 'primary') ?>" style="font-size:10px;padding:2px 7px;">
                       <?= $typeLabel[$pub['type']] ?>
                     </span>
-                    <?php if ($pub['token_cost'] > 0): ?>
-                      <span class="badge badge-primary" style="font-size:10px;padding:2px 7px;">⬡ <?= $pub['token_cost'] ?></span>
-                    <?php endif; ?>
                     <span style="font-size:10px;color:var(--text3);margin-left:auto;"><?= $time ?></span>
                   </div>
                 </div>
