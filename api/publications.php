@@ -7,6 +7,11 @@ $db   = getDB();
 $type = $_GET['type'] ?? null;
 $id   = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
+// Resolve the requesting user for permission checks (session already started by db.php)
+$_apiUser      = currentUser();
+$_apiUserId    = $_apiUser ? (int)$_apiUser['id'] : null;
+$_apiIsAdmin   = $_apiUser ? isAdmin($_apiUser) : false;
+
 $planLabel = ['free' => 'Gratuita', 'pro' => '⭐ Pro', 'platinum' => '💎 Platinum'];
 
 // Build query
@@ -51,6 +56,12 @@ $rows = $stmt->fetchAll();
 $features = [];
 foreach ($rows as $row) {
     $row['plan_label'] = $planLabel[$row['creator_plan']] ?? 'Gratuita';
+
+    // Strip economic data unless the requester is the owner or an admin
+    if (!$_apiIsAdmin && $_apiUserId !== (int)$row['user_id']) {
+        unset($row['token_cost']);
+    }
+
     $features[] = [
         'type'       => 'Feature',
         'geometry'   => [
