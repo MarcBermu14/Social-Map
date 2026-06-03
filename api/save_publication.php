@@ -1,68 +1,39 @@
 <?php
-header('Content-Type: application/json');
-require_once dirname(__DIR__) . '/config/db.php';
+require_once __DIR__ . '/../config/db.php';
+requireLogin();
+header('Content-Type: application/json; charset=utf-8');
 
-if (!isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(['error' => 'No autenticado']);
-    exit;
-}
+$db     = getDB();
+$userId = (int)$_SESSION['user_id'];
+$method = $_SERVER['REQUEST_METHOD'];
 
-$uid = (int)$_SESSION['user_id'];
-const ALLOWED_SAVE_ACTIONS = ['save', 'unsave', 'toggle'];
-const PUBLICATION_STATUS_ACTIVE = 'active';
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+if ($method === 'GET') {
     $pubId = (int)($_GET['pub_id'] ?? 0);
-    if (!$pubId) {
-        echo json_encode(['saved' => false]);
-        exit;
-    }
-    try {
-        $db = getDB();
-        $stmt = $db->prepare('SELECT 1 FROM saves WHERE user_id = ? AND publication_id = ?');
-        $stmt->execute([$uid, $pubId]);
-        echo json_encode(['saved' => (bool)$stmt->fetchColumn()]);
-    } catch (Exception $e) {
-        echo json_encode(['saved' => false]);
-    }
+    if (!$pubId) { echo json_encode(['saved' => false]); exit; }
+    $s = $db->prepare('SELECT 1 FROM saves WHERE user_id = ? AND publication_id = ?');
+    $s->execute([$userId, $pubId]);
+    echo json_encode(['saved' => (bool)$s->fetchColumn()]);
     exit;
 }
 
-$data = json_decode(file_get_contents('php://input'), true);
-$action = $data['action'] ?? ($_POST['action'] ?? '');
-$pubId = (int)($data['pub_id'] ?? ($_POST['pub_id'] ?? 0));
+if ($method === 'POST') {
+    $body  = json_decode(file_get_contents('php://input'), true) ?? [];
+    $pubId = (int)($body['pub_id'] ?? 0);
+    if (!$pubId) { http_response_code(400); echo json_encode(['success' => false, 'error' => 'pub_id requerido']); exit; }
 
-if (!$pubId || !in_array($action, ALLOWED_SAVE_ACTIONS, true)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Parámetros inválidos']);
-    exit;
-}
+    $chk = $db->prepare('SELECT 1 FROM saves WHERE user_id = ? AND publication_id = ?');
+    $chk->execute([$userId, $pubId]);
+    $alreadySaved = (bool)$chk->fetchColumn();
 
-$db = getDB();
-$stmt = $db->prepare("SELECT 1 FROM publications WHERE id = ? AND status = ?");
-$stmt->execute([$pubId, PUBLICATION_STATUS_ACTIVE]);
-if (!$stmt->fetchColumn()) {
-    http_response_code(404);
-    echo json_encode(['success' => false, 'error' => 'Publicación no encontrada']);
-    exit;
-}
-
-try {
-    if ($action === 'toggle') {
-        $chk = $db->prepare('SELECT 1 FROM saves WHERE user_id = ? AND publication_id = ?');
-        $chk->execute([$uid, $pubId]);
-        $action = $chk->fetchColumn() ? 'unsave' : 'save';
-    }
-
-    if ($action === 'save') {
-        $db->prepare('INSERT IGNORE INTO saves (user_id, publication_id) VALUES (?, ?)')->execute([$uid, $pubId]);
-        echo json_encode(['success' => true, 'saved' => true, 'message' => 'Publicación guardada']);
+    if ($alreadySaved) {
+        $db->prepare('DELETE FROM saves WHERE user_id = ? AND publication_id = ?')->execute([$userId, $pubId]);
     } else {
-        $db->prepare('DELETE FROM saves WHERE user_id = ? AND publication_id = ?')->execute([$uid, $pubId]);
-        echo json_encode(['success' => true, 'saved' => false, 'message' => 'Publicación eliminada de guardados']);
+        $db->prepare('INSERT IGNORE INTO saves (user_id, publication_id) VALUES (?, ?)')->execute([$userId, $pubId]);
     }
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Error al guardar la publicación']);
+
+    echo json_encode(['success' => true, 'saved' => !$alreadySaved]);
+    exit;
 }
+
+http_response_code(405);
+echo json_encode(['success' => false, 'error' => 'Método no permitido']);

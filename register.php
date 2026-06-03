@@ -1,8 +1,8 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/config/email.php';
 
-if (isLoggedIn()) { header('Location: /dashboard.php'); exit; }
+if (isLoggedIn()) { header('Location: ' . BASE . '/dashboard.php'); exit; }
 
 $errors = [];
 $success = false;
@@ -75,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crear cuenta — CityLive</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/fontawesome.min.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/style.css">
 </head>
 <body>
 <div class="auth-page">
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Revisa tu correo para confirmar tu email. Si no ves el mensaje, revisa la carpeta de spam.
       </div>
       <p style="text-align:center;margin-bottom:20px;">
-        <a href="/index.php" style="color:#007bff;text-decoration:none;">Ir a iniciar sesión</a>
+        <a href="<?= BASE ?>/index.php" style="color:#007bff;text-decoration:none;">Ir a iniciar sesión</a>
       </p>
     <?php elseif ($success && !$email_sent): ?>
       <div class="flash" style="background:#fff3cd;border-color:#ffc107;color:#856404;margin-bottom:20px;padding:15px;border-radius:4px;border:1px solid">
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <p class="text-sm text-muted" style="text-align:center;margin-top:20px;">
-      ¿Ya tienes cuenta? <a href="/index.php">Iniciar sesión</a>
+      ¿Ya tienes cuenta? <a href="<?= BASE ?>/index.php">Iniciar sesión</a>
     </p>
     <?php endif; ?>
   </div>

@@ -20,6 +20,9 @@ if (file_exists($envFile)) {
     }
 }
 
+// ─── Base URL path (e.g. '/citylive' on localhost, '' on domain root) ─────────
+define('BASE', rtrim(parse_url($envConfig['APP_URL'] ?? 'http://localhost/citylive', PHP_URL_PATH) ?? '', '/'));
+
 // ─── Database configuration (use .env first, then defaults) ───────────────────
 define('DB_HOST', $envConfig['DB_HOST'] ?? 'localhost');
 define('DB_NAME', $envConfig['DB_NAME'] ?? 'citylive');
@@ -88,6 +91,21 @@ function getDB(): PDO {
                 try { $pdo->exec("ALTER TABLE users ADD COLUMN $colDef"); }
                 catch (PDOException $e) {}
             }
+            // ── Publication reports ───────────────────────────────────────────
+            $pdo->exec("CREATE TABLE IF NOT EXISTS publication_reports (
+                id             INT AUTO_INCREMENT PRIMARY KEY,
+                reporter_id    INT NOT NULL,
+                publication_id INT NOT NULL,
+                reason         ENUM('spam','false_info','inappropriate','other') NOT NULL,
+                description    TEXT,
+                status         ENUM('pending','reviewed','dismissed') DEFAULT 'pending',
+                created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_report (reporter_id, publication_id),
+                INDEX idx_pr_pub (publication_id),
+                FOREIGN KEY (reporter_id)    REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (publication_id) REFERENCES publications(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
             // ── Forum tables ──────────────────────────────────────────────────
             $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_posts (
                 id            INT AUTO_INCREMENT PRIMARY KEY,
@@ -196,7 +214,7 @@ function isLoggedIn(): bool {
 
 function requireLogin(string $redirect = '/index.php'): void {
     if (!isLoggedIn()) {
-        header('Location: ' . $redirect);
+        header('Location: ' . BASE . $redirect);
         exit;
     }
 }

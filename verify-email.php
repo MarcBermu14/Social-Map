@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Verificación de Email
  * Se accede via: /verify-email.php?token=xxxxx
@@ -45,8 +45,8 @@ if (!$token) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verificar Email — CityLive</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/fontawesome.min.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/style.css">
 </head>
 <body>
 <div class="auth-page">
@@ -62,7 +62,7 @@ if (!$token) {
         <h1 class="auth-title">¡Email Confirmado!</h1>
         <p class="auth-subtitle">Tu cuenta está lista para usar. Ya puedes iniciar sesión.</p>
         
-        <a href="/index.php" class="btn btn-primary btn-block btn-lg" style="margin-top:30px;">
+        <a href="<?= BASE ?>/index.php" class="btn btn-primary btn-block btn-lg" style="margin-top:30px;">
           <i class="fa-solid fa-arrow-right"></i> Ir a iniciar sesión
         </a>
       </div>
@@ -77,8 +77,8 @@ if (!$token) {
         <div style="margin-top:30px;padding:20px;background:var(--card);border-radius:var(--r);border:1px solid var(--border);">
           <p style="margin:0;font-size:14px;color:var(--text2);">
             <strong>¿Qué hacer?</strong><br><br>
-            • Si el enlace expiró, <a href="/register.php" style="color:var(--primary);text-decoration:none;">regístrate de nuevo</a><br>
-            • Si tienes problemas, <a href="/index.php" style="color:var(--primary);text-decoration:none;">contacta con soporte</a>
+            • Si el enlace expiró, <a href="<?= BASE ?>/register.php" style="color:var(--primary);text-decoration:none;">regístrate de nuevo</a><br>
+            • Si tienes problemas, <a href="<?= BASE ?>/index.php" style="color:var(--primary);text-decoration:none;">contacta con soporte</a>
           </p>
         </div>
         

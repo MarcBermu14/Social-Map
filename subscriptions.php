@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
@@ -12,6 +12,15 @@ $msgType = 'success';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
     $newPlan = $_POST['plan'];
     if (in_array($newPlan, ['free', 'pro', 'platinum'])) {
+        // Si es un plan de pago, requerir Bizum
+        if ($newPlan !== 'free') {
+            $planPrices = ['pro' => '9,99€', 'platinum' => '29,99€'];
+            $price = $planPrices[$newPlan] ?? 'el importe';
+            header('Location: ' . BASE . '/subscriptions.php?payment_required=1&plan=' . urlencode($newPlan) . '&price=' . urlencode($price));
+            exit;
+        }
+        
+        // Solo procesar cambio a plan gratuito
         $tokens = PLAN_TOKENS[$newPlan];
 
         $db->prepare('UPDATE users SET plan = ?, tokens_balance = tokens_balance + ? WHERE id = ?')
@@ -23,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
            ->execute([$user['id'], $newPlan]);
 
         $message = "¡Plan $newPlan activado correctamente! Se han añadido $tokens tokens a tu cuenta.";
-        header('Location: /subscriptions.php?ok=1');
+        header('Location: ' . BASE . '/subscriptions.php?ok=1');
         exit;
     }
 }
@@ -50,6 +59,20 @@ include __DIR__ . '/includes/header.php';
     </div>
   <?php endif; ?>
 
+  <?php if (isset($_GET['payment_required'])): ?>
+    <div class="flash flash-warning">
+      <i class="fa-solid fa-warning"></i>
+      <strong>Pago requerido:</strong> Para cambiar al plan <strong><?= htmlspecialchars(ucfirst($_GET['plan'] ?? '')) ?></strong> (<?= htmlspecialchars($_GET['price'] ?? '') ?>/mes), debes realizar un pago mediante <strong>Bizum</strong>.
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);">
+        <strong style="display:block;margin-bottom:8px;">📱 Envía un Bizum a:</strong>
+        <div style="font-size:16px;font-weight:800;color:#fff;background:rgba(0,0,0,.3);padding:12px;border-radius:8px;margin-bottom:8px;">666 666 666</div>
+        <strong style="display:block;margin-bottom:4px;">Importe:</strong>
+        <div style="color:#fff;margin-bottom:12px;"><?= htmlspecialchars($_GET['price'] ?? '') ?> (primer mes)</div>
+        <div style="font-size:12px;opacity:.9;">Una vez realizado el pago, tu plan se actualizará lo más pronto posible. ✨</div>
+      </div>
+    </div>
+  <?php endif; ?>
+
   <!-- Current plan banner -->
   <div class="card mb-24" style="background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06));border-color:rgba(0,212,255,.2);">
     <div style="display:flex;align-items:center;gap:14px;">
@@ -64,7 +87,7 @@ include __DIR__ . '/includes/header.php';
           Saldo: <strong style="color:var(--primary);"><?= number_format($user['tokens_balance']) ?> tokens ⬡</strong>
         </div>
       </div>
-      <a href="/tokens.php" class="btn btn-outline btn-sm">Ver tokens →</a>
+      <a href="<?= BASE ?>/tokens.php" class="btn btn-outline btn-sm">Ver tokens →</a>
     </div>
   </div>
 

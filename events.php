@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
@@ -58,7 +58,7 @@ include __DIR__ . '/includes/header.php';
       <h1 class="page-title">🎉 Mis Eventos</h1>
       <p class="page-subtitle">Eventos a los que estás apuntado</p>
     </div>
-    <a href="/dashboard.php" class="btn btn-outline btn-sm">
+    <a href="<?= BASE ?>/dashboard.php" class="btn btn-outline btn-sm">
       <i class="fa-solid fa-map"></i> Ver mapa
     </a>
   </div>
@@ -71,7 +71,7 @@ include __DIR__ . '/includes/header.php';
       <div style="font-size:14px;color:var(--text2);margin-bottom:24px;">
         Explora el mapa y apúntate a los eventos que te interesen.
       </div>
-      <a href="/dashboard.php" class="btn btn-primary">Explorar el mapa</a>
+      <a href="<?= BASE ?>/dashboard.php" class="btn btn-primary">Explorar el mapa</a>
     </div>
 
   <?php else: ?>
@@ -116,7 +116,7 @@ include __DIR__ . '/includes/header.php';
         <div class="event-card-body">
           <div class="event-card-icon"><?= $emoji ?></div>
           <div class="event-card-info">
-            <a href="/activity.php?id=<?= $ev['id'] ?>" class="event-card-title">
+            <a href="<?= BASE ?>/activity.php?id=<?= $ev['id'] ?>" class="event-card-title">
               <?= htmlspecialchars($ev['title']) ?>
             </a>
 
@@ -161,7 +161,7 @@ include __DIR__ . '/includes/header.php';
         <div class="event-card-body">
           <div class="event-card-icon" style="opacity:.5;"><?= $emoji ?></div>
           <div class="event-card-info">
-            <a href="/activity.php?id=<?= $ev['id'] ?>" class="event-card-title">
+            <a href="<?= BASE ?>/activity.php?id=<?= $ev['id'] ?>" class="event-card-title">
               <?= htmlspecialchars($ev['title']) ?>
             </a>
             <div class="event-card-meta">
@@ -186,6 +186,7 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <script>
+const CL_BASE = '<?= BASE ?>';
 // ── Countdown engine ──────────────────────────────────────────────
 function pad(n) { return String(n).padStart(2, '0'); }
 
@@ -226,7 +227,7 @@ document.querySelectorAll('.event-unreg-btn').forEach(btn => {
     if (!confirm('¿Desapuntarte de este evento?')) return;
     this.disabled = true;
 
-    const res  = await fetch('/api/event_register.php', {
+    const res  = await fetch(CL_BASE + '/api/event_register.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'unregister', pub_id: parseInt(pubId) })
