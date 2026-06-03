@@ -209,6 +209,22 @@ function getDB(): PDO {
                 INDEX idx_fml_mod (mod_id),
                 FOREIGN KEY (mod_id) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // ── Notifications ─────────────────────────────────────────────
+            $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                user_id    INT NOT NULL,
+                actor_id   INT NULL,
+                type       VARCHAR(30) NOT NULL,
+                title      VARCHAR(120) NOT NULL,
+                body       VARCHAR(255) NULL,
+                url        VARCHAR(255) NULL,
+                is_read    TINYINT(1) DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_notif_user (user_id, is_read, created_at),
+                FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         } catch (PDOException $e) {
             http_response_code(500);
             exit(json_encode(['error' => 'DB connection failed: ' . $e->getMessage()]));
@@ -300,6 +316,27 @@ function currentUser(): ?array {
         $user = $stmt->fetch() ?: null;
     }
     return $user;
+}
+
+function createNotification(
+    int $userId,
+    string $type,
+    string $title,
+    string $body = '',
+    string $url = '',
+    ?int $actorId = null
+): void {
+    $title = trim($title);
+    if ($title === '') return;
+    $body = trim($body);
+    $url = trim($url);
+    $title = mb_substr($title, 0, 120);
+    $body = $body !== '' ? mb_substr($body, 0, 255) : null;
+    $url = $url !== '' ? mb_substr($url, 0, 255) : null;
+
+    getDB()->prepare(
+        'INSERT INTO notifications (user_id, actor_id, type, title, body, url) VALUES (?, ?, ?, ?, ?, ?)'
+    )->execute([$userId, $actorId, $type, $title, $body, $url]);
 }
 
 // ─── Token helpers ────────────────────────────────────

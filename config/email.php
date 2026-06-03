@@ -94,7 +94,7 @@ CityLive
 }
 
 /**
- * Enviar correo genérico con SMTP
+ * Enviar correo genérico con SMTP (usando PHPMailer)
  *
  * @param string $to - Email destinatario
  * @param string $subject - Asunto
@@ -110,10 +110,78 @@ function sendEmail($to, $subject, $plainBody, $htmlBody = null) {
     }
     
     try {
-        // Usar la función mail() de PHP con headers MIME
-        $headers = "From: " . SMTP_FROM_NAME . " <" . SMTP_FROM . ">\r\n";
-        $headers .= "Reply-To: " . SMTP_FROM . "\r\n";
+        // Usar socket directo para SMTP (compatible con Infinityfree)
+        $smtpHost = SMTP_HOST;
+        $smtpPort = SMTP_PORT;
+        $smtpUser = SMTP_USER;
+        $smtpPass = SMTP_PASS;
+        $fromEmail = SMTP_FROM;
+        $fromName = SMTP_FROM_NAME;
+        
+        // Conectar al servidor SMTP
+        $socket = @fsockopen($smtpHost, $smtpPort, $errno, $errstr, 10);
+        if (!$socket) {
+            error_log("Error SMTP: No se puede conectar a $smtpHost:$smtpPort - $errstr");
+            return false;
+        }
+        
+        function smtpRead($socket) {
+            $response = '';
+            while ($line = fgets($socket, 515)) {
+                $response .= $line;
+                if (substr($line, 3, 1) == ' ') break;
+            }
+            return $response;
+        }
+        
+        function smtpWrite($socket, $cmd) {
+            fputs($socket, $cmd . "\r\n");
+        }
+        
+        // Leer respuesta de bienvenida
+        smtpRead($socket);
+        
+        // EHLO
+        smtpWrite($socket, "EHLO " . $_SERVER['SERVER_NAME']);
+        smtpRead($socket);
+        
+        // STARTTLS
+        smtpWrite($socket, "STARTTLS");
+        smtpRead($socket);
+        stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        
+        // AUTH LOGIN
+        smtpWrite($socket, "EHLO " . $_SERVER['SERVER_NAME']);
+        smtpRead($socket);
+        
+        smtpWrite($socket, "AUTH LOGIN");
+        smtpRead($socket);
+        
+        smtpWrite($socket, base64_encode($smtpUser));
+        smtpRead($socket);
+        
+        smtpWrite($socket, base64_encode($smtpPass));
+        smtpRead($socket);
+        
+        // MAIL FROM
+        smtpWrite($socket, "MAIL FROM: <" . $fromEmail . ">");
+        smtpRead($socket);
+        
+        // RCPT TO
+        smtpWrite($socket, "RCPT TO: <" . $to . ">");
+        smtpRead($socket);
+        
+        // DATA
+        smtpWrite($socket, "DATA");
+        smtpRead($socket);
+        
+        // Construir headers
+        $headers = "From: " . $fromName . " <" . $fromEmail . ">\r\n";
+        $headers .= "To: " . $to . "\r\n";
+        $headers .= "Subject: " . $subject . "\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Date: " . date('r') . "\r\n";
+        $headers .= "X-Mailer: CityLive\r\n";
         
         if ($htmlBody) {
             $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
@@ -123,14 +191,15 @@ function sendEmail($to, $subject, $plainBody, $htmlBody = null) {
             $body = $plainBody;
         }
         
-        // Intenta enviar con mail() - funciona con XAMPP/cualquier servidor con PHP mail configurado
-        $success = mail($to, $subject, $body, $headers);
+        // Enviar mensaje
+        smtpWrite($socket, $headers . "\r\n" . $body . "\r\n.");
+        smtpRead($socket);
         
-        if (!$success) {
-            error_log("Error enviando email a $to: " . error_get_last()['message']);
-            return false;
-        }
+        // QUIT
+        smtpWrite($socket, "QUIT");
+        smtpRead($socket);
         
+        fclose($socket);
         return true;
         
     } catch (Exception $e) {

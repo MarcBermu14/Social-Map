@@ -21,6 +21,7 @@ $userPlan  = $user['plan'] ?? 'free';
   <link rel="stylesheet" href="<?= BASE ?>/css/fontawesome.min.css">
   <!-- App CSS -->
   <link rel="stylesheet" href="<?= BASE ?>/css/style.css">
+  <script>window.CL_BASE = '<?= BASE ?>';</script>
 </head>
 <body>
 <div class="app-shell">
@@ -143,11 +144,21 @@ $userPlan  = $user['plan'] ?? 'free';
       </div>
 
 
-<div class="topbar-right">
-        <button class="topbar-icon-btn" title="Notificaciones">
-          <i class="fa-solid fa-bell"></i>
-          <span class="notif-dot"></span>
-        </button>
+      <div class="topbar-right">
+        <div class="notif-wrap">
+          <button class="topbar-icon-btn" id="notifBtn" title="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notif-dot" id="notifDot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" aria-hidden="true">
+            <div class="notif-header">
+              <span>Notificaciones</span>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">Cargando...</div>
+            </div>
+          </div>
+        </div>
         <?php if ($user): ?>
         <a href="<?= BASE ?>/profile.php" class="topbar-user">
           <div class="topbar-user-av">
