@@ -120,6 +120,21 @@ CREATE TABLE IF NOT EXISTS saves (
     FOREIGN KEY (publication_id) REFERENCES publications(id) ON DELETE CASCADE
 );
 
+-- ─── PUBLICATION REPORTS ────────────────────────────────
+CREATE TABLE IF NOT EXISTS publication_reports (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    reporter_id    INT NOT NULL,
+    publication_id INT NOT NULL,
+    reason         ENUM('spam','offensive','inappropriate','other') NOT NULL,
+    description    TEXT,
+    status         ENUM('pending','reviewed','dismissed') DEFAULT 'pending',
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_publication_report (reporter_id, publication_id),
+    INDEX idx_pr_status (status),
+    FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (publication_id) REFERENCES publications(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ─── EVENT FORUM ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS event_forum_posts (
     id            INT AUTO_INCREMENT PRIMARY KEY,

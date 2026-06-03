@@ -211,6 +211,8 @@
         this.disabled = false;
       });
     }
+
+    bindDetailActions(pub);
   }
 
   window.closeDetail = function () {
@@ -253,6 +255,65 @@
     const d = new Date(dt);
     return d.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
       + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function bindDetailActions(pub) {
+    const saveBtn = detailPanel.querySelector('.detail-save-btn');
+    if (saveBtn) {
+      fetch(`/api/save_publication.php?pub_id=${encodeURIComponent(pub.id)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.saved) {
+            saveBtn.textContent = '✅';
+            saveBtn.title = 'Guardado';
+          }
+        })
+        .catch(err => console.error('No se pudo comprobar el estado de guardado:', err));
+
+      saveBtn.addEventListener('click', async function () {
+        this.disabled = true;
+        const res = await fetch('/api/save_publication.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'toggle', pub_id: parseInt(this.dataset.pub) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.textContent = data.saved ? '✅' : '🔖';
+          this.title = data.saved ? 'Guardado' : 'Guardar';
+        } else {
+          alert(data.error || 'No se pudo guardar');
+        }
+        this.disabled = false;
+      });
+    }
+
+    const reportBtn = detailPanel.querySelector('.detail-report-btn');
+    if (reportBtn) {
+      reportBtn.addEventListener('click', async function () {
+        const reason = prompt('Motivo del reporte (spam, offensive, inappropriate, other):', 'spam');
+        if (reason === null) return;
+        const normalizedReason = reason.trim().toLowerCase();
+        if (!['spam', 'offensive', 'inappropriate', 'other'].includes(normalizedReason)) {
+          alert('Motivo inválido');
+          return;
+        }
+        const description = prompt('Descripción adicional (opcional):', '') || '';
+        this.disabled = true;
+        const res = await fetch('/api/report_publication.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pub_id: parseInt(this.dataset.pub),
+            reason: normalizedReason,
+            description
+          })
+        });
+        const data = await res.json();
+        alert(data.success ? data.message : (data.error || 'No se pudo enviar el reporte'));
+        this.disabled = false;
+      });
+    }
   }
 
   // ─── Initial load ────────────────────────────────────
