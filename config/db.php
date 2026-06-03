@@ -96,6 +96,9 @@ function getDB(): PDO {
                         ENUM('subscription','purchase','publication','reward','refund','spin') NOT NULL");
                 }
             } catch (PDOException $e) {}
+            // Auto-add is_admin column if missing
+            try { $pdo->exec("ALTER TABLE users ADD COLUMN is_admin TINYINT(1) NOT NULL DEFAULT 0"); }
+            catch (PDOException $e) {}
             // Auto-add profile fields to users if missing
             $profileCols = [
                 "social_links TEXT NULL DEFAULT NULL",
@@ -316,6 +319,11 @@ function currentUser(): ?array {
         $user = $stmt->fetch() ?: null;
     }
     return $user;
+}
+
+function isAdmin(?array $user = null): bool {
+    if ($user === null) $user = currentUser();
+    return !empty($user['is_admin']);
 }
 
 function createNotification(
