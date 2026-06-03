@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
@@ -27,13 +27,18 @@ $stmt = $db->prepare("
 $stmt->execute([$uid]);
 $events = $stmt->fetchAll();
 
-$categoryEmoji = [
-    'Arte y Cultura' => '🎨', 'Música' => '🎵', 'Gastronomía' => '🍕',
-    'Compras' => '🛍️', 'Deporte' => '🏃', 'Tráfico' => '🚗',
-    'Obras' => '🚧', 'Avería' => '⚡', 'Cultura' => '🎭',
+$categoryIcons = [
+    'Arte y Cultura' => 'fa-solid fa-palette',
+    'Música' => 'fa-solid fa-music',
+    'Gastronomía' => 'fa-solid fa-utensils',
+    'Compras' => 'fa-solid fa-bag-shopping',
+    'Deporte' => 'fa-solid fa-dumbbell',
+    'Tráfico' => 'fa-solid fa-car-side',
+    'Obras' => 'fa-solid fa-hammer',
+    'Avería' => 'fa-solid fa-screwdriver-wrench',
+    'Cultura' => 'fa-solid fa-landmark',
 ];
 
-// Split events into upcoming and past
 $upcoming = [];
 $past     = [];
 foreach ($events as $ev) {
@@ -52,10 +57,9 @@ include __DIR__ . '/includes/header.php';
 
 <div class="page-content">
 
-  <!-- Header row -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">🎉 Mis Eventos</h1>
+      <h1 class="page-title">Mis eventos</h1>
       <p class="page-subtitle">Eventos a los que estás apuntado</p>
     </div>
     <a href="<?= BASE ?>/dashboard.php" class="btn btn-outline btn-sm">
@@ -64,9 +68,8 @@ include __DIR__ . '/includes/header.php';
   </div>
 
   <?php if (empty($upcoming) && empty($past)): ?>
-    <!-- Empty state -->
     <div class="events-empty">
-      <div style="font-size:56px;margin-bottom:16px;">🗓️</div>
+      <div style="font-size:56px;margin-bottom:16px;"><i class="fa-regular fa-calendar-check" style="color:var(--red);"></i></div>
       <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Sin eventos registrados</div>
       <div style="font-size:14px;color:var(--text2);margin-bottom:24px;">
         Explora el mapa y apúntate a los eventos que te interesen.
@@ -76,7 +79,6 @@ include __DIR__ . '/includes/header.php';
 
   <?php else: ?>
 
-    <!-- ── UPCOMING EVENTS ── -->
     <?php if (!empty($upcoming)): ?>
     <div class="events-section-label">
       Próximos <span class="badge badge-primary" style="font-size:11px;"><?= count($upcoming) ?></span>
@@ -84,14 +86,13 @@ include __DIR__ . '/includes/header.php';
 
     <div class="events-grid">
       <?php foreach ($upcoming as $ev):
-        $emoji     = $categoryEmoji[$ev['category']] ?? '🎉';
+        $iconClass = $categoryIcons[$ev['category']] ?? 'fa-solid fa-calendar-days';
         $startsAt  = $ev['starts_at'] ? new DateTime($ev['starts_at']) : null;
         $expiresAt = $ev['expires_at'] ? new DateTime($ev['expires_at']) : null;
         $started   = $startsAt && $startsAt <= $now;
         $startsTs  = $startsAt ? $startsAt->getTimestamp() * 1000 : null;
       ?>
       <div class="event-card" data-id="<?= $ev['id'] ?>">
-        <!-- Countdown -->
         <div class="event-countdown <?= $started ? 'event-countdown--live' : '' ?>"
              data-starts="<?= $startsTs ?>">
           <?php if (!$startsAt): ?>
@@ -112,9 +113,8 @@ include __DIR__ . '/includes/header.php';
           <?php endif; ?>
         </div>
 
-        <!-- Body -->
         <div class="event-card-body">
-          <div class="event-card-icon"><?= $emoji ?></div>
+          <div class="event-card-icon"><i class="<?= $iconClass ?>"></i></div>
           <div class="event-card-info">
             <a href="<?= BASE ?>/activity.php?id=<?= $ev['id'] ?>" class="event-card-title">
               <?= htmlspecialchars($ev['title']) ?>
@@ -143,7 +143,6 @@ include __DIR__ . '/includes/header.php';
     </div>
     <?php endif; ?>
 
-    <!-- ── PAST EVENTS ── -->
     <?php if (!empty($past)): ?>
     <div class="events-section-label" style="margin-top:32px;">
       Pasados <span class="badge badge-gray" style="font-size:11px;"><?= count($past) ?></span>
@@ -151,7 +150,7 @@ include __DIR__ . '/includes/header.php';
 
     <div class="events-grid events-grid--past">
       <?php foreach ($past as $ev):
-        $emoji    = $categoryEmoji[$ev['category']] ?? '🎉';
+        $iconClass = $categoryIcons[$ev['category']] ?? 'fa-solid fa-calendar-days';
         $startsAt = $ev['starts_at'] ? new DateTime($ev['starts_at']) : null;
       ?>
       <div class="event-card event-card--past" data-id="<?= $ev['id'] ?>">
@@ -159,7 +158,7 @@ include __DIR__ . '/includes/header.php';
           <span class="countdown-label">Finalizado</span>
         </div>
         <div class="event-card-body">
-          <div class="event-card-icon" style="opacity:.5;"><?= $emoji ?></div>
+          <div class="event-card-icon" style="opacity:.5;"><i class="<?= $iconClass ?>"></i></div>
           <div class="event-card-info">
             <a href="<?= BASE ?>/activity.php?id=<?= $ev['id'] ?>" class="event-card-title">
               <?= htmlspecialchars($ev['title']) ?>
@@ -187,7 +186,7 @@ include __DIR__ . '/includes/header.php';
 
 <script>
 const CL_BASE = '<?= BASE ?>';
-// ── Countdown engine ──────────────────────────────────────────────
+
 function pad(n) { return String(n).padStart(2, '0'); }
 
 function tick() {
@@ -219,7 +218,6 @@ function tick() {
 tick();
 setInterval(tick, 1000);
 
-// ── Unregister buttons ────────────────────────────────────────────
 document.querySelectorAll('.event-unreg-btn').forEach(btn => {
   btn.addEventListener('click', async function () {
     const pubId = this.dataset.pub;
@@ -239,7 +237,6 @@ document.querySelectorAll('.event-unreg-btn').forEach(btn => {
       card.style.transform  = 'scale(.95)';
       setTimeout(() => {
         card.remove();
-        // If no more cards in section, reload to show empty state
         if (!document.querySelector('.event-card')) location.reload();
       }, 300);
     } else {

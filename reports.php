@@ -24,7 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $filter = $_GET['filter'] ?? 'pending';
 $validFilters = ['pending', 'reviewed', 'dismissed', 'all'];
-if (!in_array($filter, $validFilters)) $filter = 'pending';
+if (!in_array($filter, $validFilters, true)) {
+    $filter = 'pending';
+}
 
 $where = $filter === 'all' ? '' : "WHERE pr.status = '$filter'";
 
@@ -32,10 +34,10 @@ $reports = $db->query("
     SELECT pr.id, pr.reason, pr.description, pr.status, pr.created_at,
            reporter.username AS reporter_username, reporter.full_name AS reporter_name,
            p.id AS pub_id, p.title AS pub_title, p.type AS pub_type,
-           owner.username AS owner_username, owner.full_name AS owner_name
+           owner.id AS owner_id, owner.username AS owner_username, owner.full_name AS owner_name
     FROM publication_reports pr
     JOIN users reporter ON reporter.id = pr.reporter_id
-    JOIN publications p  ON p.id  = pr.publication_id
+    JOIN publications p  ON p.id = pr.publication_id
     JOIN users owner     ON owner.id = p.user_id
     $where
     ORDER BY pr.created_at DESC
@@ -52,21 +54,22 @@ $reasonLabel = [
     'inappropriate' => 'Contenido inapropiado',
     'other'         => 'Otro',
 ];
-$typeLabel = ['incident' => '🚨 Incidencia', 'event' => '🎉 Evento', 'activity' => '⚡ Actividad'];
+$typeLabel = ['incident' => 'Incidencia', 'event' => 'Evento', 'activity' => 'Actividad'];
 
 $pageTitle  = 'Panel de reportes';
 $activePage = 'reports';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<div style="max-width:900px;margin:0 auto;padding:0 16px 60px;">
+<div class="page-content" style="max-width:960px;">
 
   <div class="page-header">
-    <h1><i class="fa-solid fa-flag" style="color:var(--red);"></i> Panel de reportes</h1>
-    <p>Gestiona los reportes de publicaciones enviados por los usuarios.</p>
+    <div>
+      <h1><i class="fa-solid fa-flag" style="color:var(--red);margin-right:10px;"></i>Panel de reportes</h1>
+      <p>Gestiona los reportes de publicaciones enviados por los usuarios.</p>
+    </div>
   </div>
 
-  <!-- Filtros + contadores -->
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
     <?php foreach (['pending' => 'Pendientes', 'reviewed' => 'Revisados', 'dismissed' => 'Descartados', 'all' => 'Todos'] as $f => $label): ?>
       <?php $n = ($f === 'all') ? array_sum($counts) : ($counts[$f] ?? 0); ?>
@@ -85,7 +88,7 @@ include __DIR__ . '/includes/header.php';
 
   <?php if (empty($reports)): ?>
     <div class="card" style="text-align:center;padding:48px 24px;color:var(--text3);">
-      <div style="font-size:40px;margin-bottom:12px;">✅</div>
+      <div style="font-size:40px;margin-bottom:12px;"><i class="fa-solid fa-circle-check" style="color:var(--green);"></i></div>
       <div style="font-size:16px;font-weight:700;color:var(--text);">Sin reportes <?= $filter === 'all' ? '' : ($filter === 'pending' ? 'pendientes' : $filter) ?></div>
       <div style="font-size:13px;margin-top:6px;">Todo en orden por ahora.</div>
     </div>
@@ -94,7 +97,6 @@ include __DIR__ . '/includes/header.php';
     <div class="card mb-16" style="border-left:4px solid <?= $r['status'] === 'pending' ? 'var(--red)' : ($r['status'] === 'reviewed' ? 'var(--green)' : 'var(--border)') ?>;">
       <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;">
 
-        <!-- Info principal -->
         <div style="flex:1;min-width:200px;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
             <span class="badge badge-<?= $r['status'] === 'pending' ? 'red' : ($r['status'] === 'reviewed' ? 'primary' : 'gray') ?>">
@@ -116,7 +118,7 @@ include __DIR__ . '/includes/header.php';
 
           <div style="font-size:13px;margin-bottom:6px;">
             <span style="color:var(--text3);">Autor:</span>
-            <a href="<?= BASE ?>/profile.php?id=<?= $r['pub_id'] ?>" style="color:var(--text);">
+            <a href="<?= BASE ?>/profile.php?id=<?= $r['owner_id'] ?>" style="color:var(--text);">
               <?= htmlspecialchars($r['owner_name'] ?: $r['owner_username']) ?>
               <span style="color:var(--text3);">(@<?= htmlspecialchars($r['owner_username']) ?>)</span>
             </a>
@@ -137,7 +139,6 @@ include __DIR__ . '/includes/header.php';
           <?php endif; ?>
         </div>
 
-        <!-- Acciones -->
         <?php if ($r['status'] === 'pending'): ?>
         <form method="POST" style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
           <input type="hidden" name="report_id" value="<?= $r['id'] ?>">

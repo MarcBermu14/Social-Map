@@ -7,7 +7,7 @@ $db   = getDB();
 $type = $_GET['type'] ?? null;
 $id   = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
-$planLabel = ['free' => 'Gratuita', 'pro' => '⭐ Pro', 'platinum' => '💎 Platinum'];
+$planLabel = ['free' => 'Gratuita', 'pro' => 'Pro', 'platinum' => 'Platinum'];
 
 // Build query
 $where  = ["p.status = 'active'"];
