@@ -18,7 +18,18 @@
       "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\posts.php\")",
       "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\comments.php\")",
       "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\likes.php\")",
-      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\upload.php\")"
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\citylive\\\\api\\\\forum\\\\upload.php\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\xampp\\\\htdocs\\\\citylive\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit -m 'feat: add isAdmin\\(\\) helper and is_admin column auto-migration *)",
+      "Bash(git commit -m 'fix: restrict token_cost field in publications API response *)",
+      "Bash(git commit -m 'fix: hide token costs from all public views *)",
+      "Bash(git push *)",
+      "Bash(gh pr create --title 'fix: hide token costs from public views \\(privacy\\)' --body ' *)"
     ]
   }
 }
