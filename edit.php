@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
 $db   = getDB();
 $user = currentUser();
 $id   = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if (!$id) { header('Location: ' . url_for('dashboard.php')); exit; }
+if (!$id) { header('Location: ' . BASE . '/dashboard.php'); exit; }
 
 // Load pub and verify ownership
 $stmt = $db->prepare("SELECT * FROM publications WHERE id = ? AND status = 'active'");
@@ -13,7 +13,7 @@ $stmt->execute([$id]);
 $pub = $stmt->fetch();
 
 if (!$pub || (int)$pub['user_id'] !== (int)$user['id']) {
-    header('Location: ' . url_for('dashboard.php'));
+    header('Location: ' . BASE . '/dashboard.php');
     exit;
 }
 
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $starts_at ?: null, $expires_at ?: null,
             $id, $user['id'],
         ]);
-        header('Location: ' . url_for('activity.php') . '?id=' . $id);
+        header('Location: ' . BASE . "/activity.php?id=$id");
         exit;
     }
     // Re-populate $pub with submitted values for re-render
@@ -178,7 +178,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div style="display:flex;gap:12px;">
-      <a href="<?= url_for('activity.php') ?>?id=<?= $id ?>" class="btn btn-outline" style="flex:1;">Cancelar</a>
+      <a href="<?= BASE ?>/activity.php?id=<?= $id ?>" class="btn btn-outline" style="flex:1;">Cancelar</a>
       <button class="btn btn-primary" type="submit" style="flex:2;">
         <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
       </button>

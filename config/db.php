@@ -1,12 +1,35 @@
 <?php
-// ─── Database configuration ───────────────────────────
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'citylive');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-$dbPass = getenv('DB_PASS');
-define('DB_PASS', $dbPass === false ? '' : $dbPass);
-define('DB_CHAR', getenv('DB_CHAR') ?: 'utf8mb4');
-define('DB_PORT', getenv('DB_PORT') ?: '3306');
+// ─── Load .env file (robust version for all environments) ──────────────────────
+$envConfig = [];
+$envFile = __DIR__ . '/../.env';
+
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        // Skip empty lines and comments
+        if (empty(trim($line)) || strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        // Parse KEY=VALUE
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            $envConfig[$key] = $value;
+        }
+    }
+}
+
+// ─── Base URL path (e.g. '/citylive' on localhost, '' on domain root) ─────────
+define('BASE', rtrim(parse_url($envConfig['APP_URL'] ?? 'http://localhost/citylive', PHP_URL_PATH) ?? '', '/'));
+
+// ─── Database configuration (use .env first, then defaults) ───────────────────
+define('DB_HOST', $envConfig['DB_HOST'] ?? 'localhost');
+define('DB_NAME', $envConfig['DB_NAME'] ?? 'citylive');
+define('DB_USER', $envConfig['DB_USER'] ?? 'root');
+define('DB_PASS', $envConfig['DB_PASS'] ?? '');
+define('DB_CHAR', $envConfig['DB_CHAR'] ?? 'utf8mb4');
+define('DB_PORT', $envConfig['DB_PORT'] ?? '3306');
 
 $basePath = getenv('APP_BASE_PATH');
 if ($basePath === false || $basePath === null) {
@@ -33,6 +56,13 @@ function getDB(): PDO {
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
+            
+            // ─── Auto-migrate: Add email verification columns if missing ────
+            try { $pdo->exec("ALTER TABLE users ADD COLUMN verification_token VARCHAR(64) DEFAULT NULL"); }
+            catch (PDOException $e) {} // Already exists
+            try { $pdo->exec("ALTER TABLE users ADD COLUMN token_created_at TIMESTAMP DEFAULT NULL"); }
+            catch (PDOException $e) {} // Already exists
+            
             // Auto-create event_registrations if missing (new table added after initial install)
             $pdo->exec("CREATE TABLE IF NOT EXISTS event_registrations (
                 user_id        INT NOT NULL,
@@ -75,17 +105,21 @@ function getDB(): PDO {
                 try { $pdo->exec("ALTER TABLE users ADD COLUMN $colDef"); }
                 catch (PDOException $e) {}
             }
-            $verificationCols = [
-                "email_verification_token VARCHAR(64) NULL DEFAULT NULL",
-                "email_verification_expires_at DATETIME NULL DEFAULT NULL",
-            ];
-            foreach ($verificationCols as $colDef) {
-                try { $pdo->exec("ALTER TABLE users ADD COLUMN $colDef"); }
-                catch (PDOException $e) {}
-            }
-            try {
-                $pdo->exec("CREATE UNIQUE INDEX idx_users_email_verification_token ON users (email_verification_token)");
-            } catch (PDOException $e) {}
+            // ── Publication reports ───────────────────────────────────────────
+            $pdo->exec("CREATE TABLE IF NOT EXISTS publication_reports (
+                id             INT AUTO_INCREMENT PRIMARY KEY,
+                reporter_id    INT NOT NULL,
+                publication_id INT NOT NULL,
+                reason         ENUM('spam','false_info','inappropriate','other') NOT NULL,
+                description    TEXT,
+                status         ENUM('pending','reviewed','dismissed') DEFAULT 'pending',
+                created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_report (reporter_id, publication_id),
+                INDEX idx_pr_pub (publication_id),
+                FOREIGN KEY (reporter_id)    REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (publication_id) REFERENCES publications(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
             // ── Forum tables ──────────────────────────────────────────────────
             $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_posts (
                 id            INT AUTO_INCREMENT PRIMARY KEY,
@@ -250,10 +284,9 @@ function isLoggedIn(): bool {
     return !empty($_SESSION['user_id']);
 }
 
-function requireLogin(string $redirect = ''): void {
+function requireLogin(string $redirect = '/index.php'): void {
     if (!isLoggedIn()) {
-        $target = $redirect ?: url_for('index.php');
-        header('Location: ' . $target);
+        header('Location: ' . BASE . $redirect);
         exit;
     }
 }

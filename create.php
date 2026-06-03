@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
@@ -32,6 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$title) $errors[] = 'El título es obligatorio.';
     if (!$desc)  $errors[] = 'La descripción es obligatoria.';
     if ($min_att !== null && $max_att !== null && $min_att > $max_att) $errors[] = 'El mínimo de asistentes no puede ser mayor que el máximo.';
+    if ($starts_at && strtotime($starts_at) < time()) {
+        $errors[] = 'La fecha de inicio no puede ser en el pasado.';
+    }
 
     // Check tokens for activities
     $cost = TOKEN_COSTS[$type] ?? 0;
@@ -62,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
 
-        header('Location: ' . url_for('activity.php') . '?id=' . $newId);
+        header('Location: ' . BASE . "/activity.php?id=$newId");
         exit;
     }
 }
@@ -129,7 +132,7 @@ include __DIR__ . '/includes/header.php';
           <?= number_format($user['tokens_balance']) ?> ⬡
         </div>
         <?php if ($user['tokens_balance'] < 150): ?>
-          <a href="<?= url_for('tokens.php') ?>" style="font-size:11px;color:var(--primary);">+ Comprar tokens</a>
+          <a href="<?= BASE ?>/tokens.php" style="font-size:11px;color:var(--primary);">+ Comprar tokens</a>
         <?php endif; ?>
       </div>
     </div>
@@ -174,6 +177,7 @@ include __DIR__ . '/includes/header.php';
       </div>
     </div>
 
+    <?php $nowMin = date('Y-m-d\TH:i'); ?>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
       <div class="form-group">
         <label class="form-label" for="starts_at">Inicio</label>
@@ -222,7 +226,7 @@ include __DIR__ . '/includes/header.php';
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--yellow);">Plan Gratuito</div>
           <div style="font-size:13px;color:var(--text2);">
-            Puedes publicar incidencias y eventos gratis. Para actividades lucrativas necesitas <a href="<?= url_for('subscriptions.php') ?>">Pro o Platinum</a>.
+            Puedes publicar incidencias y eventos gratis. Para actividades lucrativas necesitas <a href="<?= BASE ?>/subscriptions.php">Pro o Platinum</a>.
           </div>
         </div>
       </div>
@@ -293,28 +297,42 @@ document.getElementById('address').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); geocodeAddress(); }
 });
 
-// ─── Type selector (event listeners, no onclick/global function needed) ──────
+// ─── Fecha mínima = ahora mismo ───────────────────────
+const NOW_MIN = '<?= $nowMin ?>';
+const startsInput  = document.getElementById('starts_at');
+const expiresInput = document.getElementById('expires_at');
+
+// Fecha mínima siempre activa para todos los tipos
+startsInput.min  = NOW_MIN;
+expiresInput.min = NOW_MIN;
+
+function setDateConstraints(type) {
+  startsInput.required = (type === 'event');
+}
+
+// ─── Type selector ────────────────────────────────────
 document.querySelectorAll('.type-card[data-type]').forEach(card => {
   card.addEventListener('click', function () {
     const type = this.dataset.type;
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
     this.classList.add('selected');
     document.getElementById('typeInput').value = type;
+    setDateConstraints(type);
 
-    const est = document.getElementById('tokenEstimate');
-    const btn = document.getElementById('submitBtn');
+    const est    = document.getElementById('tokenEstimate');
+    const btn    = document.getElementById('submitBtn');
     const attRow = document.getElementById('attendeesRow');
     if (type === 'activity') {
-      est.style.display = 'flex';
-      btn.textContent = 'Publicar actividad — 150 tokens';
+      est.style.display    = 'flex';
+      btn.textContent      = 'Publicar actividad — 150 tokens';
       attRow.style.display = 'none';
     } else if (type === 'event') {
-      est.style.display = 'none';
-      btn.textContent = 'Publicar evento — Gratis';
+      est.style.display    = 'none';
+      btn.textContent      = 'Publicar evento — Gratis';
       attRow.style.display = '';
     } else {
-      est.style.display = 'none';
-      btn.textContent = 'Publicar incidencia — Gratis';
+      est.style.display    = 'none';
+      btn.textContent      = 'Publicar incidencia — Gratis';
       attRow.style.display = 'none';
     }
   });

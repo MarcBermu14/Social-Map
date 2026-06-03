@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Expect $pageTitle and $activePage to be set before including this file
 $pageTitle  = $pageTitle  ?? 'CityLive';
 $activePage = $activePage ?? '';
@@ -17,13 +17,10 @@ $userPlan  = $user['plan'] ?? 'free';
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Font Awesome (local) -->
+  <link rel="stylesheet" href="<?= BASE ?>/css/fontawesome.min.css">
   <!-- App CSS -->
-  <link rel="stylesheet" href="<?= url_for('css/style.css') ?>">
-  <script>
-    window.CITYLIVE_BASE_PATH = <?= json_encode(app_base_path()) ?>;
-  </script>
+  <link rel="stylesheet" href="<?= BASE ?>/css/style.css">
 </head>
 <body>
 <div class="app-shell">
@@ -38,19 +35,19 @@ $userPlan  = $user['plan'] ?? 'free';
     <nav class="sidebar-nav">
       <div class="nav-section-label">Principal</div>
 
-      <a href="<?= url_for('dashboard.php') ?>"
+      <a href="<?= BASE ?>/dashboard.php"
          class="nav-item <?= $activePage === 'map' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-map"></i>
         <span>Mapa en vivo</span>
       </a>
 
-      <a href="<?= url_for('create.php') ?>"
+      <a href="<?= BASE ?>/create.php"
          class="nav-item <?= $activePage === 'create' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-plus-circle"></i>
         <span>Crear publicación</span>
       </a>
 
-      <a href="<?= url_for('spin.php') ?>"
+      <a href="<?= BASE ?>/spin.php"
          class="nav-item <?= $activePage === 'spin' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-circle-dot"></i>
         <span>Ruleta</span>
@@ -60,7 +57,7 @@ $userPlan  = $user['plan'] ?? 'free';
       <div class="nav-divider"></div>
       <div class="nav-section-label">Mi cuenta</div>
 
-      <a href="<?= url_for('tokens.php') ?>"
+      <a href="<?= BASE ?>/tokens.php"
          class="nav-item <?= $activePage === 'tokens' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-hexagon-nodes"></i>
         <span>Mis tokens</span>
@@ -71,7 +68,7 @@ $userPlan  = $user['plan'] ?? 'free';
         <?php endif; ?>
       </a>
 
-      <a href="<?= url_for('subscriptions.php') ?>"
+      <a href="<?= BASE ?>/subscriptions.php"
          class="nav-item <?= $activePage === 'subs' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-crown"></i>
         <span>Suscripción</span>
@@ -80,15 +77,37 @@ $userPlan  = $user['plan'] ?? 'free';
         </span>
       </a>
 
-      <a href="<?= url_for('profile.php') ?>"
+      <a href="<?= BASE ?>/profile.php"
          class="nav-item <?= $activePage === 'profile' ? 'active' : '' ?>">
         <i class="nav-icon fa-solid fa-circle-user"></i>
         <span>Mi perfil</span>
       </a>
 
+      <?php if ($userPlan === 'platinum'): ?>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Admin</div>
+      <?php
+        $pendingReports = 0;
+        try {
+          $rStmt = getDB()->query("SELECT COUNT(*) FROM publication_reports WHERE status = 'pending'");
+          $pendingReports = (int)$rStmt->fetchColumn();
+        } catch (Exception $e) {}
+      ?>
+      <a href="<?= BASE ?>/reports.php"
+         class="nav-item <?= $activePage === 'reports' ? 'active' : '' ?>">
+        <i class="nav-icon fa-solid fa-flag"></i>
+        <span>Reportes</span>
+        <?php if ($pendingReports > 0): ?>
+          <span style="margin-left:auto;font-size:10px;font-weight:700;background:var(--red);color:#fff;padding:2px 7px;border-radius:20px;">
+            <?= $pendingReports ?>
+          </span>
+        <?php endif; ?>
+      </a>
+      <?php endif; ?>
+
       <div class="nav-divider"></div>
 
-      <a href="<?= url_for('logout.php') ?>" class="nav-item" style="color:var(--red);">
+      <a href="<?= BASE ?>/logout.php" class="nav-item" style="color:var(--red);">
         <i class="nav-icon fa-solid fa-right-from-bracket"></i>
         <span>Cerrar sesión</span>
       </a>
@@ -123,18 +142,14 @@ $userPlan  = $user['plan'] ?? 'free';
         <span class="topbar-title"><?= htmlspecialchars($pageTitle) ?></span>
       </div>
 
-      <div class="topbar-search">
-        <i class="fa-solid fa-magnifying-glass" style="color:var(--text3);font-size:13px;"></i>
-        <input type="text" placeholder="Buscar actividades, zonas...">
-      </div>
 
-      <div class="topbar-right">
+<div class="topbar-right">
         <button class="topbar-icon-btn" title="Notificaciones">
           <i class="fa-solid fa-bell"></i>
           <span class="notif-dot"></span>
         </button>
         <?php if ($user): ?>
-        <a href="<?= url_for('profile.php') ?>" class="topbar-user">
+        <a href="<?= BASE ?>/profile.php" class="topbar-user">
           <div class="topbar-user-av">
             <?php if ($user['avatar']): ?>
               <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="">

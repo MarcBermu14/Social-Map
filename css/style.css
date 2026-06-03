@@ -27,14 +27,13 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; }
+html { font-size: 16px; overflow-x: clip; }
 
 body {
   font-family: 'Inter', -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 a { color: var(--primary); text-decoration: none; }
@@ -462,9 +461,10 @@ input, textarea, select { font-family: inherit; }
   background: linear-gradient(135deg, var(--purple), var(--primary));
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  line-height: 1;
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.avatar-sm  { width: 32px; height: 32px; border-radius: 9px; font-size: 14px; }
+.avatar-sm  { width: 36px; height: 36px; border-radius: 50%; font-size: 15px; }
 .avatar-md  { width: 44px; height: 44px; font-size: 20px; }
 .avatar-lg  { width: 72px; height: 72px; font-size: 32px; border-radius: 20px; }
 .avatar-xl  { width: 96px; height: 96px; font-size: 42px; border-radius: 26px; }
@@ -525,6 +525,53 @@ input, textarea, select { font-family: inherit; }
   background: var(--surface);
   overflow: hidden;
 }
+
+.panel-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px;
+  padding: 9px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.panel-search:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(14,165,233,.1);
+}
+.panel-search > i {
+  color: var(--text3);
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: color .2s;
+}
+.panel-search:focus-within > i { color: var(--primary); }
+.panel-search > input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 0;
+}
+.panel-search > input::placeholder { color: var(--text3); font-weight: 400; }
+#pubSearchClear {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color .15s;
+}
+#pubSearchClear:hover { color: var(--text2); }
 
 .map-filters {
   padding: 14px;

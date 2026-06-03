@@ -1,4 +1,4 @@
-/* CityLive — Leaflet Map */
+﻿/* CityLive — Leaflet Map */
 
 (function () {
   const MAP_ID = 'map';
@@ -64,9 +64,11 @@
   let activeType = 'all';
   let activeCat  = 'all';
 
+  const B = window.CL_BASE || '';
+
   // ─── Load ALL publications once ──────────────────────
   function loadPublications() {
-    fetch(urlFor('api/publications.php'))
+    fetch(B + '/api/publications.php')
       .then(r => r.json())
       .then(data => {
         markersLayer.clearLayers();
@@ -104,7 +106,7 @@
 
   function openDetail(pub) {
     if (!detailPanel) {
-      window.location.href = urlFor(`activity.php?id=${pub.id}`);
+      window.location.href = `${B}/activity.php?id=${pub.id}`;
       return;
     }
 
@@ -139,7 +141,7 @@
         </div>
         ${pub.description ? `<div class="detail-desc">${escHtml(pub.description)}</div>` : ''}
         ${tokenHtml}
-        <a href="${urlFor(`profile.php?id=${pub.user_id}`)}" class="detail-creator">
+        <a href="${B}/profile.php?id=${pub.user_id}" class="detail-creator">
           <div class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--purple),var(--primary));color:#fff;font-size:14px;">
             ${(pub.creator_name || 'U')[0].toUpperCase()}
           </div>
@@ -151,10 +153,8 @@
         </a>
       </div>
       <div class="detail-actions">
-        <a href="${urlFor(`activity.php?id=${pub.id}`)}" class="btn btn-${pub.type === 'event' ? 'outline' : 'primary'}" style="flex:1;">Ver detalle</a>
+        <a href="${B}/activity.php?id=${pub.id}" class="btn btn-${pub.type === 'event' ? 'outline' : 'primary'}" style="flex:1;">Ver detalle</a>
         ${pub.type === 'event' ? `<button class="btn btn-primary detail-join-btn" data-pub="${pub.id}" data-registered="0" style="flex:2;">🎟️ Apuntarse</button>` : ''}
-        ${pub.type !== 'event' ? `<button class="btn btn-outline btn-icon" title="Guardar">🔖</button>` : ''}
-        <button class="btn btn-outline btn-icon" title="Reportar">🚩</button>
       </div>`;
 
     detailPanel.classList.add('open');
@@ -164,11 +164,26 @@
       el.classList.toggle('selected', el.dataset.id == pub.id);
     });
 
+    // ── Compartir ─────────────────────────────────────────
+    const shareMapBtn = detailPanel.querySelector('.detail-share-btn');
+    if (shareMapBtn) {
+      shareMapBtn.addEventListener('click', async function () {
+        const url   = location.origin + B + '/activity.php?id=' + this.dataset.pub;
+        const title = this.dataset.title || 'CityLive';
+        if (navigator.share) {
+          try { await navigator.share({ title, url }); } catch (_) {}
+        } else {
+          try { await navigator.clipboard.writeText(url); mapToast('¡Enlace copiado!'); }
+          catch (_) { prompt('Copia este enlace:', url); }
+        }
+      });
+    }
+
     // For events: check registration status and wire up join button
     if (pub.type === 'event') {
       const joinBtn = detailPanel.querySelector('.detail-join-btn');
       // Check current status
-      fetch(urlFor(`api/event_register.php?pub_id=${pub.id}`))
+      fetch(B + `/api/event_register.php?pub_id=${pub.id}`)
         .then(r => r.json())
         .then(data => {
           if (data.registered) {
@@ -183,7 +198,7 @@
       joinBtn.addEventListener('click', async function () {
         const registered = this.dataset.registered === '1';
         this.disabled = true;
-        const res  = await fetch(urlFor('api/event_register.php'), {
+        const res  = await fetch(B + '/api/event_register.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub) })
@@ -201,6 +216,8 @@
         this.disabled = false;
       });
     }
+
+    bindDetailActions(pub);
   }
 
   window.closeDetail = function () {
@@ -214,7 +231,7 @@
     const item = e.target.closest('.map-pub-item');
     if (!item) return;
     e.preventDefault();
-    fetch(urlFor(`api/publications.php?id=${item.dataset.id}`))
+    fetch(B + `/api/publications.php?id=${item.dataset.id}`)
       .then(r => r.json())
       .then(data => {
         if (data.features && data.features[0]) openDetail(data.features[0].properties);
@@ -230,11 +247,78 @@
       .replace(/"/g, '&quot;');
   }
 
+  function mapToast(msg) {
+    const el = document.createElement('div');
+    el.textContent = msg;
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
   function formatDateShort(dt) {
     if (!dt) return '';
     const d = new Date(dt);
     return d.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
       + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function bindDetailActions(pub) {
+    const saveBtn = detailPanel.querySelector('.detail-save-btn');
+    if (saveBtn) {
+      fetch(`/api/save_publication.php?pub_id=${encodeURIComponent(pub.id)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.saved) {
+            saveBtn.textContent = '✅';
+            saveBtn.title = 'Guardado';
+          }
+        })
+        .catch(err => console.error('No se pudo comprobar el estado de guardado:', err));
+
+      saveBtn.addEventListener('click', async function () {
+        this.disabled = true;
+        const res = await fetch('/api/save_publication.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'toggle', pub_id: parseInt(this.dataset.pub) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.textContent = data.saved ? '✅' : '🔖';
+          this.title = data.saved ? 'Guardado' : 'Guardar';
+        } else {
+          alert(data.error || 'No se pudo guardar');
+        }
+        this.disabled = false;
+      });
+    }
+
+    const reportBtn = detailPanel.querySelector('.detail-report-btn');
+    if (reportBtn) {
+      reportBtn.addEventListener('click', async function () {
+        const reason = prompt('Motivo del reporte (spam, offensive, inappropriate, other):', 'spam');
+        if (reason === null) return;
+        const normalizedReason = reason.trim().toLowerCase();
+        if (!['spam', 'offensive', 'inappropriate', 'other'].includes(normalizedReason)) {
+          alert('Motivo inválido');
+          return;
+        }
+        const description = prompt('Descripción adicional (opcional):', '') || '';
+        this.disabled = true;
+        const res = await fetch('/api/report_publication.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pub_id: parseInt(this.dataset.pub),
+            reason: normalizedReason,
+            description
+          })
+        });
+        const data = await res.json();
+        alert(data.success ? data.message : (data.error || 'No se pudo enviar el reporte'));
+        this.disabled = false;
+      });
+    }
   }
 
   // ─── Initial load ────────────────────────────────────

@@ -91,7 +91,7 @@ if ($method === 'GET') {
         foreach ($imgs as $img) {
             $images[$img['post_id']][] = [
                 'id'       => $img['id'],
-                'url'      => url_for('uploads/forum/' . $img['filename']),
+                'url'      => BASE . '/uploads/forum/' . $img['filename'],
                 'width'    => $img['width'],
                 'height'   => $img['height'],
                 'size'     => $img['file_size'],
@@ -180,7 +180,7 @@ if ($method === 'POST') {
         "SELECT id, filename, width, height, file_size FROM event_forum_images WHERE post_id = ?"
     );
     $imgs->execute([$postId]);
-    $post['images']       = array_map(fn($i) => $i + ['url' => url_for('uploads/forum/' . $i['filename'])], $imgs->fetchAll());
+    $post['images']       = array_map(fn($i) => $i + ['url' => BASE . '/uploads/forum/' . $i['filename']], $imgs->fetchAll());
     $post['user_liked']   = false;
     $post['is_pinned']    = false;
     $post['is_owner']     = true;

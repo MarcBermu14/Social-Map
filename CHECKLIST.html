@@ -1,0 +1,445 @@
+<!-- 
+  ═══════════════════════════════════════════════════════════════════════════
+  CityLive - Checklist de Configuración
+  Abrir este archivo en el navegador: C:\xampp\htdocs\citylive\CHECKLIST.html
+  ═══════════════════════════════════════════════════════════════════════════
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CityLive - Checklist</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    .section {
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .section-title {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-content {
+      padding: 20px;
+    }
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+    .item:last-child {
+      margin-bottom: 0;
+    }
+    .item:hover {
+      background: #e9ecef;
+      transform: translateX(5px);
+    }
+    .checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #667eea;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 14px;
+      margin-top: 2px;
+    }
+    .checkbox.checked {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+    .item-text h3 {
+      font-size: 15px;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    .item-text p {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+    }
+    .code {
+      background: #f5f5f5;
+      border-left: 3px solid #667eea;
+      padding: 8px 12px;
+      margin: 8px 0;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .link-button {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 13px;
+      margin-top: 8px;
+      transition: background 0.3s ease;
+    }
+    .link-button:hover {
+      background: #764ba2;
+    }
+    .progress-bar {
+      background: #e9ecef;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+    .progress-fill {
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .notes {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #856404;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+    .success {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      border-radius: 4px;
+      color: #155724;
+      margin-top: 20px;
+    }
+    .footer {
+      text-align: center;
+      color: white;
+      margin-top: 40px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🗺️ CityLive</h1>
+      <p>Checklist de Configuración</p>
+    </div>
+
+    <!-- PASO 1: Base de Datos -->
+    <div class="section">
+      <div class="section-title">
+        <i class="fas fa-database"></i> Paso 1: Base de Datos
+      </div>
+      <div class="section-content">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 0%" id="progress1"></div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Iniciar MySQL en XAMPP</h3>
+            <p>Abre XAMPP Control Panel y haz click en "Start" para MySQL</p>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Importar sql/schema.sql</h3>
+            <p>Opción A (Recomendado): Abrir phpMyAdmin y pegar el SQL</p>
+            <div class="code">http://localhost/phpmyadmin → BD citylive → SQL → Ejecutar</div>
+            <p>Opción B: Línea de comandos</p>
+            <div class="code">mysql -u root < sql/schema.sql</div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Verificar BD creada</h3>
+            <p>Busca tabla "users" con campos: id, email, username, verified, verification_token</p>
+            <a href="http://localhost/phpmyadmin" target="_blank" class="link-button">
+              <i class="fas fa-link"></i> Abrir phpMyAdmin
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 2: Configuración -->
+    <div class="section">
+      <div class="section-title">
+        <i class="fas fa-cog"></i> Paso 2: Configuración
+      </div>
+      <div class="section-content">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 0%" id="progress2"></div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Crear archivo .env</h3>
+            <p>Copia .env.example a .env en la raíz de citylive/</p>
+            <div class="code">cp .env.example .env</div>
+            <p>O copia manualmente en: C:\xampp\htdocs\citylive\.env</p>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Editar .env con credenciales</h3>
+            <p>Abre C:\xampp\htdocs\citylive\.env y configura:</p>
+            <div class="code">DB_HOST=localhost<br>DB_NAME=citylive<br>DB_USER=root<br>DB_PASS=(tu contraseña MySQL)<br>SMTP_USER=tu-email@gmail.com<br>SMTP_PASS=(tu contraseña app)</div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Verificar configuración</h3>
+            <p>Abre http://localhost/citylive/health-check.php para ver estado</p>
+            <a href="http://localhost/citylive/health-check.php" target="_blank" class="link-button">
+              <i class="fas fa-stethoscope"></i> Abrir Health Check
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 3: Email (Opcional) -->
+    <div class="section">
+      <div class="section-title">
+        <i class="fas fa-envelope"></i> Paso 3: Email SMTP (Opcional)
+      </div>
+      <div class="section-content">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 0%" id="progress3"></div>
+        </div>
+
+        <div class="notes">
+          <strong>ℹ️ Nota:</strong> Sin configurar SMTP, los emails se simulan en desarrollo. 
+          Solo necesitas esto si quieres que se envíen emails de verdad.
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Usar Gmail (Recomendado)</h3>
+            <p>1. Crea cuenta en Gmail (si no tienes)</p>
+            <p>2. Accede a https://myaccount.google.com/security</p>
+            <p>3. Busca "Contraseñas de aplicación"</p>
+            <p>4. Selecciona "Mail" y "Windows"</p>
+            <p>5. Copia la contraseña de 16 caracteres</p>
+            <p>6. Pega en .env bajo SMTP_PASS</p>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Usar otro SMTP</h3>
+            <p>SendGrid, Mailgun, Office365, etc.</p>
+            <p>Configura en .env:</p>
+            <div class="code">SMTP_HOST=smtp.tu-proveedor.com<br>SMTP_USER=tu@email.com<br>SMTP_PASS=tu-contraseña</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 4: Pruebas -->
+    <div class="section">
+      <div class="section-title">
+        <i class="fas fa-flask"></i> Paso 4: Pruebas
+      </div>
+      <div class="section-content">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 0%" id="progress4"></div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Iniciar Apache</h3>
+            <p>XAMPP Control Panel → Click en "Start" para Apache</p>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Acceder a la aplicación</h3>
+            <p>Abre http://localhost/citylive en tu navegador</p>
+            <a href="http://localhost/citylive" target="_blank" class="link-button">
+              <i class="fas fa-globe"></i> Abrir CityLive
+            </a>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Crear cuenta de prueba</h3>
+            <p>Ir a http://localhost/citylive/register.php y llenar formulario</p>
+            <a href="http://localhost/citylive/register.php" target="_blank" class="link-button">
+              <i class="fas fa-user-plus"></i> Registrarse
+            </a>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Confirmar email</h3>
+            <p>Si SMTP está configurado: revisar bandeja de entrada</p>
+            <p>Si NO: revisar logs en C:\xampp\apache\logs\error.log</p>
+            <div class="code">Ver token en el log y acceder a:<br>http://localhost/citylive/verify-email.php?token=XXXX</div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Hacer Login</h3>
+            <p>Una vez verificado el email, ir a http://localhost/citylive/index.php</p>
+            <p>Ingresa email + contraseña</p>
+            <a href="http://localhost/citylive/index.php" target="_blank" class="link-button">
+              <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 5: Producción -->
+    <div class="section">
+      <div class="section-title">
+        <i class="fas fa-rocket"></i> Paso 5: Publicar en Internet
+      </div>
+      <div class="section-content">
+        <div class="notes">
+          <strong>Próximo paso:</strong> Cuando estés listo para publicar en internet con tu propio dominio
+        </div>
+
+        <div class="item">
+          <div class="checkbox" onclick="toggleCheck(this)">✓</div>
+          <div class="item-text">
+            <h3>Leer DEPLOYMENT.md</h3>
+            <p>Guía completa de cómo publicar a hosting real con:</p>
+            <p>✓ Hosting recomendado (Hostinger, Bluehost, etc.)</p>
+            <p>✓ Pasos de instalación en servidor real</p>
+            <p>✓ Configuración de SSL/HTTPS</p>
+            <p>✓ Configuración de email en producción</p>
+            <a href="DEPLOYMENT.md" class="link-button">
+              <i class="fas fa-book"></i> Leer DEPLOYMENT.md
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Final -->
+    <div class="success">
+      <i class="fas fa-check-circle"></i> <strong>¡Listo!</strong><br>
+      Si completaste todos los pasos, tu aplicación está funcionando.<br>
+      📊 Ver más documentación en: <strong>SETUP.md</strong>, <strong>DEPLOYMENT.md</strong>, <strong>CHANGES.md</strong>
+    </div>
+
+    <div class="footer">
+      <p>🗺️ CityLive v1.0</p>
+      <p style="margin-top: 10px; opacity: 0.8;">Hecho con ❤️ para tu ciudad</p>
+    </div>
+  </div>
+
+  <script>
+    function toggleCheck(elem) {
+      elem.classList.toggle('checked');
+      updateProgress();
+    }
+
+    function updateProgress() {
+      for (let i = 1; i <= 4; i++) {
+        const section = document.querySelectorAll('.section')[i];
+        const checkboxes = section.querySelectorAll('.checkbox');
+        const checked = section.querySelectorAll('.checkbox.checked');
+        const percentage = (checked.length / checkboxes.length) * 100;
+        document.getElementById('progress' + i).style.width = percentage + '%';
+      }
+    }
+
+    // Cargar estado del localStorage
+    window.addEventListener('load', () => {
+      const checkboxes = document.querySelectorAll('.checkbox');
+      const stored = localStorage.getItem('citylive-checklist');
+      if (stored) {
+        const checked = JSON.parse(stored);
+        checkboxes.forEach((cb, idx) => {
+          if (checked[idx]) cb.classList.add('checked');
+        });
+        updateProgress();
+      }
+    });
+
+    // Guardar estado
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('checkbox')) {
+        const checkboxes = document.querySelectorAll('.checkbox');
+        const checked = Array.from(checkboxes).map(cb => cb.classList.contains('checked'));
+        localStorage.setItem('citylive-checklist', JSON.stringify(checked));
+      }
+    });
+  </script>
+</body>
+</html>

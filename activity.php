@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if (!$id) { header('Location: ' . url_for('dashboard.php')); exit; }
+if (!$id) { header('Location: ' . BASE . '/dashboard.php'); exit; }
 
 $db  = getDB();
 $pub = $db->prepare("
@@ -17,7 +17,7 @@ $pub = $db->prepare("
 ");
 $pub->execute([$id]);
 $pub = $pub->fetch();
-if (!$pub || $pub['status'] !== 'active') { header('Location: ' . url_for('dashboard.php')); exit; }
+if (!$pub || $pub['status'] !== 'active') { header('Location: ' . BASE . '/dashboard.php'); exit; }
 
 // Increment view count
 $db->prepare('UPDATE publications SET views = views + 1 WHERE id = ?')->execute([$id]);
@@ -29,6 +29,11 @@ if ($pub['type'] === 'event') {
     $chk->execute([$_SESSION['user_id'], $id]);
     $isRegistered = (bool)$chk->fetchColumn();
 }
+
+// Check if saved
+$chkSave = $db->prepare('SELECT 1 FROM saves WHERE user_id = ? AND publication_id = ?');
+$chkSave->execute([$_SESSION['user_id'], $id]);
+$isSaved = (bool)$chkSave->fetchColumn();
 
 // Fetch reviews
 $reviews = $db->prepare("
@@ -57,6 +62,9 @@ $emoji = $categoryEmoji[$pub['category']] ?? $typeEmoji[$pub['type']] ?? '📍';
 $color = $typeColor[$pub['type']] ?? 'var(--primary)';
 
 $isOwner = ((int)$_SESSION['user_id'] === (int)$pub['user_id']);
+$saveChk = $db->prepare('SELECT 1 FROM saves WHERE user_id = ? AND publication_id = ?');
+$saveChk->execute([$_SESSION['user_id'], $id]);
+$isSaved = (bool)$saveChk->fetchColumn();
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -65,7 +73,7 @@ include __DIR__ . '/includes/header.php';
       <!-- MAIN COLUMN -->
       <div>
         <div style="margin-bottom:16px;">
-          <a href="<?= url_for('dashboard.php') ?>" class="text-muted text-sm">
+          <a href="<?= BASE ?>/dashboard.php" class="text-muted text-sm">
             ← Volver al mapa
           </a>
         </div>
@@ -138,7 +146,8 @@ include __DIR__ . '/includes/header.php';
           </div>
         </div>
 
-        <!-- Forum access banner -->
+        <!-- Forum access banner (only for events and activities) -->
+        <?php if ($pub['type'] !== 'incident'): ?>
         <?php
         $forumCount = $db->prepare("SELECT COUNT(*) FROM event_forum_posts WHERE event_id = ? AND status = 'active'");
         $forumCount->execute([$id]);
@@ -153,11 +162,12 @@ include __DIR__ . '/includes/header.php';
                 <?= $fPostCount ?> publicaci<?= $fPostCount === 1 ? 'ón' : 'ones' ?> · Participa, pregunta y comparte
               </div>
             </div>
-            <a href="<?= url_for('forum.php') ?>?event=<?= $pub['id'] ?>" class="btn btn-primary btn-sm">
+            <a href="<?= BASE ?>/forum.php?event=<?= $pub['id'] ?>" class="btn btn-primary btn-sm">
               Abrir foro →
             </a>
           </div>
         </div>
+        <?php endif; ?>
 
         <!-- Reviews -->
         <div class="card">
@@ -211,13 +221,21 @@ include __DIR__ . '/includes/header.php';
               🧭 Cómo llegar
             </a>
             <div style="display:flex;gap:8px;">
-              <button class="btn btn-outline" style="flex:1;">🔖 Guardar</button>
-              <button class="btn btn-outline" style="flex:1;">📤 Compartir</button>
+              <button id="shareBtn" class="btn btn-outline" style="flex:1;"
+                      data-title="<?= htmlspecialchars($pub['title']) ?>">
+                📤 Compartir
+              </button>
+              <button id="reportBtn"
+                      class="btn btn-outline btn-icon"
+                      title="<?= $isOwner ? 'No puedes reportar tu propia publicación' : 'Reportar publicación' ?>"
+                      data-pub="<?= $id ?>"
+                      <?= $isOwner ? 'disabled style="opacity:.4;cursor:not-allowed;"' : '' ?>>
+                🚩
+              </button>
             </div>
-            <button class="btn btn-danger btn-sm">🚩 Reportar</button>
 
             <?php if ($isOwner): ?>
-            <a href="<?= url_for('edit.php') ?>?id=<?= $pub['id'] ?>" class="btn btn-outline btn-block">
+            <a href="<?= BASE ?>/edit.php?id=<?= $pub['id'] ?>" class="btn btn-outline btn-block">
               <i class="fa-solid fa-pen"></i> Editar publicación
             </a>
             <button id="deleteBtn" class="btn btn-danger btn-block" data-pub="<?= $pub['id'] ?>">
@@ -231,7 +249,7 @@ include __DIR__ . '/includes/header.php';
         <!-- Creator card -->
         <div class="card mb-16">
           <div class="card-header"><span class="card-title">Publicado por</span></div>
-          <a href="<?= url_for('profile.php') ?>?id=<?= $pub['user_id'] ?>" style="text-decoration:none;color:var(--text);">
+          <a href="<?= BASE ?>/profile.php?id=<?= $pub['user_id'] ?>" style="text-decoration:none;color:var(--text);">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
               <div class="avatar avatar-md" style="color:#fff;">
                 <?= strtoupper(substr($pub['creator_name'] ?? $pub['creator_username'], 0, 1)) ?>
@@ -272,7 +290,7 @@ include __DIR__ . '/includes/header.php';
             </div>
           </a>
 
-          <a href="<?= url_for('profile.php') ?>?id=<?= $pub['user_id'] ?>" class="btn btn-outline btn-block btn-sm" style="margin-top:14px;">
+          <a href="<?= BASE ?>/profile.php?id=<?= $pub['user_id'] ?>" class="btn btn-outline btn-block btn-sm" style="margin-top:14px;">
             Ver perfil completo
           </a>
         </div>
@@ -324,13 +342,14 @@ include __DIR__ . '/includes/header.php';
     <!-- Register/unregister for events -->
     <?php if ($pub['type'] === 'event'): ?>
     <script>
+    const CL_BASE = '<?= BASE ?>';
     const regBtn = document.getElementById('regBtn');
     if (regBtn) {
       regBtn.addEventListener('click', async function () {
         const registered = this.dataset.registered === '1';
         this.disabled = true;
 
-        const res  = await fetch(`${window.CITYLIVE_BASE_PATH || ''}/api/event_register.php`, {
+        const res  = await fetch(CL_BASE + '/api/event_register.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub) })
@@ -351,9 +370,84 @@ include __DIR__ . '/includes/header.php';
     </script>
     <?php endif; ?>
 
+    <script>
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async function () {
+        this.disabled = true;
+        const res = await fetch('/api/save_publication.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'toggle', pub_id: parseInt(this.dataset.pub) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.dataset.saved = data.saved ? '1' : '0';
+          this.textContent = data.saved ? '✅ Guardado' : '🔖 Guardar';
+        } else {
+          alert(data.error || 'No se pudo guardar la publicación');
+        }
+        this.disabled = false;
+      });
+    }
+
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async function () {
+        const shareUrl = window.location.href;
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: <?= json_encode($pub['title'], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>,
+              text: 'Mira esta publicación en CityLive',
+              url: shareUrl
+            });
+          } catch (err) {
+            // User cancelled share
+          }
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          alert('Enlace copiado al portapapeles');
+        } catch (err) {
+          alert('No se pudo compartir automáticamente. Copia este enlace: ' + shareUrl);
+        }
+      });
+    }
+
+    const reportBtn = document.getElementById('reportBtn');
+    if (reportBtn) {
+      reportBtn.addEventListener('click', async function () {
+        const reason = prompt('Motivo del reporte (spam, offensive, inappropriate, other):', 'spam');
+        if (reason === null) return;
+        const normalizedReason = reason.trim().toLowerCase();
+        if (!['spam', 'offensive', 'inappropriate', 'other'].includes(normalizedReason)) {
+          alert('Motivo inválido');
+          return;
+        }
+        const description = prompt('Descripción adicional (opcional):', '') || '';
+        this.disabled = true;
+        const res = await fetch('/api/report_publication.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pub_id: parseInt(this.dataset.pub),
+            reason: normalizedReason,
+            description
+          })
+        });
+        const data = await res.json();
+        alert(data.success ? data.message : (data.error || 'No se pudo enviar el reporte'));
+        this.disabled = false;
+      });
+    }
+    </script>
+
     <!-- Delete publication (owner only) -->
     <?php if ($isOwner): ?>
     <script>
+    const CL_BASE = typeof CL_BASE !== 'undefined' ? CL_BASE : '<?= BASE ?>';
     const deleteBtn = document.getElementById('deleteBtn');
     if (deleteBtn) {
       deleteBtn.addEventListener('click', async function () {
@@ -361,14 +455,14 @@ include __DIR__ . '/includes/header.php';
         this.disabled = true;
         this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Eliminando…';
 
-        const res  = await fetch(`${window.CITYLIVE_BASE_PATH || ''}/api/delete_publication.php`, {
+        const res  = await fetch(CL_BASE + '/api/delete_publication.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pub_id: parseInt(this.dataset.pub) })
         });
         const data = await res.json();
         if (data.success) {
-          window.location.href = `${window.CITYLIVE_BASE_PATH || ''}/dashboard.php`;
+          window.location.href = CL_BASE + '/dashboard.php';
         } else {
           alert(data.error || 'Error al eliminar');
           this.disabled = false;
@@ -378,5 +472,99 @@ include __DIR__ . '/includes/header.php';
     }
     </script>
     <?php endif; ?>
+
+<!-- Report modal -->
+<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--card);border-radius:var(--r-lg);padding:28px;max-width:400px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.2);">
+    <h3 style="font-size:17px;font-weight:800;margin-bottom:16px;">🚩 Reportar publicación</h3>
+    <label class="form-label">Motivo</label>
+    <select id="reportReason" class="form-select" style="margin-bottom:14px;">
+      <option value="spam">Spam o publicidad</option>
+      <option value="false_info">Información falsa</option>
+      <option value="inappropriate">Contenido inapropiado</option>
+      <option value="other">Otro</option>
+    </select>
+    <label class="form-label">Descripción adicional (opcional)</label>
+    <textarea id="reportDesc" class="form-textarea" placeholder="Añade más detalles..." rows="3" maxlength="500" style="min-height:80px;margin-bottom:16px;"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button id="reportCancel" class="btn btn-outline btn-sm">Cancelar</button>
+      <button id="reportSubmit" class="btn btn-danger btn-sm">Enviar reporte</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CL_BASE_ACT = '<?= BASE ?>';
+const PUB_ID      = <?= $id ?>;
+
+// ── Compartir ─────────────────────────────────────────
+const shareBtn = document.getElementById('shareBtn');
+if (shareBtn) {
+  shareBtn.addEventListener('click', async function () {
+    const url   = 'http://localhost' + CL_BASE_ACT + '/activity.php?id=' + PUB_ID;
+    const title = this.dataset.title || document.title;
+    if (navigator.share) {
+      try { await navigator.share({ title, url }); } catch (_) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('¡Enlace copiado al portapapeles!');
+      } catch (_) {
+        prompt('Copia este enlace:', url);
+      }
+    }
+  });
+}
+
+// ── Reportar ──────────────────────────────────────────
+const reportBtn    = document.getElementById('reportBtn');
+const reportModal  = document.getElementById('reportModal');
+const reportCancel = document.getElementById('reportCancel');
+const reportSubmit = document.getElementById('reportSubmit');
+
+if (reportBtn) {
+  reportBtn.addEventListener('click', () => {
+    reportModal.style.display = 'flex';
+  });
+}
+reportCancel?.addEventListener('click', () => {
+  reportModal.style.display = 'none';
+  document.getElementById('reportDesc').value = '';
+});
+reportModal?.addEventListener('click', e => {
+  if (e.target === reportModal) {
+    reportModal.style.display = 'none';
+  }
+});
+reportSubmit?.addEventListener('click', async function () {
+  this.disabled = true;
+  const res  = await fetch(CL_BASE_ACT + '/api/report_publication.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      pub_id: PUB_ID,
+      reason: document.getElementById('reportReason').value,
+      description: document.getElementById('reportDesc').value,
+    })
+  });
+  const data = await res.json();
+  reportModal.style.display = 'none';
+  document.getElementById('reportDesc').value = '';
+  showToast(data.success ? data.message : (data.error || 'Error al enviar'), data.success ? 'ok' : 'err');
+  this.disabled = false;
+});
+
+// ── Toast ─────────────────────────────────────────────
+function showToast(msg, type = 'ok') {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:${type === 'err' ? 'var(--red)' : 'var(--text)'};color:#fff;
+    padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;
+    z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

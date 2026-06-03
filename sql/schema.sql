@@ -7,23 +7,22 @@ USE citylive;
 
 -- ─── USERS ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
-    id            INT AUTO_INCREMENT PRIMARY KEY,
-    username      VARCHAR(50)  UNIQUE NOT NULL,
-    email         VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    full_name     VARCHAR(100),
-    bio           TEXT,
-    avatar        VARCHAR(255) DEFAULT NULL,
-    reputation    DECIMAL(3,2) DEFAULT 0.00,
-    rep_count     INT          DEFAULT 0,
-    plan          ENUM('free','pro','platinum') DEFAULT 'free',
-    tokens_balance INT         DEFAULT 0,
-    verified      TINYINT(1)   DEFAULT 0,
-    email_verification_token VARCHAR(64) DEFAULT NULL,
-    email_verification_expires_at DATETIME DEFAULT NULL,
-    created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-    last_active   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY idx_users_email_verification_token (email_verification_token)
+    id                    INT AUTO_INCREMENT PRIMARY KEY,
+    username              VARCHAR(50)  UNIQUE NOT NULL,
+    email                 VARCHAR(100) UNIQUE NOT NULL,
+    password_hash         VARCHAR(255) NOT NULL,
+    full_name             VARCHAR(100),
+    bio                   TEXT,
+    avatar                VARCHAR(255) DEFAULT NULL,
+    reputation            DECIMAL(3,2) DEFAULT 0.00,
+    rep_count             INT          DEFAULT 0,
+    plan                  ENUM('free','pro','platinum') DEFAULT 'free',
+    tokens_balance        INT          DEFAULT 0,
+    verified              TINYINT(1)   DEFAULT 0,
+    verification_token    VARCHAR(64)  DEFAULT NULL,
+    token_created_at      TIMESTAMP    DEFAULT NULL,
+    created_at            TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    last_active           TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- ─── PUBLICATIONS ─────────────────────────────────────
@@ -120,6 +119,21 @@ CREATE TABLE IF NOT EXISTS saves (
     FOREIGN KEY (user_id)        REFERENCES users(id)        ON DELETE CASCADE,
     FOREIGN KEY (publication_id) REFERENCES publications(id) ON DELETE CASCADE
 );
+
+-- ─── PUBLICATION REPORTS ────────────────────────────────
+CREATE TABLE IF NOT EXISTS publication_reports (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    reporter_id    INT NOT NULL,
+    publication_id INT NOT NULL,
+    reason         ENUM('spam','offensive','inappropriate','other') NOT NULL,
+    description    TEXT,
+    status         ENUM('pending','reviewed','dismissed') DEFAULT 'pending',
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_publication_report (reporter_id, publication_id),
+    INDEX idx_pr_status (status),
+    FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (publication_id) REFERENCES publications(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ─── EVENT FORUM ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS event_forum_posts (
