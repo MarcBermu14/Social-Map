@@ -128,3 +128,19 @@ MIT - Libre para usar, modificar y distribuir
 **Hecho con ❤️ para tu ciudad**
 
 🗺️ CityLive v1.0
+
+Importante, para aceptar usuarios:
+https://citylive.infinityfree.io/verify-email.php?token=e2c56eeb142c1aa65f6ab2c7d2304f38fff8425af5890d1b89ed339f3d23f703
+
+en el .env hay que cambiar:
+1. Obtener contraseña de app en Gmail:
+Ve a: https://myaccount.google.com/apppasswords
+Elige "Mail" y "Windows Computer"
+Google te genera una contraseña de 16 caracteres
+Copia esa contraseña
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu-email@gmail.com//cambiar
+SMTP_PASS=xxxx xxxx xxxx xxxx
+SMTP_FROM=tu-email@gmail.com
+SMTP_FROM_NAME=CityLive
