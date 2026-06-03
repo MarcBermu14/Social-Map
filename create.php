@@ -7,6 +7,14 @@ $user = currentUser();
 
 $errors = [];
 $ok     = false;
+$locationError = '';
+
+function isValidCoordinate(?float $lat, ?float $lng): bool
+{
+    return $lat !== null && $lng !== null
+        && $lat >= -90 && $lat <= 90
+        && $lng >= -180 && $lng <= 180;
+}
 
 // Token costs per type
 const TOKEN_COSTS = [
@@ -27,6 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $expires_at   = $_POST['expires_at'] ?? null;
     $min_att      = (($_POST['min_attendees'] ?? '') !== '') ? (int)$_POST['min_attendees'] : null;
     $max_att      = (($_POST['max_attendees'] ?? '') !== '') ? (int)$_POST['max_attendees'] : null;
+    $selectedAddress     = trim($_POST['selected_address'] ?? '');
+    $selectedLat         = is_numeric($_POST['selected_lat'] ?? null) ? (float)$_POST['selected_lat'] : null;
+    $selectedLng         = is_numeric($_POST['selected_lng'] ?? null) ? (float)$_POST['selected_lng'] : null;
+    $isAddressConfirmed  = ($_POST['is_address_confirmed'] ?? '') === '1';
 
     if (!in_array($type, ['incident', 'event', 'activity'])) $errors[] = 'Tipo de publicación inválido.';
     if (!$title) $errors[] = 'El título es obligatorio.';
@@ -40,6 +52,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cost = TOKEN_COSTS[$type] ?? 0;
     if ($cost > 0 && $user['tokens_balance'] < $cost) {
         $errors[] = "No tienes suficientes tokens. Necesitas {$cost} ⬡ y tienes {$user['tokens_balance']} ⬡.";
+    }
+
+    if ($type === 'event') {
+        $coordsMatchSelection = isValidCoordinate($selectedLat, $selectedLng)
+            && abs($lat - $selectedLat) < 0.000001
+            && abs($lng - $selectedLng) < 0.000001;
+
+        if (!$address || !$selectedAddress || !$isAddressConfirmed || !isValidCoordinate($selectedLat, $selectedLng)) {
+            $locationError = 'Selecciona una dirección válida de la lista antes de publicar el evento.';
+            $errors[] = $locationError;
+        } elseif ($address !== $selectedAddress || !$coordsMatchSelection) {
+            $locationError = 'La dirección confirmada ya no coincide con el punto del mapa. Selecciónala de nuevo antes de publicar.';
+            $errors[] = $locationError;
+        }
     }
 
     if (empty($errors)) {
@@ -70,6 +96,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$postedType = $_POST['type'] ?? 'incident';
+$postedLocationError = $_SERVER['REQUEST_METHOD'] === 'POST' ? $locationError : '';
+$postedSelectedAddress = $_POST['selected_address'] ?? '';
+$postedSelectedLat = $_POST['selected_lat'] ?? '';
+$postedSelectedLng = $_POST['selected_lng'] ?? '';
+$postedIsAddressConfirmed = $_POST['is_address_confirmed'] ?? '0';
+
 $pageTitle  = 'Crear publicación';
 $activePage = 'create';
 
@@ -86,28 +119,28 @@ include __DIR__ . '/includes/header.php';
     <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($e) ?></div>
   <?php endforeach; ?>
 
-  <form method="POST" action="">
+  <form method="POST" action="" id="createForm">
 
     <!-- Type selector -->
     <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">
       Tipo de publicación
     </div>
     <div class="type-cards mb-24">
-      <div class="type-card <?= ($_POST['type'] ?? 'incident') === 'incident' ? 'selected' : '' ?>"
+      <div class="type-card <?= $postedType === 'incident' ? 'selected' : '' ?>"
            data-type="incident">
         <div class="tc-icon">🚨</div>
         <div class="tc-name">Incidencia</div>
         <div class="tc-desc">Tráfico, obras, accidentes, cortes de luz...</div>
         <div class="tc-cost">⬡ Gratis</div>
       </div>
-      <div class="type-card <?= ($_POST['type'] ?? '') === 'event' ? 'selected' : '' ?>"
+      <div class="type-card <?= $postedType === 'event' ? 'selected' : '' ?>"
            data-type="event">
         <div class="tc-icon">🎉</div>
         <div class="tc-name">Evento</div>
         <div class="tc-desc">Conciertos, fiestas, actos culturales...</div>
         <div class="tc-cost">⬡ Gratis</div>
       </div>
-      <div class="type-card <?= ($_POST['type'] ?? '') === 'activity' ? 'selected' : '' ?>"
+      <div class="type-card <?= $postedType === 'activity' ? 'selected' : '' ?>"
            data-type="activity">
         <div class="tc-icon">⚡</div>
         <div class="tc-name">Actividad</div>
@@ -115,11 +148,11 @@ include __DIR__ . '/includes/header.php';
         <div class="tc-cost">⬡ 150 tokens</div>
       </div>
     </div>
-    <input type="hidden" name="type" id="typeInput" value="<?= htmlspecialchars($_POST['type'] ?? 'incident') ?>">
+    <input type="hidden" name="type" id="typeInput" value="<?= htmlspecialchars($postedType) ?>">
 
     <!-- Token estimate (activity only) -->
     <div class="token-estimate-box" id="tokenEstimate"
-         style="<?= ($_POST['type'] ?? 'incident') !== 'activity' ? 'display:none;' : '' ?>">
+         style="<?= $postedType !== 'activity' ? 'display:none;' : '' ?>">
       <div style="font-size:28px;">⬡</div>
       <div>
         <div style="font-size:11px;color:var(--text2);">Coste estimado</div>
@@ -174,6 +207,14 @@ include __DIR__ . '/includes/header.php';
             📍 Ubicar
           </button>
         </div>
+        <input type="hidden" name="selected_address" id="selectedAddressInput" value="<?= htmlspecialchars($postedSelectedAddress) ?>">
+        <input type="hidden" name="selected_lat" id="selectedLatInput" value="<?= htmlspecialchars($postedSelectedLat) ?>">
+        <input type="hidden" name="selected_lng" id="selectedLngInput" value="<?= htmlspecialchars($postedSelectedLng) ?>">
+        <input type="hidden" name="is_address_confirmed" id="isAddressConfirmedInput" value="<?= htmlspecialchars($postedIsAddressConfirmed) ?>">
+        <div id="addressResults" style="display:none;margin-top:8px;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden;"></div>
+        <div id="addressMessage" class="form-helper" style="margin-top:8px;color:<?= $postedLocationError ? 'var(--red)' : 'var(--text2)' ?>;">
+          <?= htmlspecialchars($postedLocationError ?: 'Busca una dirección y selecciona una opción válida para fijar la ubicación exacta.') ?>
+        </div>
       </div>
     </div>
 
@@ -192,7 +233,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <!-- Min / max attendees (events only) -->
-    <div id="attendeesRow" style="<?= ($_POST['type'] ?? 'incident') !== 'event' ? 'display:none;' : '' ?>">
+    <div id="attendeesRow" style="<?= $postedType !== 'event' ? 'display:none;' : '' ?>">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         <div class="form-group">
           <label class="form-label" for="min_attendees">Mínimo de asistentes</label>
@@ -242,6 +283,19 @@ include __DIR__ . '/includes/header.php';
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ─── Location picker map ──────────────────────────────
+const createForm = document.getElementById('createForm');
+const typeInput = document.getElementById('typeInput');
+const addressInput = document.getElementById('address');
+const geocodeBtn = document.getElementById('geocodeBtn');
+const latInput = document.getElementById('latInput');
+const lngInput = document.getElementById('lngInput');
+const selectedAddressInput = document.getElementById('selectedAddressInput');
+const selectedLatInput = document.getElementById('selectedLatInput');
+const selectedLngInput = document.getElementById('selectedLngInput');
+const isAddressConfirmedInput = document.getElementById('isAddressConfirmedInput');
+const addressResults = document.getElementById('addressResults');
+const addressMessage = document.getElementById('addressMessage');
+
 const pickMap = L.map('pickMap');
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   subdomains: 'abcd', maxZoom: 19
@@ -252,50 +306,190 @@ const defaultLng = parseFloat(document.getElementById('lngInput').value) || 2.17
 pickMap.setView([defaultLat, defaultLng], 14);
 
 let pickMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(pickMap);
+let selectedAddress = selectedAddressInput.value.trim();
+let selectedLat = selectedLatInput.value !== '' ? parseFloat(selectedLatInput.value) : null;
+let selectedLng = selectedLngInput.value !== '' ? parseFloat(selectedLngInput.value) : null;
+let isAddressConfirmed = isAddressConfirmedInput.value === '1';
+let searchResults = [];
 
 function updateCoords(latlng) {
-  document.getElementById('latInput').value = latlng.lat.toFixed(6);
-  document.getElementById('lngInput').value = latlng.lng.toFixed(6);
+  latInput.value = latlng.lat.toFixed(6);
+  lngInput.value = latlng.lng.toFixed(6);
+}
+
+function isEventType() {
+  return typeInput.value === 'event';
+}
+
+function hasValidSelection() {
+  return isAddressConfirmed
+    && selectedAddress !== ''
+    && Number.isFinite(selectedLat)
+    && Number.isFinite(selectedLng);
+}
+
+function coordsMatchSelection() {
+  if (!hasValidSelection()) return false;
+  const lat = parseFloat(latInput.value);
+  const lng = parseFloat(lngInput.value);
+  return Number.isFinite(lat)
+    && Number.isFinite(lng)
+    && Math.abs(lat - selectedLat) < 0.000001
+    && Math.abs(lng - selectedLng) < 0.000001;
+}
+
+function syncSelectionInputs() {
+  selectedAddressInput.value = selectedAddress;
+  selectedLatInput.value = Number.isFinite(selectedLat) ? selectedLat.toFixed(6) : '';
+  selectedLngInput.value = Number.isFinite(selectedLng) ? selectedLng.toFixed(6) : '';
+  isAddressConfirmedInput.value = isAddressConfirmed ? '1' : '0';
+}
+
+function setAddressMessage(message, isError = false) {
+  addressMessage.textContent = message;
+  addressMessage.style.color = isError ? 'var(--red)' : 'var(--text2)';
+}
+
+function clearAddressResults() {
+  searchResults = [];
+  addressResults.innerHTML = '';
+  addressResults.style.display = 'none';
+}
+
+function invalidateConfirmedAddress(message) {
+  if (!hasValidSelection() && !message) {
+    return;
+  }
+  isAddressConfirmed = false;
+  syncSelectionInputs();
+  if (message) {
+    setAddressMessage(message, true);
+  }
+}
+
+function confirmAddress(result) {
+  selectedAddress = result.display_name;
+  selectedLat = parseFloat(result.lat);
+  selectedLng = parseFloat(result.lon);
+  isAddressConfirmed = true;
+  addressInput.value = selectedAddress;
+  pickMarker.setLatLng([selectedLat, selectedLng]);
+  pickMap.setView([selectedLat, selectedLng], 16);
+  updateCoords({ lat: selectedLat, lng: selectedLng });
+  syncSelectionInputs();
+  clearAddressResults();
+  setAddressMessage('Dirección confirmada. Ya puedes publicar el evento.', false);
+}
+
+function renderAddressResults(results) {
+  searchResults = results;
+  addressResults.innerHTML = '';
+
+  if (!results.length) {
+    addressResults.style.display = 'none';
+    setAddressMessage('No encontramos coincidencias. Prueba con una dirección más específica.', true);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  results.forEach((result, index) => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.style.cssText = 'display:block;width:100%;padding:10px 12px;text-align:left;border:0;background:transparent;cursor:pointer;';
+    option.textContent = result.display_name;
+    option.addEventListener('click', () => confirmAddress(searchResults[index]));
+    option.addEventListener('mouseenter', () => {
+      option.style.background = 'rgba(0,0,0,.04)';
+    });
+    option.addEventListener('mouseleave', () => {
+      option.style.background = 'transparent';
+    });
+    fragment.appendChild(option);
+  });
+
+  addressResults.appendChild(fragment);
+  addressResults.style.display = 'block';
+  setAddressMessage('Selecciona una dirección válida de la lista antes de publicar el evento.', false);
+}
+
+function validateEventLocation() {
+  if (!isEventType()) return true;
+
+  if (!addressInput.value.trim() || !hasValidSelection()) {
+    setAddressMessage('Selecciona una dirección válida de la lista antes de publicar el evento.', true);
+    return false;
+  }
+
+  if (addressInput.value.trim() !== selectedAddress || !coordsMatchSelection()) {
+    setAddressMessage('La dirección confirmada ya no coincide con el punto del mapa. Selecciónala de nuevo antes de publicar.', true);
+    return false;
+  }
+
+  setAddressMessage('Dirección confirmada. Ya puedes publicar el evento.', false);
+  return true;
 }
 
 pickMap.on('click', e => {
   pickMarker.setLatLng(e.latlng);
   updateCoords(e.latlng);
+  if (isEventType()) {
+    invalidateConfirmedAddress('La dirección confirmada ya no coincide con el punto del mapa. Selecciónala de nuevo antes de publicar.');
+  }
 });
 pickMarker.on('dragend', e => {
   updateCoords(e.target.getLatLng());
+  if (isEventType()) {
+    invalidateConfirmedAddress('La dirección confirmada ya no coincide con el punto del mapa. Selecciónala de nuevo antes de publicar.');
+  }
 });
 
 // ─── Address geocoding ────────────────────────────────
 async function geocodeAddress() {
-  const addr = document.getElementById('address').value.trim();
-  if (!addr) return;
-  const btn = document.getElementById('geocodeBtn');
-  btn.disabled = true;
-  btn.textContent = '...';
-  try {
-    const res  = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(addr));
-    const data = await res.json();
-    if (data.length > 0) {
-      const lat = parseFloat(data[0].lat);
-      const lng = parseFloat(data[0].lon);
-      pickMarker.setLatLng([lat, lng]);
-      pickMap.setView([lat, lng], 16);
-      updateCoords({ lat, lng });
-    } else {
-      alert('Dirección no encontrada. Intenta ser más específico.');
-    }
-  } catch (e) {
-    alert('Error al buscar la dirección.');
+  const addr = addressInput.value.trim();
+  if (!addr) {
+    setAddressMessage('Escribe una dirección para buscar coincidencias.', true);
+    clearAddressResults();
+    return;
   }
-  btn.disabled = false;
-  btn.textContent = '📍 Ubicar';
+  geocodeBtn.disabled = true;
+  geocodeBtn.textContent = 'Buscando...';
+  try {
+    const res  = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1&q=' + encodeURIComponent(addr), {
+      headers: { 'Accept': 'application/json' }
+    });
+    const data = await res.json();
+    renderAddressResults(Array.isArray(data) ? data : []);
+  } catch (e) {
+    clearAddressResults();
+    setAddressMessage('Error al buscar la dirección. Inténtalo de nuevo.', true);
+  }
+  geocodeBtn.disabled = false;
+  geocodeBtn.textContent = '📍 Ubicar';
 }
 
-document.getElementById('geocodeBtn').addEventListener('click', geocodeAddress);
-document.getElementById('address').addEventListener('keydown', e => {
+geocodeBtn.addEventListener('click', geocodeAddress);
+addressInput.addEventListener('input', () => {
+  clearAddressResults();
+  if (addressInput.value.trim() !== selectedAddress) {
+    invalidateConfirmedAddress('Selecciona una dirección válida de la lista antes de publicar el evento.');
+  }
+});
+addressInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); geocodeAddress(); }
 });
+createForm.addEventListener('submit', e => {
+  if (!validateEventLocation()) {
+    e.preventDefault();
+  }
+});
+
+if (hasValidSelection() && addressInput.value.trim() === selectedAddress && coordsMatchSelection()) {
+  setAddressMessage('Dirección confirmada. Ya puedes publicar el evento.', false);
+} else if (isEventType() && addressInput.value.trim() !== '') {
+  isAddressConfirmed = false;
+  syncSelectionInputs();
+}
 
 // ─── Fecha mínima = ahora mismo ───────────────────────
 const NOW_MIN = '<?= $nowMin ?>';
@@ -316,7 +510,7 @@ document.querySelectorAll('.type-card[data-type]').forEach(card => {
     const type = this.dataset.type;
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
     this.classList.add('selected');
-    document.getElementById('typeInput').value = type;
+    typeInput.value = type;
     setDateConstraints(type);
 
     const est    = document.getElementById('tokenEstimate');
@@ -335,8 +529,19 @@ document.querySelectorAll('.type-card[data-type]').forEach(card => {
       btn.textContent      = 'Publicar incidencia — Gratis';
       attRow.style.display = 'none';
     }
+
+    if (type === 'event') {
+      validateEventLocation();
+    } else if (hasValidSelection()) {
+      setAddressMessage('Dirección confirmada.', false);
+    } else {
+      setAddressMessage('Busca una dirección y selecciona una opción válida para fijar la ubicación exacta.', false);
+    }
   });
 });
+
+syncSelectionInputs();
+setDateConstraints(typeInput.value);
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
