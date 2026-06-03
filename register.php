@@ -1,22 +1,24 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/config/email.php';
 
-if (isLoggedIn()) { header('Location: ' . BASE . '/dashboard.php'); exit; }
+if (isLoggedIn()) {
+    header('Location: ' . BASE . '/dashboard.php');
+    exit;
+}
 
 $errors = [];
 $success = false;
 $email_sent = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username  = trim($_POST['username']  ?? '');
-    $email     = trim($_POST['email']     ?? '');
+    $username  = trim($_POST['username'] ?? '');
+    $email     = trim($_POST['email'] ?? '');
     $fullName  = trim($_POST['full_name'] ?? '');
-    $password  = $_POST['password']  ?? '';
+    $password  = $_POST['password'] ?? '';
     $password2 = $_POST['password2'] ?? '';
 
-    // ─── Validaciones ─────────────────────────────────────
-    if (!$username)  $errors[] = 'El nombre de usuario es obligatorio.';
+    if (!$username) $errors[] = 'El nombre de usuario es obligatorio.';
     if (strlen($username) < 3) $errors[] = 'El usuario debe tener al menos 3 caracteres.';
     if (!preg_match('/^[a-zA-Z0-9_-]+$/', $username)) $errors[] = 'El usuario solo puede contener letras, números, guiones y guiones bajos.';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email inválido.';
@@ -26,41 +28,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $db = getDB();
-
-        // ─── Verificar que email y usuario sean únicos ──────
         $stmt = $db->prepare('SELECT id FROM users WHERE email = ? OR username = ?');
         $stmt->execute([$email, $username]);
+
         if ($stmt->fetch()) {
             $errors[] = 'El email o nombre de usuario ya está en uso. Por favor elige otro.';
         } else {
             try {
-                // ─── Crear usuario sin verificar ──────────────
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 $verificationToken = generateVerificationToken();
-                
+
                 $db->prepare('
-                    INSERT INTO users 
-                    (username, email, password_hash, full_name, verified, verification_token, token_created_at) 
+                    INSERT INTO users
+                    (username, email, password_hash, full_name, verified, verification_token, token_created_at)
                     VALUES (?, ?, ?, ?, 0, ?, NOW())
                 ')->execute([$username, $email, $hash, $fullName, $verificationToken]);
-                
+
                 $userId = (int)$db->lastInsertId();
 
-                // ─── Crear suscripción gratuita ───────────────
                 $db->prepare('INSERT INTO subscriptions (user_id, plan) VALUES (?, "free")')
                    ->execute([$userId]);
 
-                // ─── Enviar correo de verificación ────────────
                 if (sendVerificationEmail($email, $fullName, $verificationToken)) {
                     $success = true;
                     $email_sent = true;
                 } else {
-                    // Si falla el email, igual continuamos (pero lo registramos)
                     error_log("Failed to send verification email to $email");
                     $success = true;
                     $email_sent = false;
                 }
-                
             } catch (Exception $e) {
                 error_log("Registration error: " . $e->getMessage());
                 $errors[] = 'Error al crear la cuenta. Por favor intenta de nuevo.';
@@ -75,92 +71,152 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crear cuenta — CityLive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= BASE ?>/css/fontawesome.min.css">
-  <link rel="stylesheet" href="<?= BASE ?>/css/style.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/auth-landing.css">
 </head>
-<body>
-<div class="auth-page">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="logo-icon">🗺️</div>
-      <div class="logo-text">City<span>Live</span></div>
-    </div>
+<body class="auth-screen auth-register">
+  <main class="auth-shell-modern">
+    <section class="auth-stage">
+      <header class="auth-header-modern">
+        <a href="<?= BASE ?>/landing.php" class="auth-brand-modern" aria-label="CityLive">
+          <span class="auth-brand-mark"><span class="auth-brand-core"></span></span>
+          <span class="auth-brand-text">City<span>Live</span></span>
+        </a>
 
-    <h1 class="auth-title">Crear cuenta</h1>
-    <p class="auth-subtitle">Únete y empieza a explorar tu ciudad en tiempo real.</p>
-
-    <?php if ($success && $email_sent): ?>
-      <div class="flash flash-success" style="background:#d4edda;border-color:#c3e6cb;color:#155724;margin-bottom:20px;padding:15px;border-radius:4px;border:1px solid">
-        <i class="fa-solid fa-circle-check"></i> 
-        <strong>¡Cuenta creada!</strong> 
-        Revisa tu correo para confirmar tu email. Si no ves el mensaje, revisa la carpeta de spam.
-      </div>
-      <p style="text-align:center;margin-bottom:20px;">
-        <a href="<?= BASE ?>/index.php" style="color:#007bff;text-decoration:none;">Ir a iniciar sesión</a>
-      </p>
-    <?php elseif ($success && !$email_sent): ?>
-      <div class="flash" style="background:#fff3cd;border-color:#ffc107;color:#856404;margin-bottom:20px;padding:15px;border-radius:4px;border:1px solid">
-        <i class="fa-solid fa-triangle-exclamation"></i> 
-        <strong>Cuenta creada,</strong> pero no pudimos enviar el correo de confirmación. Contacta con soporte.
-      </div>
-    <?php else: ?>
-      <?php foreach ($errors as $e): ?>
-        <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($e) ?></div>
-      <?php endforeach; ?>
-
-    <form method="POST" action="">
-      <div class="form-group">
-        <label class="form-label" for="full_name">Nombre completo</label>
-        <input class="form-input" type="text" id="full_name" name="full_name"
-               value="<?= htmlspecialchars($_POST['full_name'] ?? '') ?>"
-               placeholder="Tu nombre" required>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="form-group">
-          <label class="form-label" for="username">Usuario</label>
-          <input class="form-input" type="text" id="username" name="username"
-                 value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
-                 placeholder="nombredeusuario" required>
+        <div class="auth-top-switch">
+          <span>¿Ya tienes cuenta?</span>
+          <a href="<?= BASE ?>/index.php">
+            <span>Iniciar sesión</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="email">Email</label>
-          <input class="form-input" type="email" id="email" name="email"
-                 value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
-                 placeholder="tu@email.com" required>
-        </div>
+      </header>
+
+      <div class="auth-layout-modern">
+        <section class="auth-card-wrap">
+          <div class="auth-card-modern">
+            <div class="auth-card-accent" aria-hidden="true"><span></span><span></span><span></span></div>
+            <h2>Crea tu cuenta</h2>
+            <p class="auth-card-subtitle">
+              Únete a CityLive y conecta con personas, eventos y lugares increíbles en Barcelona.
+            </p>
+
+            <?php if ($success && $email_sent): ?>
+              <div class="auth-inline-success">
+                <i class="fa-solid fa-circle-check"></i><strong>¡Cuenta creada!</strong> Revisa tu correo para confirmar tu email. Si no ves el mensaje, revisa la carpeta de spam.
+              </div>
+              <div class="auth-success-copy">
+                <a class="auth-card-alt-link" href="<?= BASE ?>/index.php">
+                  <i class="fa-solid fa-arrow-right"></i>
+                  <span>Ir a iniciar sesión</span>
+                </a>
+              </div>
+            <?php elseif ($success && !$email_sent): ?>
+              <div class="auth-inline-warn">
+                <i class="fa-solid fa-triangle-exclamation"></i><strong>Cuenta creada,</strong> pero no pudimos enviar el correo de confirmación. Contacta con soporte.
+              </div>
+            <?php else: ?>
+              <?php foreach ($errors as $e): ?>
+                <div class="auth-flash"><i class="fa-solid fa-circle-exclamation"></i><?= htmlspecialchars($e) ?></div>
+              <?php endforeach; ?>
+
+              <form method="POST" action="" class="auth-form-modern">
+                <div class="auth-form-grid">
+                  <div class="auth-form-group">
+                    <div class="auth-input-shell">
+                      <i class="fa-solid fa-user"></i>
+                      <input type="text" id="full_name" name="full_name" value="<?= htmlspecialchars($_POST['full_name'] ?? '') ?>" placeholder="Nombre completo" required>
+                    </div>
+                  </div>
+
+                  <div class="auth-form-group">
+                    <div class="auth-input-shell">
+                      <i class="fa-solid fa-user"></i>
+                      <input type="text" id="username" name="username" value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" placeholder="Usuario" required>
+                    </div>
+                  </div>
+
+                  <div class="auth-form-group">
+                    <div class="auth-input-shell">
+                      <i class="fa-regular fa-envelope"></i>
+                      <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" placeholder="Email" required>
+                    </div>
+                  </div>
+
+                  <div class="auth-form-group">
+                    <div class="auth-input-shell">
+                      <i class="fa-regular fa-lock"></i>
+                      <input type="password" id="password" name="password" placeholder="Contraseña" required data-password-input>
+                      <button type="button" aria-label="Mostrar contraseña" data-toggle-password>
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="auth-form-group">
+                    <div class="auth-input-shell">
+                      <i class="fa-regular fa-lock"></i>
+                      <input type="password" id="password2" name="password2" placeholder="Confirmar contraseña" required data-password-input>
+                      <button type="button" aria-label="Mostrar contraseña" data-toggle-password>
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="auth-card-note">
+                  <i class="fa-regular fa-heart"></i>
+                  <div>
+                    <strong>Es gratis y siempre será así.</strong>
+                    <p>Crea tu cuenta para participar en la comunidad, descubrir eventos y conocer gente.</p>
+                  </div>
+                </div>
+
+                <button class="auth-btn-primary" type="submit">
+                  <span>Crear cuenta</span>
+                  <i class="fa-solid fa-user-plus"></i>
+                </button>
+              </form>
+
+              <div class="auth-divider">o</div>
+
+              <a class="auth-btn-secondary" href="<?= BASE ?>/index.php">
+                <span>Ya tengo cuenta, iniciar sesión</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            <?php endif; ?>
+          </div>
+
+          <div class="auth-legal auth-legal-left">
+            <i class="fa-solid fa-shield-heart"></i>
+            Tus datos están protegidos. Consulta nuestra <a href="#">Política de Privacidad</a>.
+          </div>
+        </section>
+
+        <section class="auth-map-panel" aria-hidden="true">
+          <div class="auth-map-fade"></div>
+          <img src="<?= BASE ?>/assets/landing/landing-background.png" alt="">
+        </section>
       </div>
+    </section>
+  </main>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="form-group">
-          <label class="form-label" for="password">Contraseña</label>
-          <input class="form-input" type="password" id="password" name="password"
-                 placeholder="Mín. 6 caracteres" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="password2">Confirmar</label>
-          <input class="form-input" type="password" id="password2" name="password2"
-                 placeholder="Repetir contraseña" required>
-        </div>
-      </div>
-
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;">
-        <div style="font-size:12px;color:var(--text2);line-height:1.5;">
-          ✅ Cuenta <strong style="color:var(--text);">gratuita</strong> — Publicar incidencias y eventos sin coste.<br>
-          ⬆️ Actualiza a <strong style="color:var(--primary);">Pro</strong> o <strong style="color:var(--purple);">Platinum</strong> para actividades lucrativas.
-        </div>
-      </div>
-
-      <button class="btn btn-primary btn-block btn-lg" type="submit">
-        <i class="fa-solid fa-user-plus"></i> Crear cuenta
-      </button>
-    </form>
-
-    <p class="text-sm text-muted" style="text-align:center;margin-top:20px;">
-      ¿Ya tienes cuenta? <a href="<?= BASE ?>/index.php">Iniciar sesión</a>
-    </p>
-    <?php endif; ?>
-  </div>
-</div>
+  <script>
+    document.querySelectorAll('[data-toggle-password]').forEach(function (toggle) {
+      toggle.addEventListener('click', function () {
+        var input = this.parentElement.querySelector('[data-password-input]');
+        if (!input) return;
+        var icon = this.querySelector('i');
+        var nextType = input.type === 'password' ? 'text' : 'password';
+        input.type = nextType;
+        if (icon) {
+          icon.className = nextType === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+        }
+      });
+    });
+  </script>
 </body>
 </html>

@@ -1,7 +1,6 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/config/db.php';
 
-// Already logged in → go to dashboard
 if (isLoggedIn()) {
     header('Location: ' . BASE . '/dashboard.php');
     exit;
@@ -12,7 +11,7 @@ $errorMessage = '';
 $errorLinkUrl = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email']    ?? '');
+    $email    = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
     if (!$email || !$password) {
@@ -23,12 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
-            // Verificar que el email esté confirmado
             if (!$user['verified']) {
                 $error = 'Por favor confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
             } else {
                 $_SESSION['user_id'] = $user['id'];
-                // Update last_active
                 getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
                 header('Location: ' . BASE . '/dashboard.php');
                 exit;
@@ -45,56 +42,121 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar sesión — CityLive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= BASE ?>/css/fontawesome.min.css">
-  <link rel="stylesheet" href="<?= BASE ?>/css/style.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/auth-landing.css">
 </head>
-<body>
-<div class="auth-page">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="logo-icon">🗺️</div>
-      <div class="logo-text">City<span>Live</span></div>
-    </div>
+<body class="auth-screen auth-login">
+  <main class="auth-shell-modern">
+    <section class="auth-stage">
+      <header class="auth-header-modern">
+        <a href="<?= BASE ?>/landing.php" class="auth-brand-modern" aria-label="CityLive">
+          <span class="auth-brand-mark"><span class="auth-brand-core"></span></span>
+          <span class="auth-brand-text">City<span>Live</span></span>
+        </a>
+      </header>
 
-    <h1 class="auth-title">Bienvenido de nuevo</h1>
-    <p class="auth-subtitle">Inicia sesión para ver tu ciudad en tiempo real.</p>
+      <div class="auth-layout-modern">
+        <aside class="auth-side-copy">
+          <div class="auth-side-accent" aria-hidden="true"><span></span><span></span><span></span></div>
+          <h1>
+            <span>Vive Barcelona.</span>
+            <span>Conecta.</span>
+            <span>En tiempo real.</span>
+          </h1>
+          <p>
+            Inicia sesión para descubrir eventos, conectar con personas y vivir lo mejor de Barcelona
+            en tiempo real.
+          </p>
+          <div class="auth-side-art" aria-hidden="true"></div>
+        </aside>
 
-    <?php if ($errorLinkUrl): ?>
-      <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i>
-        <?= htmlspecialchars($errorMessage) ?>
-        <a href="<?= htmlspecialchars($errorLinkUrl) ?>">verificación de correo</a>.
+        <section class="auth-card-wrap">
+          <div class="auth-card-modern">
+            <div class="auth-card-accent" aria-hidden="true"><span></span><span></span><span></span></div>
+            <h2>Bienvenido de nuevo</h2>
+            <p class="auth-card-subtitle">
+              Nos alegra verte de nuevo. Inicia sesión para seguir conectado con tu ciudad.
+            </p>
+
+            <?php if ($errorLinkUrl): ?>
+              <div class="auth-flash"><i class="fa-solid fa-circle-exclamation"></i><?= htmlspecialchars($errorMessage) ?> <a href="<?= htmlspecialchars($errorLinkUrl) ?>">verificación de correo</a>.</div>
+            <?php elseif ($error): ?>
+              <div class="auth-flash"><i class="fa-solid fa-circle-exclamation"></i><?= htmlspecialchars($error) ?></div>
+            <?php endif; ?>
+
+            <form method="POST" action="" class="auth-form-modern">
+              <div class="auth-form-group">
+                <label for="email">Correo electrónico</label>
+                <div class="auth-input-shell">
+                  <i class="fa-regular fa-envelope"></i>
+                  <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" placeholder="ejemplo@citylive.com" required autofocus>
+                </div>
+              </div>
+
+              <div class="auth-form-group">
+                <label for="password">Contraseña</label>
+                <div class="auth-input-shell">
+                  <i class="fa-regular fa-lock"></i>
+                  <input type="password" id="password" name="password" placeholder="••••••••" required data-password-input>
+                  <button type="button" aria-label="Mostrar contraseña" data-toggle-password>
+                    <i class="fa-regular fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="auth-meta-row">
+                <label class="auth-checkbox">
+                  <input type="checkbox" name="remember" value="1">
+                  <span>Recordarme</span>
+                </label>
+                <a class="auth-forgot" href="mailto:soporte@citylive.app?subject=Recuperar%20contrase%C3%B1a%20CityLive">¿Has olvidado tu contraseña?</a>
+              </div>
+
+              <button class="auth-btn-primary" type="submit">
+                <span>Iniciar sesión</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </form>
+
+            <div class="auth-divider">o</div>
+
+            <a class="auth-card-alt-link" href="<?= BASE ?>/register.php">
+              <i class="fa-regular fa-user-plus"></i>
+              <span>Crear cuenta</span>
+            </a>
+          </div>
+
+          <div class="auth-legal">
+            Al iniciar sesión, aceptas nuestros
+            <a href="#">Términos de servicio</a> y nuestra
+            <a href="#">Política de privacidad</a>.
+          </div>
+        </section>
+
+        <section class="auth-map-panel" aria-hidden="true">
+          <div class="auth-map-fade"></div>
+          <img src="<?= BASE ?>/assets/landing/landing-background.png" alt="">
+        </section>
       </div>
-    <?php elseif ($error): ?>
-      <div class="flash flash-error"><i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
+    </section>
+  </main>
 
-    <form method="POST" action="">
-      <div class="form-group">
-        <label class="form-label" for="email">Email</label>
-        <input class="form-input" type="email" id="email" name="email"
-               value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
-               placeholder="tu@email.com" required autofocus>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="password">Contraseña</label>
-        <input class="form-input" type="password" id="password" name="password"
-               placeholder="••••••••" required>
-      </div>
-
-      <button class="btn btn-primary btn-block btn-lg" type="submit" style="margin-top:8px;">
-        <i class="fa-solid fa-right-to-bracket"></i> Entrar
-      </button>
-    </form>
-
-    <div class="divider"></div>
-
-    <p class="text-sm text-muted" style="text-align:center;margin-bottom:16px;">
-      ¿No tienes cuenta? <a href="<?= BASE ?>/register.php">Crear cuenta gratis</a>
-    </p>
-
-  </div>
-</div>
-
+  <script>
+    document.querySelectorAll('[data-toggle-password]').forEach(function (toggle) {
+      toggle.addEventListener('click', function () {
+        var input = this.parentElement.querySelector('[data-password-input]');
+        if (!input) return;
+        var icon = this.querySelector('i');
+        var nextType = input.type === 'password' ? 'text' : 'password';
+        input.type = nextType;
+        if (icon) {
+          icon.className = nextType === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
