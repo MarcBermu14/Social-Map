@@ -1,9 +1,13 @@
-  </div><!-- /main-area -->
+﻿  </div><!-- /main-area -->
 </div><!-- /app-shell -->
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <!-- App JS -->
+<<<<<<< HEAD
 <script src="<?= appUrl('js/app.js') ?>?v=5"></script>
+=======
+<script src="<?= BASE ?>/js/app.js?v=4"></script>
+>>>>>>> main
 </body>
 </html>

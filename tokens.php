@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_tokens'])) {
     } elseif ($amount <= 0) {
         $error_message = 'La cantidad debe ser mayor a cero.';
     } else {
+<<<<<<< HEAD
         try {
             // Iniciar transacción para consistencia de datos
             $db->beginTransaction();
@@ -42,6 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_tokens'])) {
             $db->rollBack();
             error_log('Token purchase error: ' . $e->getMessage());
         }
+=======
+        // Requerir pago mediante Bizum - No procesar la compra
+        $price = $packs[$amount];
+        $priceFormatted = number_format($price / 100, 2, ',', '') . '€';
+        header('Location: ' . BASE . '/tokens.php?payment_required=1&amount=' . urlencode($amount) . '&price=' . urlencode($priceFormatted));
+        exit;
+>>>>>>> main
     }
 }
 
@@ -89,6 +97,20 @@ include __DIR__ . '/includes/header.php';
       <div class="flash flash-success">
         <i class="fa-solid fa-circle-check"></i>
         Se han añadido <?= (int)$_GET['ok'] ?> tokens a tu cuenta.
+      </div>
+    <?php endif; ?>
+    
+    <?php if (isset($_GET['payment_required'])): ?>
+      <div class="flash flash-warning">
+        <i class="fa-solid fa-warning"></i>
+        <strong>Pago requerido:</strong> Para comprar <strong><?= htmlspecialchars($_GET['amount'] ?? '') ?> tokens</strong>, debes realizar un pago mediante <strong>Bizum</strong>.
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);">
+          <strong style="display:block;margin-bottom:8px;">📱 Envía un Bizum a:</strong>
+          <div style="font-size:16px;font-weight:800;color:#fff;background:rgba(0,0,0,.3);padding:12px;border-radius:8px;margin-bottom:8px;">666 666 666</div>
+          <strong style="display:block;margin-bottom:4px;">Importe:</strong>
+          <div style="color:#fff;margin-bottom:12px;"><?= htmlspecialchars($_GET['price'] ?? '') ?></div>
+          <div style="font-size:12px;opacity:.9;">Una vez realizado el pago, los tokens se añadirán a tu cuenta lo más pronto posible. ✨</div>
+        </div>
       </div>
     <?php endif; ?>
     
@@ -228,7 +250,11 @@ include __DIR__ . '/includes/header.php';
       <?php endforeach; ?>
 
       <div class="divider"></div>
+<<<<<<< HEAD
       <a href="<?= appUrl('subscriptions.php') ?>" class="btn btn-primary btn-block">
+=======
+      <a href="<?= BASE ?>/subscriptions.php" class="btn btn-primary btn-block">
+>>>>>>> main
         💎 Upgrade de plan
       </a>
       <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:10px;">
@@ -247,7 +273,11 @@ include __DIR__ . '/includes/header.php';
         <strong><?= number_format($planTokens[$user['plan']]) ?></strong> tokens mensuales incluidos
       </div>
       <?php if ($user['plan'] !== 'platinum'): ?>
+<<<<<<< HEAD
       <a href="<?= appUrl('subscriptions.php') ?>" class="btn btn-outline btn-sm btn-block">
+=======
+      <a href="<?= BASE ?>/subscriptions.php" class="btn btn-outline btn-sm btn-block">
+>>>>>>> main
         Ver planes disponibles →
       </a>
       <?php endif; ?>

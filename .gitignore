@@ -18,3 +18,7 @@ desktop.ini
 
 # Uploads (si añades subida de imágenes)
 uploads/
+
+.env
+.env.*
+!.env.example

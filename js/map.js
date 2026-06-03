@@ -1,4 +1,4 @@
-/* CityLive — Leaflet Map */
+﻿/* CityLive — Leaflet Map */
 
 (function () {
   const MAP_ID = 'map';
@@ -13,7 +13,7 @@
     attributionControl: true,
   });
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
     maxZoom: 19,
@@ -59,9 +59,15 @@
   let activeType = 'all';
   let activeCat  = 'all';
 
+  const B = window.CL_BASE || '';
+
   // ─── Load ALL publications once ──────────────────────
   function loadPublications() {
+<<<<<<< HEAD
     fetch(CityLive.url('api/publications.php'))
+=======
+    fetch(B + '/api/publications.php')
+>>>>>>> main
       .then(r => r.json())
       .then(data => {
         markersLayer.clearLayers();
@@ -99,7 +105,11 @@
 
   function openDetail(pub) {
     if (!detailPanel) {
+<<<<<<< HEAD
       window.location.href = CityLive.url(`activity.php?id=${pub.id}`);
+=======
+      window.location.href = `${B}/activity.php?id=${pub.id}`;
+>>>>>>> main
       return;
     }
 
@@ -134,7 +144,11 @@
         </div>
         ${pub.description ? `<div class="detail-desc">${escHtml(pub.description)}</div>` : ''}
         ${tokenHtml}
+<<<<<<< HEAD
         <a href="${CityLive.url(`profile.php?id=${pub.user_id}`)}" class="detail-creator">
+=======
+        <a href="${B}/profile.php?id=${pub.user_id}" class="detail-creator">
+>>>>>>> main
           <div class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--purple),var(--primary));color:#fff;font-size:14px;">
             ${(pub.creator_name || 'U')[0].toUpperCase()}
           </div>
@@ -146,10 +160,12 @@
         </a>
       </div>
       <div class="detail-actions">
+<<<<<<< HEAD
         <a href="${CityLive.url(`activity.php?id=${pub.id}`)}" class="btn btn-${pub.type === 'event' ? 'outline' : 'primary'}" style="flex:1;">Ver detalle</a>
+=======
+        <a href="${B}/activity.php?id=${pub.id}" class="btn btn-${pub.type === 'event' ? 'outline' : 'primary'}" style="flex:1;">Ver detalle</a>
+>>>>>>> main
         ${pub.type === 'event' ? `<button class="btn btn-primary detail-join-btn" data-pub="${pub.id}" data-registered="0" style="flex:2;">🎟️ Apuntarse</button>` : ''}
-        ${pub.type !== 'event' ? `<button class="btn btn-outline btn-icon" title="Guardar">🔖</button>` : ''}
-        <button class="btn btn-outline btn-icon" title="Reportar">🚩</button>
       </div>`;
 
     detailPanel.classList.add('open');
@@ -159,13 +175,32 @@
       el.classList.toggle('selected', el.dataset.id == pub.id);
     });
 
+    // ── Compartir ─────────────────────────────────────────
+    const shareMapBtn = detailPanel.querySelector('.detail-share-btn');
+    if (shareMapBtn) {
+      shareMapBtn.addEventListener('click', async function () {
+        const url   = location.origin + B + '/activity.php?id=' + this.dataset.pub;
+        const title = this.dataset.title || 'CityLive';
+        if (navigator.share) {
+          try { await navigator.share({ title, url }); } catch (_) {}
+        } else {
+          try { await navigator.clipboard.writeText(url); mapToast('¡Enlace copiado!'); }
+          catch (_) { prompt('Copia este enlace:', url); }
+        }
+      });
+    }
+
     // For events: check registration status and wire up join button
     if (pub.type === 'event') {
       const joinBtn = detailPanel.querySelector('.detail-join-btn');
       // Check current status
+<<<<<<< HEAD
       fetch(CityLive.url(`api/event_register.php?pub_id=${pub.id}`), {
         headers: { 'X-CSRF-Token': CityLive.csrfToken }
       })
+=======
+      fetch(B + `/api/event_register.php?pub_id=${pub.id}`)
+>>>>>>> main
         .then(r => r.json())
         .then(data => {
           if (data.registered) {
@@ -180,7 +215,11 @@
       joinBtn.addEventListener('click', async function () {
         const registered = this.dataset.registered === '1';
         this.disabled = true;
+<<<<<<< HEAD
         const res  = await fetch(CityLive.url('api/event_register.php'), {
+=======
+        const res  = await fetch(B + '/api/event_register.php', {
+>>>>>>> main
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CityLive.csrfToken },
           body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub) })
@@ -211,7 +250,11 @@
     const item = e.target.closest('.map-pub-item');
     if (!item) return;
     e.preventDefault();
+<<<<<<< HEAD
     fetch(CityLive.url(`api/publications.php?id=${item.dataset.id}`))
+=======
+    fetch(B + `/api/publications.php?id=${item.dataset.id}`)
+>>>>>>> main
       .then(r => r.json())
       .then(data => {
         if (data.features && data.features[0]) openDetail(data.features[0].properties);
@@ -225,6 +268,14 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function mapToast(msg) {
+    const el = document.createElement('div');
+    el.textContent = msg;
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
   }
 
   function formatDateShort(dt) {

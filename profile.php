@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
@@ -9,7 +9,11 @@ $viewId  = isset($_GET['id']) ? (int)$_GET['id'] : $me['id'];
 $stmt = $db->prepare('SELECT * FROM users WHERE id = ?');
 $stmt->execute([$viewId]);
 $profile = $stmt->fetch();
+<<<<<<< HEAD
 if (!$profile) { redirectTo('dashboard.php'); }
+=======
+if (!$profile) { header('Location: ' . BASE . '/dashboard.php'); exit; }
+>>>>>>> main
 
 $isMe = ($profile['id'] === $me['id']);
 
@@ -41,7 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isMe) {
     } elseif (isset($_POST['unfollow'])) {
         $db->prepare('DELETE FROM followers WHERE follower_id=? AND following_id=?')->execute([$me['id'], $viewId]);
     }
+<<<<<<< HEAD
     redirectTo('profile.php?id=' . $viewId);
+=======
+    header('Location: ' . BASE . '/profile.php?id=' . $viewId);
+    exit;
+>>>>>>> main
 }
 
 // Publications
@@ -64,6 +73,13 @@ if ($isMe) {
     ");
     $stmt3->execute([$me['id']]);
     $regEvents = $stmt3->fetchAll();
+}
+
+// Parse social_links
+$profileSocial = [];
+if (!empty($profile['social_links'])) {
+    $decoded = json_decode($profile['social_links'], true);
+    if (is_array($decoded)) $profileSocial = $decoded;
 }
 
 $typeEmoji = ['incident' => '🚨', 'event' => '🎉', 'activity' => '⚡'];
@@ -90,7 +106,12 @@ include __DIR__ . '/includes/header.php';
   <div class="profile-cover">
     <div class="profile-avatar-wrap">
       <div class="avatar avatar-xl profile-avatar" style="color:#fff;font-size:40px;">
-        <?= strtoupper(substr($profile['full_name'] ?? $profile['username'], 0, 1)) ?>
+        <?php if ($profile['avatar']): ?>
+          <img src="<?= htmlspecialchars($profile['avatar']) ?>" alt="Avatar"
+               style="width:100%;height:100%;object-fit:cover;">
+        <?php else: ?>
+          <?= strtoupper(substr($profile['full_name'] ?? $profile['username'], 0, 1)) ?>
+        <?php endif; ?>
       </div>
     </div>
   </div>
@@ -117,14 +138,48 @@ include __DIR__ . '/includes/header.php';
           <?= htmlspecialchars($profile['bio']) ?>
         </p>
       <?php endif; ?>
+      <?php if ($profileSocial): ?>
+        <?php
+          $socialMeta = [
+              'twitter'   => ['fa-brands fa-x-twitter', fn($v) => 'https://x.com/' . ltrim($v, '@')],
+              'instagram' => ['fa-brands fa-instagram',  fn($v) => 'https://instagram.com/' . ltrim($v, '@')],
+              'tiktok'    => ['fa-brands fa-tiktok',     fn($v) => 'https://tiktok.com/@' . ltrim($v, '@')],
+              'facebook'  => ['fa-brands fa-facebook',   fn($v) => str_starts_with($v, 'http') ? $v : 'https://facebook.com/' . $v],
+              'website'   => ['fa-solid fa-globe',       fn($v) => $v],
+          ];
+          $socialLabels = ['twitter' => 'Twitter', 'instagram' => 'Instagram',
+                           'tiktok'  => 'TikTok',  'facebook'  => 'Facebook', 'website' => 'Web'];
+        ?>
+        <div class="ep-social-links">
+          <?php foreach ($socialMeta as $net => [$icon, $urlFn]): ?>
+            <?php if (!empty($profileSocial[$net])): ?>
+              <a href="<?= htmlspecialchars($urlFn($profileSocial[$net])) ?>"
+                 class="ep-social-link" target="_blank" rel="noopener noreferrer">
+                <i class="<?= $icon ?>"></i>
+                <?= $net === 'website' ? htmlspecialchars(parse_url($profileSocial[$net], PHP_URL_HOST) ?: $profileSocial[$net]) : htmlspecialchars($socialLabels[$net]) ?>
+              </a>
+            <?php endif; ?>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;align-items:flex-end;">
       <?php if ($isMe): ?>
+<<<<<<< HEAD
         <a href="<?= appUrl('subscriptions.php') ?>" class="btn btn-outline btn-sm">
           <i class="fa-solid fa-crown"></i> Gestionar plan
         </a>
         <a href="<?= appUrl('create.php') ?>" class="btn btn-primary btn-sm">
+=======
+        <a href="<?= BASE ?>/edit_profile.php" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-pen"></i> Editar perfil
+        </a>
+        <a href="<?= BASE ?>/subscriptions.php" class="btn btn-outline btn-sm">
+          <i class="fa-solid fa-crown"></i> Gestionar plan
+        </a>
+        <a href="<?= BASE ?>/create.php" class="btn btn-outline btn-sm">
+>>>>>>> main
           <i class="fa-solid fa-plus"></i> Nueva publicación
         </a>
       <?php else: ?>
@@ -192,7 +247,11 @@ include __DIR__ . '/includes/header.php';
     <div class="card mb-24" style="text-align:center;padding:32px;color:var(--text3);">
       <div style="font-size:36px;margin-bottom:10px;">🎉</div>
       <div>Todavía no estás apuntado a ningún evento.</div>
+<<<<<<< HEAD
       <a href="<?= appUrl('dashboard.php') ?>" style="font-size:13px;color:var(--primary);margin-top:8px;display:inline-block;">Explorar eventos →</a>
+=======
+      <a href="<?= BASE ?>/dashboard.php" style="font-size:13px;color:var(--primary);margin-top:8px;display:inline-block;">Explorar eventos →</a>
+>>>>>>> main
     </div>
   <?php else: ?>
     <div class="reg-events-grid mb-24">
@@ -202,7 +261,11 @@ include __DIR__ . '/includes/header.php';
           $tsMs     = $ev['starts_at'] ? (new DateTime($ev['starts_at']))->getTimestamp() * 1000 : null;
           $isPast   = $tsMs && $tsMs < time() * 1000;
         ?>
+<<<<<<< HEAD
         <a href="<?= appUrl('activity.php?id=' . $ev['id']) ?>" class="reg-event-card">
+=======
+        <a href="<?= BASE ?>/activity.php?id=<?= $ev['id'] ?>" class="reg-event-card">
+>>>>>>> main
           <div class="reg-event-top">
             <div class="reg-event-icon"><?= $evEmoji ?></div>
             <div style="flex:1;min-width:0;">
@@ -256,7 +319,11 @@ include __DIR__ . '/includes/header.php';
           $emoji = $categoryEmoji[$p['category']] ?? $typeEmoji[$p['type']] ?? '📍';
           $badgeCls = $typeColor[$p['type']] ?? 'badge-gray';
         ?>
+<<<<<<< HEAD
         <a href="<?= appUrl('activity.php?id=' . $p['id']) ?>" class="pub-item" style="flex-direction:column;align-items:flex-start;gap:10px;">
+=======
+        <a href="<?= BASE ?>/activity.php?id=<?= $p['id'] ?>" class="pub-item" style="flex-direction:column;align-items:flex-start;gap:10px;">
+>>>>>>> main
           <div style="display:flex;align-items:center;gap:10px;width:100%;">
             <div class="pub-icon <?= $p['type'] ?>">
               <?= $emoji ?>

@@ -1,9 +1,13 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+<<<<<<< HEAD
 if (!$id) { redirectTo('dashboard.php'); }
+=======
+if (!$id) { header('Location: ' . BASE . '/dashboard.php'); exit; }
+>>>>>>> main
 
 $db  = getDB();
 $pub = $db->prepare("
@@ -17,7 +21,11 @@ $pub = $db->prepare("
 ");
 $pub->execute([$id]);
 $pub = $pub->fetch();
+<<<<<<< HEAD
 if (!$pub || $pub['status'] !== 'active') { redirectTo('dashboard.php'); }
+=======
+if (!$pub || $pub['status'] !== 'active') { header('Location: ' . BASE . '/dashboard.php'); exit; }
+>>>>>>> main
 
 // Increment view count
 $db->prepare('UPDATE publications SET views = views + 1 WHERE id = ?')->execute([$id]);
@@ -29,6 +37,11 @@ if ($pub['type'] === 'event') {
     $chk->execute([$_SESSION['user_id'], $id]);
     $isRegistered = (bool)$chk->fetchColumn();
 }
+
+// Check if saved
+$chkSave = $db->prepare('SELECT 1 FROM saves WHERE user_id = ? AND publication_id = ?');
+$chkSave->execute([$_SESSION['user_id'], $id]);
+$isSaved = (bool)$chkSave->fetchColumn();
 
 // Fetch reviews
 $reviews = $db->prepare("
@@ -65,7 +78,11 @@ include __DIR__ . '/includes/header.php';
       <!-- MAIN COLUMN -->
       <div>
         <div style="margin-bottom:16px;">
+<<<<<<< HEAD
           <a href="<?= appUrl('dashboard.php') ?>" class="text-muted text-sm">
+=======
+          <a href="<?= BASE ?>/dashboard.php" class="text-muted text-sm">
+>>>>>>> main
             ← Volver al mapa
           </a>
         </div>
@@ -138,6 +155,29 @@ include __DIR__ . '/includes/header.php';
           </div>
         </div>
 
+        <!-- Forum access banner (only for events and activities) -->
+        <?php if ($pub['type'] !== 'incident'): ?>
+        <?php
+        $forumCount = $db->prepare("SELECT COUNT(*) FROM event_forum_posts WHERE event_id = ? AND status = 'active'");
+        $forumCount->execute([$id]);
+        $fPostCount = (int)$forumCount->fetchColumn();
+        ?>
+        <div class="card mb-20" style="border: 1px solid var(--primary); background: linear-gradient(135deg,rgba(14,165,233,.06),var(--card));">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div style="font-size:28px;">💬</div>
+            <div style="flex:1;">
+              <div style="font-weight:800;font-size:15px;margin-bottom:3px;">Foro del evento</div>
+              <div style="font-size:13px;color:var(--text2);">
+                <?= $fPostCount ?> publicaci<?= $fPostCount === 1 ? 'ón' : 'ones' ?> · Participa, pregunta y comparte
+              </div>
+            </div>
+            <a href="<?= BASE ?>/forum.php?event=<?= $pub['id'] ?>" class="btn btn-primary btn-sm">
+              Abrir foro →
+            </a>
+          </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Reviews -->
         <div class="card">
           <div class="card-header">
@@ -190,13 +230,25 @@ include __DIR__ . '/includes/header.php';
               🧭 Cómo llegar
             </a>
             <div style="display:flex;gap:8px;">
-              <button class="btn btn-outline" style="flex:1;">🔖 Guardar</button>
-              <button class="btn btn-outline" style="flex:1;">📤 Compartir</button>
+              <button id="shareBtn" class="btn btn-outline" style="flex:1;"
+                      data-title="<?= htmlspecialchars($pub['title']) ?>">
+                📤 Compartir
+              </button>
+              <button id="reportBtn"
+                      class="btn btn-outline btn-icon"
+                      title="<?= $isOwner ? 'No puedes reportar tu propia publicación' : 'Reportar publicación' ?>"
+                      data-pub="<?= $id ?>"
+                      <?= $isOwner ? 'disabled style="opacity:.4;cursor:not-allowed;"' : '' ?>>
+                🚩
+              </button>
             </div>
-            <button class="btn btn-danger btn-sm">🚩 Reportar</button>
 
             <?php if ($isOwner): ?>
+<<<<<<< HEAD
             <a href="<?= appUrl('edit.php?id=' . $pub['id']) ?>" class="btn btn-outline btn-block">
+=======
+            <a href="<?= BASE ?>/edit.php?id=<?= $pub['id'] ?>" class="btn btn-outline btn-block">
+>>>>>>> main
               <i class="fa-solid fa-pen"></i> Editar publicación
             </a>
             <button id="deleteBtn" class="btn btn-danger btn-block" data-pub="<?= $pub['id'] ?>">
@@ -210,7 +262,11 @@ include __DIR__ . '/includes/header.php';
         <!-- Creator card -->
         <div class="card mb-16">
           <div class="card-header"><span class="card-title">Publicado por</span></div>
+<<<<<<< HEAD
           <a href="<?= appUrl('profile.php?id=' . $pub['user_id']) ?>" style="text-decoration:none;color:var(--text);">
+=======
+          <a href="<?= BASE ?>/profile.php?id=<?= $pub['user_id'] ?>" style="text-decoration:none;color:var(--text);">
+>>>>>>> main
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
               <div class="avatar avatar-md" style="color:#fff;">
                 <?= strtoupper(substr($pub['creator_name'] ?? $pub['creator_username'], 0, 1)) ?>
@@ -251,7 +307,11 @@ include __DIR__ . '/includes/header.php';
             </div>
           </a>
 
+<<<<<<< HEAD
           <a href="<?= appUrl('profile.php?id=' . $pub['user_id']) ?>" class="btn btn-outline btn-block btn-sm" style="margin-top:14px;">
+=======
+          <a href="<?= BASE ?>/profile.php?id=<?= $pub['user_id'] ?>" class="btn btn-outline btn-block btn-sm" style="margin-top:14px;">
+>>>>>>> main
             Ver perfil completo
           </a>
         </div>
@@ -286,7 +346,7 @@ include __DIR__ . '/includes/header.php';
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
     const miniMap = L.map('miniMap', { zoomControl: false, dragging: false, scrollWheelZoom: false });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       subdomains: 'abcd', maxZoom: 19
     }).addTo(miniMap);
 
@@ -303,13 +363,18 @@ include __DIR__ . '/includes/header.php';
     <!-- Register/unregister for events -->
     <?php if ($pub['type'] === 'event'): ?>
     <script>
+    const CL_BASE = '<?= BASE ?>';
     const regBtn = document.getElementById('regBtn');
     if (regBtn) {
       regBtn.addEventListener('click', async function () {
         const registered = this.dataset.registered === '1';
         this.disabled = true;
 
+<<<<<<< HEAD
         const res  = await fetch(CityLive.url('api/event_register.php'), {
+=======
+        const res  = await fetch(CL_BASE + '/api/event_register.php', {
+>>>>>>> main
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CityLive.csrfToken },
           body: JSON.stringify({ action: registered ? 'unregister' : 'register', pub_id: parseInt(this.dataset.pub) })
@@ -333,6 +398,7 @@ include __DIR__ . '/includes/header.php';
     <!-- Delete publication (owner only) -->
     <?php if ($isOwner): ?>
     <script>
+    const CL_BASE = typeof CL_BASE !== 'undefined' ? CL_BASE : '<?= BASE ?>';
     const deleteBtn = document.getElementById('deleteBtn');
     if (deleteBtn) {
       deleteBtn.addEventListener('click', async function () {
@@ -340,14 +406,22 @@ include __DIR__ . '/includes/header.php';
         this.disabled = true;
         this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Eliminando…';
 
+<<<<<<< HEAD
         const res  = await fetch(CityLive.url('api/delete_publication.php'), {
+=======
+        const res  = await fetch(CL_BASE + '/api/delete_publication.php', {
+>>>>>>> main
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CityLive.csrfToken },
           body: JSON.stringify({ pub_id: parseInt(this.dataset.pub) })
         });
         const data = await res.json();
         if (data.success) {
+<<<<<<< HEAD
           window.location.href = CityLive.url('dashboard.php');
+=======
+          window.location.href = CL_BASE + '/dashboard.php';
+>>>>>>> main
         } else {
           alert(data.error || 'Error al eliminar');
           this.disabled = false;
@@ -357,6 +431,100 @@ include __DIR__ . '/includes/header.php';
     }
     </script>
     <?php endif; ?>
+
+<!-- Report modal -->
+<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--card);border-radius:var(--r-lg);padding:28px;max-width:400px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.2);">
+    <h3 style="font-size:17px;font-weight:800;margin-bottom:16px;">🚩 Reportar publicación</h3>
+    <label class="form-label">Motivo</label>
+    <select id="reportReason" class="form-select" style="margin-bottom:14px;">
+      <option value="spam">Spam o publicidad</option>
+      <option value="false_info">Información falsa</option>
+      <option value="inappropriate">Contenido inapropiado</option>
+      <option value="other">Otro</option>
+    </select>
+    <label class="form-label">Descripción adicional (opcional)</label>
+    <textarea id="reportDesc" class="form-textarea" placeholder="Añade más detalles..." rows="3" maxlength="500" style="min-height:80px;margin-bottom:16px;"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button id="reportCancel" class="btn btn-outline btn-sm">Cancelar</button>
+      <button id="reportSubmit" class="btn btn-danger btn-sm">Enviar reporte</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CL_BASE_ACT = '<?= BASE ?>';
+const PUB_ID      = <?= $id ?>;
+
+// ── Compartir ─────────────────────────────────────────
+const shareBtn = document.getElementById('shareBtn');
+if (shareBtn) {
+  shareBtn.addEventListener('click', async function () {
+    const url   = 'http://localhost' + CL_BASE_ACT + '/activity.php?id=' + PUB_ID;
+    const title = this.dataset.title || document.title;
+    if (navigator.share) {
+      try { await navigator.share({ title, url }); } catch (_) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('¡Enlace copiado al portapapeles!');
+      } catch (_) {
+        prompt('Copia este enlace:', url);
+      }
+    }
+  });
+}
+
+// ── Reportar ──────────────────────────────────────────
+const reportBtn    = document.getElementById('reportBtn');
+const reportModal  = document.getElementById('reportModal');
+const reportCancel = document.getElementById('reportCancel');
+const reportSubmit = document.getElementById('reportSubmit');
+
+if (reportBtn) {
+  reportBtn.addEventListener('click', () => {
+    reportModal.style.display = 'flex';
+  });
+}
+reportCancel?.addEventListener('click', () => {
+  reportModal.style.display = 'none';
+  document.getElementById('reportDesc').value = '';
+});
+reportModal?.addEventListener('click', e => {
+  if (e.target === reportModal) {
+    reportModal.style.display = 'none';
+  }
+});
+reportSubmit?.addEventListener('click', async function () {
+  this.disabled = true;
+  const res  = await fetch(CL_BASE_ACT + '/api/report_publication.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      pub_id: PUB_ID,
+      reason: document.getElementById('reportReason').value,
+      description: document.getElementById('reportDesc').value,
+    })
+  });
+  const data = await res.json();
+  reportModal.style.display = 'none';
+  document.getElementById('reportDesc').value = '';
+  showToast(data.success ? data.message : (data.error || 'Error al enviar'), data.success ? 'ok' : 'err');
+  this.disabled = false;
+});
+
+// ── Toast ─────────────────────────────────────────────
+function showToast(msg, type = 'ok') {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:${type === 'err' ? 'var(--red)' : 'var(--text)'};color:#fff;
+    padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;
+    z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
 

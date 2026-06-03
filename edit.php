@@ -1,11 +1,15 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 requireLogin();
 
 $db   = getDB();
 $user = currentUser();
 $id   = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+<<<<<<< HEAD
 if (!$id) { redirectTo('dashboard.php'); }
+=======
+if (!$id) { header('Location: ' . BASE . '/dashboard.php'); exit; }
+>>>>>>> main
 
 // Load pub and verify ownership
 $stmt = $db->prepare("SELECT * FROM publications WHERE id = ? AND status = 'active'");
@@ -13,7 +17,12 @@ $stmt->execute([$id]);
 $pub = $stmt->fetch();
 
 if (!$pub || (int)$pub['user_id'] !== (int)$user['id']) {
+<<<<<<< HEAD
     redirectTo('dashboard.php');
+=======
+    header('Location: ' . BASE . '/dashboard.php');
+    exit;
+>>>>>>> main
 }
 
 $errors = [];
@@ -54,7 +63,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $starts_at ?: null, $expires_at ?: null,
             $id, $user['id'],
         ]);
+<<<<<<< HEAD
         redirectTo("activity.php?id=$id");
+=======
+        header('Location: ' . BASE . "/activity.php?id=$id");
+        exit;
+>>>>>>> main
     }
     // Re-populate $pub with submitted values for re-render
     $pub = array_merge($pub, [
@@ -178,7 +192,11 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div style="display:flex;gap:12px;">
+<<<<<<< HEAD
       <a href="<?= appUrl('activity.php?id=' . $id) ?>" class="btn btn-outline" style="flex:1;">Cancelar</a>
+=======
+      <a href="<?= BASE ?>/activity.php?id=<?= $id ?>" class="btn btn-outline" style="flex:1;">Cancelar</a>
+>>>>>>> main
       <button class="btn btn-primary" type="submit" style="flex:2;">
         <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
       </button>
@@ -190,7 +208,7 @@ include __DIR__ . '/includes/header.php';
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const pickMap = L.map('pickMap');
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   subdomains: 'abcd', maxZoom: 19
 }).addTo(pickMap);
 

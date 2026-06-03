@@ -1,9 +1,14 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/config/db.php';
 
 // Already logged in → go to dashboard
 if (isLoggedIn()) {
+<<<<<<< HEAD
     redirectTo('dashboard.php');
+=======
+    header('Location: ' . BASE . '/dashboard.php');
+    exit;
+>>>>>>> main
 }
 
 $error = '';
@@ -21,10 +26,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
+<<<<<<< HEAD
             loginUser((int)$user['id']);
             // Update last_active
             getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
             redirectTo('dashboard.php');
+=======
+            // Verificar que el email esté confirmado
+            if (!$user['verified']) {
+                $error = 'Por favor confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
+            } else {
+                $_SESSION['user_id'] = $user['id'];
+                // Update last_active
+                getDB()->prepare('UPDATE users SET last_active = NOW() WHERE id = ?')->execute([$user['id']]);
+                header('Location: ' . BASE . '/dashboard.php');
+                exit;
+            }
+>>>>>>> main
         } else {
             $error = 'Email o contraseña incorrectos.';
         }
@@ -37,8 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar sesión — CityLive</title>
+<<<<<<< HEAD
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="<?= appUrl('css/style.css') ?>">
+=======
+  <link rel="stylesheet" href="<?= BASE ?>/css/fontawesome.min.css">
+  <link rel="stylesheet" href="<?= BASE ?>/css/style.css">
+>>>>>>> main
 </head>
 <body>
 <div class="auth-page">
@@ -78,51 +101,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="divider"></div>
 
     <p class="text-sm text-muted" style="text-align:center;margin-bottom:16px;">
+<<<<<<< HEAD
       ¿No tienes cuenta? <a href="<?= appUrl('register.php') ?>">Crear cuenta gratis</a>
+=======
+      ¿No tienes cuenta? <a href="<?= BASE ?>/register.php">Crear cuenta gratis</a>
+>>>>>>> main
     </p>
 
-    <!-- Demo credentials -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">
-        Cuentas de demo
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <button type="button" class="demo-login-btn" onclick="fillDemo('maria@citylive.app')"
-                style="display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text2);font-size:12px;cursor:pointer;transition:.15s;text-align:left;">
-          <span style="font-size:16px;">💎</span>
-          <div>
-            <strong style="color:var(--text);">maria@citylive.app</strong>
-            <span style="color:var(--text3);"> · Platinum</span>
-          </div>
-        </button>
-        <button type="button" onclick="fillDemo('carlos@citylive.app')"
-                style="display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text2);font-size:12px;cursor:pointer;transition:.15s;text-align:left;">
-          <span style="font-size:16px;">⭐</span>
-          <div>
-            <strong style="color:var(--text);">carlos@citylive.app</strong>
-            <span style="color:var(--text3);"> · Pro</span>
-          </div>
-        </button>
-        <button type="button" onclick="fillDemo('alex@citylive.app')"
-                style="display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text2);font-size:12px;cursor:pointer;transition:.15s;text-align:left;">
-          <span style="font-size:16px;">🆓</span>
-          <div>
-            <strong style="color:var(--text);">alex@citylive.app</strong>
-            <span style="color:var(--text3);"> · Free</span>
-          </div>
-        </button>
-      </div>
-      <p style="font-size:11px;color:var(--text3);margin-top:8px;">Contraseña: <code style="color:var(--primary);">demo1234</code></p>
-    </div>
   </div>
 </div>
 
-<script>
-function fillDemo(email) {
-  document.getElementById('email').value    = email;
-  document.getElementById('password').value = 'demo1234';
-}
-</script>
 </body>
 </html>
 

@@ -1,0 +1,59 @@
+name: CityLive Security Check
+
+on:
+  push:
+    branches: [main, 'feature/*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-check:
+    name: Security and Release Readiness Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check that .env files are not committed
+        run: |
+          if find . -name ".env" -o -name ".env.*" | grep -v ".env.example"; then
+            echo "Error: .env files should not be committed."
+            exit 1
+          fi
+
+      - name: Check for PHP debug statements
+        run: |
+          if grep -RInE "var_dump\(|print_r\(" . \
+            --include="*.php" \
+            --exclude-dir=".git"; then
+            echo "Error: Debug statements found in PHP files."
+            exit 1
+          fi
+
+      - name: Check for JavaScript console logs
+        run: |
+          if grep -RInE "console\.log\(" js \
+            --include="*.js" 2>/dev/null; then
+            echo "Error: console.log found in JavaScript files."
+            exit 1
+          fi
+
+      - name: Check for PHP display_errors enabled
+        run: |
+          if grep -RInE "ini_set\(['\"]display_errors['\"],\s*['\"]?1['\"]?\)" . \
+            --include="*.php" \
+            --exclude-dir=".git"; then
+            echo "Error: display_errors should not be enabled in production code."
+            exit 1
+          fi
+
+      - name: Check for suspicious hardcoded secrets
+        run: |
+          if grep -RInE "(password|passwd|secret|token|api_key)\s*=\s*['\"][^'\"]{8,}['\"]" . \
+            --include="*.php" \
+            --include="*.js" \
+            --exclude-dir=".git"; then
+            echo "Error: Possible hardcoded secret found."
+            exit 1
+          fi
