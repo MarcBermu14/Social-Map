@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
     tokens_balance        INT          DEFAULT 0,
     verified              TINYINT(1)   DEFAULT 0,
     verification_token    VARCHAR(64)  DEFAULT NULL,
-    token_created_at      TIMESTAMP    DEFAULT NULL,
+    token_created_at      DATETIME    DEFAULT NULL,
     created_at            TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
     last_active           TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
