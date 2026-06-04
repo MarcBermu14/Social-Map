@@ -4,7 +4,7 @@
  * Acceder desde navegador: http://localhost/fix-urls.php
  * O en servidor: https://miapp.infinityfree.com/fix-urls.php
  */
-
+require_once 'config.php';
 $baseDir = __DIR__;
 $findStr = '/';
 $replaceStr = '/';

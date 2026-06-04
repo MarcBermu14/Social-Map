@@ -1,4 +1,5 @@
 ﻿<?php
+require_once 'config.php';
 /**
  * Verificación de Email
  * Se accede via: /verify-email.php?token=xxxxx

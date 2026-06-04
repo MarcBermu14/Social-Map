@@ -1,4 +1,5 @@
 <?php
+require_once 'config.php';
 echo "<h2>🧪 Test de Conexión MySQL</h2>";
 echo "<pre>";
 

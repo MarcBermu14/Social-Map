@@ -1,4 +1,5 @@
 <?php
+require_once 'config.php';
 // Debug: Ver qué valores está leyendo .env
 echo "<h2>🔍 Debug .env</h2>";
 echo "<pre>";

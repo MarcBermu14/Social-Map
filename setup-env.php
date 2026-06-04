@@ -1,4 +1,5 @@
 <?php
+require_once 'config.php';
 /**
  * Setup .env - Configura automáticamente para Infinityfree
  * Acceder: https://miapp.infinityfree.com/setup-env.php

@@ -1,4 +1,5 @@
 <?php
+require_once 'config.php';
 /**
  * Reemplazar todas las rutas /citylive/ con / en archivos PHP y JS
  * Ejecución: http://localhost/citylive/fix-all-routes.php

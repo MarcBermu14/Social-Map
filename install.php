@@ -1,4 +1,5 @@
 <?php
+require_once 'config.php';
 /**
  * CityLive — Installer
  * Run once to create tables and seed demo data.

@@ -1,4 +1,5 @@
 <?php
+require_once 'config.php';
 echo "<h2>🧪 Test config/db.php</h2>";
 echo "<pre>";
 
