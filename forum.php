@@ -371,10 +371,9 @@ include __DIR__ . '/includes/header.php';
   <div class="forum-compose" id="composeBox">
     <div class="forum-compose-head">
       <div class="post-avatar">
+        <?= strtoupper(substr($me['full_name'] ?? $me['username'], 0, 1)) ?>
         <?php if ($me['avatar']): ?>
-          <img src="<?= htmlspecialchars($me['avatar']) ?>" alt="">
-        <?php else: ?>
-          <?= strtoupper(substr($me['full_name'] ?? $me['username'], 0, 1)) ?>
+          <img src="<?= htmlspecialchars($me['avatar']) ?>" alt="" onerror="this.remove()">
         <?php endif; ?>
       </div>
       <span style="font-weight:700;font-size:14px;"><?= htmlspecialchars($me['username']) ?></span>
@@ -468,7 +467,7 @@ function timeAgo(dateStr) {
 function avatarHtml(u, size = 38) {
   const initials = (u.full_name || u.username || '?')[0].toUpperCase();
   if (u.avatar) {
-    return `<div class="post-avatar" style="width:${size}px;height:${size}px;"><img src="${esc(u.avatar)}" alt=""></div>`;
+    return `<div class="post-avatar" style="width:${size}px;height:${size}px;"><img src="${esc(u.avatar)}" alt="" onerror="this.remove()"></div>`;
   }
   return `<div class="post-avatar" style="width:${size}px;height:${size}px;">${initials}</div>`;
 }
@@ -526,7 +525,7 @@ function renderPosts(posts, container) {
 
 function renderPostHtml(p) {
   const avatarEl = p.avatar
-    ? `<img src="${esc(p.avatar)}" alt="">`
+    ? `<img src="${esc(p.avatar)}" alt="" onerror="this.remove()">`
     : (p.full_name || p.username || '?')[0].toUpperCase();
 
   const imgGrid = p.images.length
@@ -603,7 +602,7 @@ function renderPostHtml(p) {
       <div class="comment-list" id="comment-list-${p.id}"></div>
       <div class="comment-compose" id="compose-${p.id}">
         <div class="post-avatar" style="width:28px;height:28px;">
-          ${p.avatar ? `<img src="${esc(p.avatar)}" alt="">` : (p.full_name || p.username || '?')[0].toUpperCase()}
+          ${p.avatar ? `<img src="${esc(p.avatar)}" alt="" onerror="this.remove()">` : (p.full_name || p.username || '?')[0].toUpperCase()}
         </div>
         <textarea class="comment-textarea" data-post-id="${p.id}" placeholder="Escribe un comentario..." rows="1"></textarea>
         <button class="comment-compose-send send-comment-btn" data-post-id="${p.id}">Enviar</button>
@@ -773,7 +772,7 @@ function renderComments(comments, postId) {
 
 function renderCommentHtml(c, postId, isReply) {
   const initials = (c.full_name || c.username || '?')[0].toUpperCase();
-  const avatarEl = c.avatar ? `<img src="${esc(c.avatar)}" alt="">` : initials;
+  const avatarEl = c.avatar ? `<img src="${esc(c.avatar)}" alt="" onerror="this.remove()">` : initials;
 
   const repliesHtml = (!isReply && c.replies?.length)
     ? `<div class="comment-replies">${c.replies.map(r => renderCommentHtml(r, postId, true)).join('')}</div>`
@@ -1078,7 +1077,7 @@ imgInput?.addEventListener('change', async function() {
         const item = document.createElement('div');
         item.className = 'forum-img-preview-item';
         item.dataset.imgId = img.id;
-        item.innerHTML = `<img src="${esc(img.url)}" alt="">
+        item.innerHTML = `<img src="${esc(img.url)}" alt="" onerror="this.remove()">
           <button class="rm-img" data-img-id="${img.id}"><i class="fa-solid fa-xmark"></i></button>`;
         imgPreview.appendChild(item);
         item.querySelector('.rm-img').addEventListener('click', function() {

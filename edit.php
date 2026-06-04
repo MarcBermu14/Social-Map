@@ -41,6 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($max_att !== null && $max_att < (int)$pub['attendees']) {
         $errors[] = "El máximo ({$max_att}) no puede ser inferior al número actual de asistentes ({$pub['attendees']}).";
     }
+    if ($starts_at && $expires_at && strtotime($expires_at) <= strtotime($starts_at)) {
+        $errors[] = 'La fecha de fin debe ser posterior a la fecha de inicio.';
+    }
 
     if (empty($errors)) {
         $db->prepare("

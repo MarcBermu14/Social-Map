@@ -202,9 +202,9 @@ include __DIR__ . '/includes/header.php';
       </div>
 
       <!-- SIDEBAR COLUMN -->
-      <div>
+      <div style="position:sticky;top:calc(var(--topbar-h) + 20px);align-self:start;display:flex;flex-direction:column;gap:16px;">
         <!-- Action buttons -->
-        <div class="card mb-16" style="position:sticky;top:calc(var(--topbar-h) + 16px);">
+        <div class="card">
           <div style="display:flex;flex-direction:column;gap:10px;">
 
             <?php if ($pub['type'] === 'event'): ?>
@@ -247,7 +247,7 @@ include __DIR__ . '/includes/header.php';
         </div>
 
         <!-- Creator card -->
-        <div class="card mb-16">
+        <div class="card">
           <div class="card-header"><span class="card-title">Publicado por</span></div>
           <a href="<?= BASE ?>/profile.php?id=<?= $pub['user_id'] ?>" style="text-decoration:none;color:var(--text);">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
@@ -339,10 +339,11 @@ include __DIR__ . '/includes/header.php';
     L.marker(latlng, { icon }).addTo(miniMap);
     </script>
 
+    <script>const CL_BASE = '<?= BASE ?>';</script>
+
     <!-- Register/unregister for events -->
     <?php if ($pub['type'] === 'event'): ?>
     <script>
-    const CL_BASE = '<?= BASE ?>';
     const regBtn = document.getElementById('regBtn');
     if (regBtn) {
       regBtn.addEventListener('click', async function () {
@@ -373,7 +374,6 @@ include __DIR__ . '/includes/header.php';
     <!-- Delete publication (owner only) -->
     <?php if ($isOwner): ?>
     <script>
-    const CL_BASE = typeof CL_BASE !== 'undefined' ? CL_BASE : '<?= BASE ?>';
     const deleteBtn = document.getElementById('deleteBtn');
     if (deleteBtn) {
       deleteBtn.addEventListener('click', async function () {
@@ -420,14 +420,13 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <script>
-const CL_BASE_ACT = '<?= BASE ?>';
-const PUB_ID      = <?= $id ?>;
+const PUB_ID = <?= $id ?>;
 
 // ── Compartir ─────────────────────────────────────────
 const shareBtn = document.getElementById('shareBtn');
 if (shareBtn) {
   shareBtn.addEventListener('click', async function () {
-    const url   = 'http://localhost' + CL_BASE_ACT + '/activity.php?id=' + PUB_ID;
+    const url   = 'http://localhost' + CL_BASE + '/activity.php?id=' + PUB_ID;
     const title = this.dataset.title || document.title;
     if (navigator.share) {
       try { await navigator.share({ title, url }); } catch (_) {}
@@ -464,7 +463,7 @@ reportModal?.addEventListener('click', e => {
 });
 reportSubmit?.addEventListener('click', async function () {
   this.disabled = true;
-  const res  = await fetch(CL_BASE_ACT + '/api/report_publication.php', {
+  const res  = await fetch(CL_BASE + '/api/report_publication.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

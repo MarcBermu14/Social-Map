@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/html; charset=UTF-8');
 // Expect $pageTitle and $activePage to be set before including this file
 $pageTitle  = $pageTitle  ?? 'CityLive';
 $activePage = $activePage ?? '';
@@ -132,10 +133,9 @@ $userPlan  = $user['plan'] ?? 'free';
     <?php if ($user): ?>
     <div class="sidebar-user">
       <div class="sidebar-avatar">
+        <?= strtoupper(substr($user['full_name'] ?? $user['username'], 0, 1)) ?>
         <?php if ($user['avatar']): ?>
-          <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="">
-        <?php else: ?>
-          <?= strtoupper(substr($user['full_name'] ?? $user['username'], 0, 1)) ?>
+          <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="" onerror="this.remove()">
         <?php endif; ?>
       </div>
       <div class="sidebar-user-info">
@@ -185,10 +185,9 @@ $userPlan  = $user['plan'] ?? 'free';
         <?php if ($user): ?>
         <a href="<?= BASE ?>/profile.php" class="topbar-user">
           <div class="topbar-user-av">
+            <?= strtoupper(substr($user['full_name'] ?? $user['username'], 0, 1)) ?>
             <?php if ($user['avatar']): ?>
-              <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="">
-            <?php else: ?>
-              <?= strtoupper(substr($user['full_name'] ?? $user['username'], 0, 1)) ?>
+              <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="" onerror="this.remove()">
             <?php endif; ?>
           </div>
           <span class="topbar-user-name"><?= htmlspecialchars($user['username']) ?></span>

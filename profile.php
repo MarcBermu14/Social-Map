@@ -97,11 +97,9 @@ include __DIR__ . '/includes/header.php';
   <div class="profile-cover">
     <div class="profile-avatar-wrap">
       <div class="avatar avatar-xl profile-avatar" style="color:#fff;font-size:40px;">
+        <?= strtoupper(substr($profile['full_name'] ?? $profile['username'], 0, 1)) ?>
         <?php if ($profile['avatar']): ?>
-          <img src="<?= htmlspecialchars($profile['avatar']) ?>" alt="Avatar"
-               style="width:100%;height:100%;object-fit:cover;">
-        <?php else: ?>
-          <?= strtoupper(substr($profile['full_name'] ?? $profile['username'], 0, 1)) ?>
+          <img src="<?= htmlspecialchars($profile['avatar']) ?>" alt="Avatar" onerror="this.remove()">
         <?php endif; ?>
       </div>
     </div>

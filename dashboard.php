@@ -11,7 +11,7 @@ $user = currentUser();
 
 $stmt = $db->query("
     SELECT p.id, p.type, p.title, p.address, p.category, p.attendees, p.token_cost,
-           p.latitude, p.longitude, p.created_at,
+           p.latitude, p.longitude, p.created_at, p.starts_at,
            u.username AS creator_username, u.full_name AS creator_name
     FROM publications p
     JOIN users u ON u.id = p.user_id
@@ -56,25 +56,6 @@ include __DIR__ . '/includes/header.php';
             <span class="map-panel-toolbar-kicker">Explorar</span>
             <h1>Publicaciones cercanas</h1>
           </div>
-          <a href="<?= BASE ?>/create.php" class="map-panel-toolbar-btn">
-            <i class="fa-solid fa-plus"></i>
-            <span>Crear</span>
-          </a>
-        </div>
-
-        <div class="map-quick-actions">
-          <a href="<?= BASE ?>/spin.php" class="map-quick-action">
-            <i class="fa-solid fa-dice"></i>
-            <span>Ruleta</span>
-          </a>
-          <a href="<?= BASE ?>/tokens.php" class="map-quick-action">
-            <i class="fa-solid fa-coins"></i>
-            <span>Tokens</span>
-          </a>
-          <a href="<?= BASE ?>/profile.php" class="map-quick-action">
-            <i class="fa-solid fa-user-circle"></i>
-            <span>Perfil</span>
-          </a>
         </div>
 
         <div class="map-left-scroll">
@@ -160,7 +141,12 @@ include __DIR__ . '/includes/header.php';
                 <?php
                   $type = $typeMeta[$pub['type']] ?? $typeMeta['activity'];
                   $category = $categoryMeta[$pub['category']] ?? ['icon' => $type['icon'], 'short' => $pub['category'] ?: 'Comunidad'];
-                  $time = (new DateTime($pub['created_at']))->format('H:i');
+                  if ($pub['type'] === 'event' && $pub['starts_at']) {
+                      $dt   = new DateTime($pub['starts_at']);
+                      $time = $dt->format('d M · H:i');
+                  } else {
+                      $time = (new DateTime($pub['created_at']))->format('H:i');
+                  }
                 ?>
                 <a href="<?= BASE ?>/activity.php?id=<?= $pub['id'] ?>"
                    class="map-pub-item" data-id="<?= $pub['id'] ?>"
@@ -213,12 +199,6 @@ include __DIR__ . '/includes/header.php';
           </div>
         </div>
 
-        <div class="map-panel-footer">
-          <a href="<?= BASE ?>/create.php" class="dashboard-create-btn">
-            <i class="fa-solid fa-plus"></i>
-            <span>Crear publicación</span>
-          </a>
-        </div>
       </aside>
 
       <div class="map-container">

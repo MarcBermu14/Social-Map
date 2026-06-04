@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+header('Content-Type: text/html; charset=UTF-8');
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/config/email.php';
 
@@ -104,7 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               Únete a CityLive y conecta con personas, eventos y lugares increíbles en Barcelona.
             </p>
 
-            <?php if ($success && $email_sent): ?>
+            <?php
+header('Content-Type: text/html; charset=UTF-8'); if ($success && $email_sent): ?>
               <div class="auth-inline-success">
                 <i class="fa-solid fa-circle-check"></i><strong>¡Cuenta creada!</strong> Revisa tu correo para confirmar tu email. Si no ves el mensaje, revisa la carpeta de spam.
               </div>
@@ -114,14 +116,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <span>Ir a iniciar sesión</span>
                 </a>
               </div>
-            <?php elseif ($success && !$email_sent): ?>
+            <?php
+header('Content-Type: text/html; charset=UTF-8'); elseif ($success && !$email_sent): ?>
               <div class="auth-inline-warn">
                 <i class="fa-solid fa-triangle-exclamation"></i><strong>Cuenta creada,</strong> pero no pudimos enviar el correo de confirmación. Contacta con soporte.
               </div>
-            <?php else: ?>
-              <?php foreach ($errors as $e): ?>
+            <?php
+header('Content-Type: text/html; charset=UTF-8'); else: ?>
+              <?php
+header('Content-Type: text/html; charset=UTF-8'); foreach ($errors as $e): ?>
                 <div class="auth-flash"><i class="fa-solid fa-circle-exclamation"></i><?= htmlspecialchars($e) ?></div>
-              <?php endforeach; ?>
+              <?php
+header('Content-Type: text/html; charset=UTF-8'); endforeach; ?>
 
               <form method="POST" action="" class="auth-form-modern">
                 <div class="auth-form-grid">
@@ -187,7 +193,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span>Ya tengo cuenta, iniciar sesión</span>
                 <i class="fa-solid fa-arrow-right"></i>
               </a>
-            <?php endif; ?>
+            <?php
+header('Content-Type: text/html; charset=UTF-8'); endif; ?>
           </div>
 
           <div class="auth-legal auth-legal-left">

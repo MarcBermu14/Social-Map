@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+header('Content-Type: text/html; charset=UTF-8');
 require_once __DIR__ . '/config/db.php';
 
 if (isLoggedIn()) {
@@ -81,11 +82,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               Nos alegra verte de nuevo. Inicia sesión para seguir conectado con tu ciudad.
             </p>
 
-            <?php if ($errorLinkUrl): ?>
+            <?php
+header('Content-Type: text/html; charset=UTF-8'); if ($errorLinkUrl): ?>
               <div class="auth-flash"><i class="fa-solid fa-circle-exclamation"></i><?= htmlspecialchars($errorMessage) ?> <a href="<?= htmlspecialchars($errorLinkUrl) ?>">verificación de correo</a>.</div>
-            <?php elseif ($error): ?>
+            <?php
+header('Content-Type: text/html; charset=UTF-8'); elseif ($error): ?>
               <div class="auth-flash"><i class="fa-solid fa-circle-exclamation"></i><?= htmlspecialchars($error) ?></div>
-            <?php endif; ?>
+            <?php
+header('Content-Type: text/html; charset=UTF-8'); endif; ?>
 
             <form method="POST" action="" class="auth-form-modern">
               <div class="auth-form-group">

@@ -22,34 +22,6 @@ if (isLoggedIn()) {
   <main class="landing-shell">
     <section class="landing-hero">
       <div class="landing-backdrop"></div>
-      <header class="landing-header">
-        <a href="<?= BASE ?>/landing.php" class="landing-brand" aria-label="CityLive">
-          <span class="landing-brand-mark">
-            <span class="landing-brand-core"></span>
-          </span>
-          <span class="landing-brand-text">City<span>Live</span></span>
-        </a>
-
-        <nav class="landing-nav" aria-label="Principal">
-          <a href="#como-funciona">Cómo funciona</a>
-          <a href="#comunidades">Comunidades</a>
-          <a href="#eventos">Eventos</a>
-          <a href="#lugares">Lugares</a>
-          <a href="#blog">Blog</a>
-        </nav>
-
-        <div class="landing-header-actions">
-          <button class="landing-lang" type="button" aria-label="Idioma">
-            <i class="fa-solid fa-globe"></i>
-            <span>ES</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <a class="landing-download" href="#descargar">
-            <i class="fa-regular fa-mobile-screen-button"></i>
-            <span>Descargar app</span>
-          </a>
-        </div>
-      </header>
 
       <div class="landing-grid">
         <div class="landing-copy">

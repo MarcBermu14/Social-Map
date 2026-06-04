@@ -1,4 +1,5 @@
 ﻿<?php
+header('Content-Type: text/html; charset=UTF-8');
 /**
  * Verificación de Email
  * Se accede via: /verify-email.php?token=xxxxx
@@ -56,7 +57,8 @@ if (!$token) {
       <div class="logo-text">City<span>Live</span></div>
     </div>
 
-    <?php if ($success): ?>
+    <?php
+header('Content-Type: text/html; charset=UTF-8'); if ($success): ?>
       <div style="text-align:center;padding:40px 20px;">
         <div style="font-size:60px;margin-bottom:20px;">✅</div>
         <h1 class="auth-title">¡Email Confirmado!</h1>
@@ -66,7 +68,8 @@ if (!$token) {
           <i class="fa-solid fa-arrow-right"></i> Ir a iniciar sesión
         </a>
       </div>
-    <?php else: ?>
+    <?php
+header('Content-Type: text/html; charset=UTF-8'); else: ?>
       <div style="text-align:center;padding:40px 20px;">
         <div style="font-size:60px;margin-bottom:20px;">❌</div>
         <h1 class="auth-title">Verificación Fallida</h1>
@@ -86,7 +89,8 @@ if (!$token) {
           <i class="fa-solid fa-house"></i> Ir a inicio
         </a>
       </div>
-    <?php endif; ?>
+    <?php
+header('Content-Type: text/html; charset=UTF-8'); endif; ?>
   </div>
 </div>
 </body>

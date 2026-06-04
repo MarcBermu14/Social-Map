@@ -378,7 +378,7 @@ body.page-dashboard .map-panel-toolbar {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 22px 20px 14px;
+  padding: 12px 20px 6px;
 }
 
 body.page-dashboard .map-panel-toolbar-copy {
@@ -509,26 +509,29 @@ body.page-dashboard #pubSearchClear {
 }
 
 body.page-dashboard .filter-block {
-  padding: 0 20px 14px;
+  padding: 0 20px 8px;
 }
 
 body.page-dashboard .filter-block-title {
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   color: var(--text);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
 
 body.page-dashboard .map-filters {
   padding: 0;
   border-bottom: 0;
-  gap: 10px;
+  gap: 6px;
 }
 
 body.page-dashboard .filter-chip {
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 28px;
+  padding: 0 10px;
   border-radius: 999px;
+  font-size: 11px;
   background: rgba(255, 255, 255, 0.82);
   border-color: rgba(233, 220, 206, 0.95);
   color: var(--text2);
@@ -536,7 +539,7 @@ body.page-dashboard .filter-chip {
 }
 
 body.page-dashboard .filter-chip i {
-  font-size: 14px;
+  font-size: 11px;
 }
 
 body.page-dashboard .filter-chip.active {

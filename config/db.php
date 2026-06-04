@@ -56,7 +56,8 @@ function getDB(): PDO {
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
-            
+            $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+
             // ─── Auto-migrate: Add email verification columns if missing ────
             try { $pdo->exec("ALTER TABLE users ADD COLUMN verification_token VARCHAR(64) DEFAULT NULL"); }
             catch (PDOException $e) {} // Already exists
@@ -261,39 +262,6 @@ function app_url(string $path = ''): string {
         return $base;
     }
     return rtrim($base, '/') . '/' . ltrim($path, '/');
-}
-
-function sendVerificationEmail(string $email, string $name, string $token): bool {
-    $safeName = preg_replace('/[\r\n]+/', ' ', $name);
-    $safeName = preg_replace('/[\x00-\x1F\x7F]+/', '', $safeName);
-    $safeName = trim($safeName);
-    if (mb_strlen($safeName) > 100) {
-        $safeName = mb_substr($safeName, 0, 100);
-    }
-    $recipient = filter_var($email, FILTER_VALIDATE_EMAIL);
-    if (!$recipient) {
-        return false;
-    }
-    $fromAddr = filter_var(MAIL_FROM_ADDRESS, FILTER_VALIDATE_EMAIL) ?: 'no-reply@citylive.app';
-    $fromNameRaw = preg_replace('/[\r\n]+/', ' ', MAIL_FROM_NAME);
-    $fromNameRaw = preg_replace('/[\x00-\x1F\x7F]+/', '', $fromNameRaw);
-    $fromNameRaw = trim($fromNameRaw);
-    if (mb_strlen($fromNameRaw) > 100) {
-        $fromNameRaw = mb_substr($fromNameRaw, 0, 100);
-    }
-    $fromName = $fromNameRaw !== '' ? mb_encode_mimeheader($fromNameRaw, 'UTF-8') : 'CityLive';
-    $fromName = preg_replace('/[\r\n]+/', '', $fromName);
-    $verifyUrl = app_url('verify_email.php?token=' . urlencode($token));
-    $subject = 'Confirma tu cuenta en CityLive';
-    $body = sprintf(
-        '<p>Hola %s,</p><p>Gracias por registrarte en CityLive. Para activar tu cuenta, confirma tu email:</p><p><a href="%s">Confirmar mi cuenta</a></p><p>Si no solicitaste esta cuenta, puedes ignorar este mensaje.</p>',
-        htmlspecialchars($safeName ?: APP_DEFAULT_USER_LABEL, ENT_QUOTES, 'UTF-8'),
-        htmlspecialchars($verifyUrl, ENT_QUOTES, 'UTF-8')
-    );
-    $headers = "From: {$fromName} <{$fromAddr}>\r\n";
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    return mail($recipient, $subject, $body, $headers);
 }
 
 function isLoggedIn(): bool {
