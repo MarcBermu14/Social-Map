@@ -185,7 +185,7 @@ function getDB(): PDO {
 
             $pdo->exec("CREATE TABLE IF NOT EXISTS event_forum_images (
                 id            INT AUTO_INCREMENT PRIMARY KEY,
-                post_id       INT NOT NULL,
+                post_id       INT NOT NULL DEFAULT 0,
                 user_id       INT NOT NULL,
                 filename      VARCHAR(255) NOT NULL,
                 original_name VARCHAR(255) NOT NULL,
@@ -194,8 +194,7 @@ function getDB(): PDO {
                 height        INT DEFAULT 0,
                 created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
                 INDEX idx_fi_post (post_id),
-                FOREIGN KEY (post_id)  REFERENCES event_forum_posts(id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
             // Moderación logs

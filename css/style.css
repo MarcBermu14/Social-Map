@@ -837,13 +837,16 @@ input, textarea, select { font-family: inherit; }
   max-width: 900px;
   padding: 28px;
 }
+.profile-cover-wrap {
+  position: relative;
+  margin-bottom: 50px;
+}
 .profile-cover {
   height: 180px;
   border-radius: var(--r-lg);
   background: linear-gradient(135deg, #0EA5E9, #7C3AED);
   position: relative;
   overflow: hidden;
-  margin-bottom: 50px;
 }
 .profile-cover::before {
   content: '';
@@ -855,8 +858,8 @@ input, textarea, select { font-family: inherit; }
   bottom: -42px; left: 28px;
 }
 .profile-avatar {
-  border: 3px solid var(--primary);
-  box-shadow: 0 4px 20px rgba(0,212,255,.25);
+  border: 4px solid var(--surface);
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
 }
 .profile-info-row {
   display: flex; align-items: flex-start; justify-content: space-between;

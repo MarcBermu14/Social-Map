@@ -22,7 +22,7 @@ if (!empty($_SESSION['flash'])) {
 
 // ── Constants ──────────────────────────────────────────────────────────────
 define('AVATAR_DIR',       __DIR__ . '/uploads/avatars/');
-define('AVATAR_URL_BASE',  '/uploads/avatars/');
+define('AVATAR_URL_BASE',  BASE . '/uploads/avatars/');
 define('MAX_AVATAR_BYTES', 5 * 1024 * 1024); // 5 MB
 define('MAX_BIO_LEN',      300);
 

@@ -93,8 +93,9 @@ include __DIR__ . '/includes/header.php';
 
 <div class="profile-layout">
 
-  <!-- Cover -->
-  <div class="profile-cover">
+  <!-- Cover + avatar wrapper -->
+  <div class="profile-cover-wrap">
+    <div class="profile-cover"></div>
     <div class="profile-avatar-wrap">
       <div class="avatar avatar-xl profile-avatar" style="color:#fff;font-size:40px;">
         <?= strtoupper(substr($profile['full_name'] ?? $profile['username'], 0, 1)) ?>
