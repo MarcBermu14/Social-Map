@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CityLive — De la idea al despliegue</title>
+<style>
+:root {
+  --bg:      #0d0b09;
+  --surface: #141210;
+  --amber:   #c88c3e;
+  --amber3:  rgba(200,140,62,0.08);
+  --text:    #e2d9cc;
+  --dim:     #6e6258;
+  --border:  rgba(200,140,62,0.2);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Century Gothic', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── PROGRESS ── */
+#progress {
+  position: fixed; top: 0; left: 0; height: 1px; width: 0;
+  background: var(--amber); z-index: 1000; transition: width .1s linear;
+}
+
+/* ── HEADER ── */
+header {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 22px 64px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: linear-gradient(to bottom, rgba(10,10,13,.95), transparent);
+  z-index: 100;
+}
+.logo { font-size: .6rem; letter-spacing: .5em; text-transform: uppercase; color: var(--amber); }
+nav { display: flex; gap: 32px; }
+nav a {
+  font-size: .54rem; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--dim); text-decoration: none; transition: color .25s;
+}
+nav a:hover { color: var(--amber); }
+
+/* ── REVEAL ── */
+.r { opacity: 0; transform: translateY(18px); transition: opacity .75s ease, transform .75s ease; }
+.r.in { opacity: 1; transform: translateY(0); }
+.d1 { transition-delay: .12s; }
+.d2 { transition-delay: .24s; }
+.d3 { transition-delay: .38s; }
+.d4 { transition-delay: .50s; }
+.d5 { transition-delay: .62s; }
+
+/* ── COMMON SECTION ── */
+section { padding: 110px 72px; position: relative; }
+
+.eyebrow {
+  font-size: .56rem; letter-spacing: .45em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 14px;
+}
+.stitle {
+  font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 200;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text);
+}
+.rule { width: 32px; height: 1px; background: var(--amber); margin: 16px 0 52px; }
+
+
+/* ════════════════════════════════
+   HERO
+════════════════════════════════ */
+#hero {
+  height: 100vh;
+  display: flex; flex-direction: column; justify-content: center;
+  overflow: hidden;
+}
+
+.hero-pre { font-size: .57rem; letter-spacing: .5em; text-transform: uppercase; color: var(--dim); margin-bottom: 28px; }
+
+.hero-title {
+  font-size: clamp(3rem, 7.5vw, 6rem);
+  font-weight: 100; letter-spacing: .09em; text-transform: uppercase; line-height: 1;
+}
+.hero-title .amber { color: var(--amber); display: block; }
+
+.hero-sub { margin-top: 26px; font-size: .7rem; letter-spacing: .28em; text-transform: uppercase; color: var(--dim); }
+
+.hero-link {
+  margin-top: 52px; display: inline-flex; align-items: center; gap: 14px;
+  font-size: .56rem; letter-spacing: .35em; text-transform: uppercase;
+  color: var(--dim); text-decoration: none; transition: color .25s;
+}
+.hero-link:hover { color: var(--amber); }
+.hl-line { width: 36px; height: 1px; background: currentColor; transition: width .3s; }
+.hero-link:hover .hl-line { width: 56px; }
+
+.strands {
+  position: absolute; top: 0; right: 0;
+  width: 42%; height: 100%; pointer-events: none; overflow: hidden;
+}
+.strands svg { width: 100%; height: 100%; }
+
+.hring {
+  position: absolute; border-radius: 50%;
+  border: 1px dashed rgba(184,120,64,.07);
+  top: 50%; right: -80px;
+}
+.hring-1 { width: 540px; height: 540px; margin-top: -270px; animation: rspin 75s linear infinite; }
+.hring-2 { width: 320px; height: 320px; margin-top: -160px; animation: rspin 48s linear infinite reverse; }
+
+@keyframes rspin { to { transform: rotate(360deg); } }
+
+
+/* ════════════════════════════════
+   EQUIPO
+════════════════════════════════ */
+#equipo { background: var(--surface); }
+
+.team-label {
+  font-size: .52rem; letter-spacing: .55em; text-transform: uppercase;
+  color: var(--amber); opacity: .6; margin-bottom: 6px;
+}
+
+.team-group-name {
+  font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 100;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--text);
+  margin-bottom: 4px;
+}
+
+.team-group-name span { color: var(--amber); }
+
+.team-rule { width: 32px; height: 1px; background: var(--amber); margin: 18px 0 56px; }
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  max-width: 860px;
+}
+
+.tcard {
+  padding: 22px 20px;
+  border: 1px solid var(--border);
+  background: rgba(10,10,13,.9);
+  position: relative;
+  overflow: hidden;
+  transition: border-color .3s, background .3s;
+}
+
+.tcard::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent, var(--amber), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.tcard:hover { border-color: rgba(200,140,62,.45); background: rgba(200,140,62,.04); }
+.tcard:hover::before { opacity: 1; }
+
+.tcard-index {
+  font-size: .45rem; letter-spacing: .4em;
+  color: var(--dim); margin-bottom: 10px;
+}
+
+.tcard-name {
+  font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--text);
+  line-height: 1.5;
+}
+
+
+/* ════════════════════════════════
+   PRODUCTO
+════════════════════════════════ */
+#producto { background: var(--bg); }
+
+.prod-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 72px; align-items: start;
+}
+
+.prod-lead {
+  font-size: .92rem; line-height: 1.95; color: var(--dim); font-weight: 300;
+}
+.prod-lead strong { color: var(--text); font-weight: 400; }
+
+.vlist { display: flex; flex-direction: column; gap: 28px; }
+
+.vitem { display: grid; grid-template-columns: 28px 1fr; gap: 16px; }
+.vnum { font-size: .55rem; letter-spacing: .2em; color: var(--amber); padding-top: 3px; }
+.vtitle {
+  font-size: .68rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--text); margin-bottom: 5px;
+}
+.vdesc { font-size: .76rem; line-height: 1.55; color: var(--dim); }
+
+
+/* ════════════════════════════════
+   CAMINO (SPRINTS)
+════════════════════════════════ */
+#camino { min-height: 80vh; }
+
+.camino-head { text-align: center; margin-bottom: 80px; }
+.camino-head .rule { margin: 16px auto 0; }
+
+.path {
+  position: relative; max-width: 740px; margin: 0 auto; padding: 10px 0;
+}
+
+.path::before {
+  content: ''; position: absolute;
+  left: 50%; top: 0; bottom: 0; width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom,
+    transparent 0%, var(--amber) 6%,
+    rgba(184,120,64,.5) 94%, transparent 100%);
+  opacity: .4;
+}
+
+.pdot {
+  position: absolute; left: 50%; top: 0;
+  width: 4px; height: 26px; transform: translateX(-50%);
+  background: linear-gradient(to bottom, transparent, var(--amber), transparent);
+  box-shadow: 0 0 10px var(--amber); border-radius: 2px;
+  animation: pdotAnim 5s linear infinite;
+}
+@keyframes pdotAnim {
+  0%   { top: 0%;   opacity: 0; }
+  7%   { opacity: 1; }
+  93%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.snode {
+  display: grid; grid-template-columns: 1fr 56px 1fr;
+  align-items: center; gap: 24px; margin-bottom: 68px;
+}
+.snode:last-child { margin-bottom: 0; }
+
+.scirc {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid var(--amber);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .58rem; letter-spacing: .12em; color: var(--amber);
+  background: var(--bg); z-index: 2; position: relative;
+  box-shadow: 0 0 20px rgba(184,120,64,.15);
+}
+
+.scard {
+  padding: 16px 18px; border: 1px solid var(--border);
+  background: rgba(15,15,19,.95);
+}
+.sl .scard { border-right: 2px solid rgba(184,120,64,.45); text-align: right; }
+.sr .scard { border-left:  2px solid rgba(184,120,64,.45); text-align: left; }
+
+.stag  { font-size: .55rem; letter-spacing: .32em; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+.sname { font-size: .88rem; color: var(--text); margin-bottom: 7px; }
+.sdesc { font-size: .75rem; line-height: 1.55; color: var(--dim); }
+
+
+/* ════════════════════════════════
+   METODOLOGÍA
+════════════════════════════════ */
+#metodologia { background: var(--surface); }
+
+.meto-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 20px; max-width: 860px;
+}
+
+.mcard {
+  padding: 28px 24px; border: 1px solid var(--border);
+  background: rgba(10,10,13,.9); position: relative; overflow: hidden;
+}
+.mcard::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent, var(--amber), transparent);
+  opacity: .5;
+}
+
+.mcard-num {
+  font-size: .48rem; letter-spacing: .4em; color: var(--dim); margin-bottom: 14px;
+}
+.mcard-title {
+  font-size: .65rem; letter-spacing: .25em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 14px;
+}
+.mcard-desc { font-size: .78rem; line-height: 1.7; color: var(--dim); }
+.mcard-desc strong { color: var(--text); font-weight: 400; }
+
+
+/* ════════════════════════════════
+   ARQUITECTURA
+════════════════════════════════ */
+#arquitectura { background: var(--bg); }
+
+.arch-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; max-width: 860px;
+}
+
+.acard {
+  padding: 18px; border: 1px solid var(--border);
+  background: rgba(15,15,19,.95); position: relative; overflow: hidden;
+}
+.acard::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent, var(--amber), transparent);
+}
+.acard.alt::before { background: linear-gradient(to right, transparent, #9a3030, transparent); }
+
+.aid   { font-size: .48rem; letter-spacing: .4em; color: var(--dim); margin-bottom: 10px; }
+.atitle {
+  font-size: .62rem; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 12px;
+}
+.acard.alt .atitle { color: #b04040; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag {
+  font-size: .63rem; padding: 2px 7px;
+  background: var(--amber3); border: 1px solid var(--border); color: var(--dim);
+}
+.acard.alt .tag { background: rgba(154,48,48,.05); border-color: rgba(154,48,48,.12); }
+
+
+/* ════════════════════════════════
+   CONCLUSIÓN
+════════════════════════════════ */
+#conclusion {
+  min-height: 80vh; text-align: center;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  overflow: hidden;
+}
+
+.cring {
+  position: absolute; border-radius: 50%;
+  border: 1px dashed rgba(184,120,64,.05);
+  top: 50%; left: 50%;
+}
+.cring-1 { width: 560px; height: 560px; margin: -280px 0 0 -280px; animation: rspin 95s linear infinite; }
+.cring-2 { width: 340px; height: 340px; margin: -170px 0 0 -170px; animation: rspin 60s linear infinite reverse; }
+
+.cquote {
+  max-width: 600px; position: relative; z-index: 1;
+  font-size: clamp(.95rem, 2vw, 1.1rem); font-weight: 200;
+  line-height: 1.95; color: var(--dim); letter-spacing: .03em;
+}
+.cquote em { color: var(--amber); font-style: normal; }
+
+.csep { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--amber), transparent); margin: 36px auto; }
+.csig { font-size: .54rem; letter-spacing: .5em; text-transform: uppercase; color: var(--dim); position: relative; z-index: 1; }
+
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  section { padding: 80px 28px; }
+  header  { padding: 20px 28px; }
+  nav     { display: none; }
+  .hero-title { font-size: clamp(2.2rem, 10vw, 3.2rem); }
+  .prod-grid  { grid-template-columns: 1fr; gap: 40px; }
+  .arch-grid, .meto-grid { grid-template-columns: 1fr 1fr; }
+  .team-grid  { grid-template-columns: 1fr 1fr; }
+  .snode  { grid-template-columns: 1fr 40px 1fr; gap: 12px; }
+  .scirc  { width: 36px; height: 36px; font-size: .5rem; }
+  .strands, .hring-1, .hring-2 { display: none; }
+}
+@media (max-width: 480px) {
+  .arch-grid, .meto-grid, .team-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header>
+  <div class="logo">CityLive</div>
+  <nav>
+    <a href="#equipo">Equipo</a>
+    <a href="#producto">Producto</a>
+    <a href="#camino">Sprints</a>
+    <a href="#metodologia">Metodología</a>
+    <a href="#arquitectura">Arquitectura</a>
+    <a href="#conclusion">Final</a>
+  </nav>
+</header>
+
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="strands" aria-hidden="true">
+    <svg viewBox="0 0 420 900" preserveAspectRatio="xMidYMid slice">
+      <line x1="60"  y1="0" x2="60"  y2="900" stroke="rgba(184,120,64,.28)" stroke-width=".7" stroke-dasharray="3 9" ><animate attributeName="stroke-dashoffset" from="0" to="12" dur="2s"   repeatCount="indefinite"/></line>
+      <line x1="130" y1="0" x2="130" y2="900" stroke="rgba(184,120,64,.16)" stroke-width=".7" stroke-dasharray="2 8" ><animate attributeName="stroke-dashoffset" from="0" to="10" dur="1.6s" repeatCount="indefinite"/></line>
+      <line x1="200" y1="0" x2="200" y2="900" stroke="rgba(184,120,64,.20)" stroke-width=".7" stroke-dasharray="4 12"><animate attributeName="stroke-dashoffset" from="0" to="16" dur="2.5s" repeatCount="indefinite"/></line>
+      <line x1="270" y1="0" x2="270" y2="900" stroke="rgba(184,120,64,.11)" stroke-width=".7" stroke-dasharray="2 7" ><animate attributeName="stroke-dashoffset" from="0" to="9"  dur="1.9s" repeatCount="indefinite"/></line>
+      <line x1="340" y1="0" x2="340" y2="900" stroke="rgba(184,120,64,.14)" stroke-width=".7" stroke-dasharray="3 10"><animate attributeName="stroke-dashoffset" from="0" to="13" dur="2.3s" repeatCount="indefinite"/></line>
+      <line x1="400" y1="0" x2="400" y2="900" stroke="rgba(184,120,64,.09)" stroke-width=".7" stroke-dasharray="2 9" ><animate attributeName="stroke-dashoffset" from="0" to="11" dur="2.1s" repeatCount="indefinite"/></line>
+    </svg>
+  </div>
+
+  <div class="hring hring-1" aria-hidden="true"></div>
+  <div class="hring hring-2" aria-hidden="true"></div>
+
+  <h1 class="hero-title r">CityLive</h1>
+  <p class="hero-sub r d1">De la idea al despliegue</p>
+  <p class="hero-sub r d2" style="margin-top:8px;letter-spacing:.2em;font-size:.62rem">Nuestro camino por los sprints</p>
+  <a class="hero-link r d3" href="#equipo">
+    <span class="hl-line"></span>
+    Explorar
+  </a>
+</section>
+
+
+<!-- ══ EQUIPO ══ -->
+<section id="equipo">
+  <p class="eyebrow r">Quiénes somos</p>
+  <h2 class="stitle r">Equipo <span style="color:var(--amber)">Gamma</span></h2>
+  <div class="rule r"></div>
+
+  <div class="team-grid">
+
+    <div class="tcard r">
+      <div class="tcard-index">001</div>
+      <div class="tcard-name">Marc Bermudo</div>
+    </div>
+
+    <div class="tcard r d1">
+      <div class="tcard-index">002</div>
+      <div class="tcard-name">Julio Caballero</div>
+    </div>
+
+    <div class="tcard r d2">
+      <div class="tcard-index">003</div>
+      <div class="tcard-name">Tayser Mouffak</div>
+    </div>
+
+    <div class="tcard r d3">
+      <div class="tcard-index">004</div>
+      <div class="tcard-name">David Pardos</div>
+    </div>
+
+    <div class="tcard r d4">
+      <div class="tcard-index">005</div>
+      <div class="tcard-name">Erik Lahuerta</div>
+    </div>
+
+    <div class="tcard r d5">
+      <div class="tcard-index">006</div>
+      <div class="tcard-name">Abel Garcia</div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══ PRODUCTO ══ -->
+<section id="producto">
+  <p class="eyebrow r">El producto</p>
+  <h2 class="stitle r">¿Qué es CityLive?</h2>
+  <div class="rule r"></div>
+
+  <div class="prod-grid">
+    <p class="prod-lead r">
+      CityLive es una <strong>plataforma social urbana</strong> que conecta a las personas
+      con lo que ocurre en su ciudad en tiempo real. A través de un mapa interactivo,
+      los usuarios publican, descubren y siguen actividades y eventos cercanos,
+      creando una comunidad local viva y participativa.
+    </p>
+
+    <div class="vlist">
+      <div class="vitem r d1">
+        <span class="vnum">01</span>
+        <div>
+          <div class="vtitle">Mapa en tiempo real</div>
+          <p class="vdesc">Publicaciones y eventos geolocalizados sobre un mapa interactivo con Leaflet.</p>
+        </div>
+      </div>
+      <div class="vitem r d2">
+        <span class="vnum">02</span>
+        <div>
+          <div class="vtitle">Comunidad local</div>
+          <p class="vdesc">Foros, seguidores y perfiles para conectar con personas de tu entorno.</p>
+        </div>
+      </div>
+      <div class="vitem r d3">
+        <span class="vnum">03</span>
+        <div>
+          <div class="vtitle">Gamificación</div>
+          <p class="vdesc">Sistema de tokens, reputación y ruleta de recompensas que incentivan la participación.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ CAMINO ══ -->
+<section id="camino">
+  <div class="camino-head">
+    <p class="eyebrow r">El camino</p>
+    <h2 class="stitle r">Cuatro sprints, un producto</h2>
+    <div class="rule r" style="margin:16px auto 0"></div>
+  </div>
+
+  <div class="path">
+    <div class="pdot" aria-hidden="true"></div>
+
+    <div class="snode r">
+      <div class="sl">
+        <div class="scard">
+          <p class="stag">Sprint 01</p>
+          <p class="sname">Ideación</p>
+          <p class="sdesc">Lluvia de ideas, análisis de propuestas y decisión del producto final.</p>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center"><div class="scirc">01</div></div>
+      <div></div>
+    </div>
+
+    <div class="snode r">
+      <div></div>
+      <div style="display:flex;justify-content:center"><div class="scirc">02</div></div>
+      <div class="sr">
+        <div class="scard">
+          <p class="stag">Sprint 02</p>
+          <p class="sname">MVP</p>
+          <p class="sdesc">Primera versión funcional: login, mapa y publicaciones básicas operativas.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="snode r">
+      <div class="sl">
+        <div class="scard">
+          <p class="stag">Sprint 03</p>
+          <p class="sname">Producto principal</p>
+          <p class="sdesc">Foros, eventos, tokens, perfiles y mejora de la experiencia de usuario.</p>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center"><div class="scirc">03</div></div>
+      <div></div>
+    </div>
+
+    <div class="snode r">
+      <div></div>
+      <div style="display:flex;justify-content:center"><div class="scirc">04</div></div>
+      <div class="sr">
+        <div class="scard">
+          <p class="stag">Sprint 04</p>
+          <p class="sname">Testing y despliegue</p>
+          <p class="sdesc">Tests automáticos, CI/CD con GitHub Actions y deploy accesible para el equipo.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══ METODOLOGÍA ══ -->
+<section id="metodologia">
+  <p class="eyebrow r">Cómo trabajamos</p>
+  <h2 class="stitle r">Metodología del equipo</h2>
+  <div class="rule r"></div>
+
+  <div class="meto-grid">
+
+    <div class="mcard r">
+      <div class="mcard-num">001</div>
+      <div class="mcard-title">Agile</div>
+      <p class="mcard-desc">
+        Trabajamos con <strong>metodología ágil</strong>, dividiendo el proyecto en sprints
+        iterativos con un objetivo claro cada uno. Esto nos permitió adaptarnos,
+        detectar problemas antes y entregar valor de forma progresiva sprint a sprint.
+      </p>
+    </div>
+
+    <div class="mcard r d1">
+      <div class="mcard-num">002</div>
+      <div class="mcard-title">Kanban</div>
+      <p class="mcard-desc">
+        Usamos un tablero <strong>Kanban</strong> para gestionar el flujo de trabajo
+        del equipo. Cada tarea pasaba por columnas de estado — pendiente, en progreso
+        y completada — dando visibilidad a todos los miembros en todo momento.
+      </p>
+    </div>
+
+    <div class="mcard r d2">
+      <div class="mcard-num">003</div>
+      <div class="mcard-title">GitHub Actions</div>
+      <p class="mcard-desc">
+        Automatizamos la integración continua con <strong>GitHub Actions</strong>:
+        linting de PHP y JS, smoke tests de base de datos y verificaciones web
+        se ejecutaban automáticamente en cada push y pull request.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══ ARQUITECTURA ══ -->
+<section id="arquitectura">
+  <p class="eyebrow r">Stack técnico</p>
+  <h2 class="stitle r">Arquitectura del proyecto</h2>
+  <div class="rule r"></div>
+
+  <div class="arch-grid">
+
+    <div class="acard r">
+      <div class="aid">001</div>
+      <div class="atitle">Backend</div>
+      <div class="tags">
+        <span class="tag">PHP 8.2</span><span class="tag">Sesiones</span>
+        <span class="tag">PDO</span><span class="tag">API REST JSON</span>
+      </div>
+    </div>
+
+    <div class="acard alt r d1">
+      <div class="aid">002</div>
+      <div class="atitle">Base de datos</div>
+      <div class="tags">
+        <span class="tag">MySQL 8.0</span><span class="tag">11 tablas</span>
+        <span class="tag">users · publications</span><span class="tag">tokens · events</span>
+      </div>
+    </div>
+
+    <div class="acard r d2">
+      <div class="aid">003</div>
+      <div class="atitle">Frontend</div>
+      <div class="tags">
+        <span class="tag">HTML5 · CSS3</span><span class="tag">JS Vanilla</span>
+        <span class="tag">Leaflet.js</span><span class="tag">Font Awesome</span>
+      </div>
+    </div>
+
+    <div class="acard r d1">
+      <div class="aid">004</div>
+      <div class="atitle">Módulos</div>
+      <div class="tags">
+        <span class="tag">Mapa interactivo</span><span class="tag">Foros</span>
+        <span class="tag">Ruleta de tokens</span><span class="tag">Seguidores</span>
+      </div>
+    </div>
+
+    <div class="acard alt r d2">
+      <div class="aid">005</div>
+      <div class="atitle">API Endpoints</div>
+      <div class="tags">
+        <span class="tag">/api/publications</span><span class="tag">/api/events</span>
+        <span class="tag">/api/spin</span><span class="tag">JSON responses</span>
+      </div>
+    </div>
+
+    <div class="acard r d3">
+      <div class="aid">006</div>
+      <div class="atitle">CI/CD & Tests</div>
+      <div class="tags">
+        <span class="tag">GitHub Actions</span><span class="tag">Lint PHP/JS</span>
+        <span class="tag">DB Smoke Test</span><span class="tag">Web Smoke</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══ CONCLUSIÓN ══ -->
+<section id="conclusion">
+  <div class="cring cring-1" aria-hidden="true"></div>
+  <div class="cring cring-2" aria-hidden="true"></div>
+
+  <p class="eyebrow r">Destino alcanzado</p>
+
+  <p class="cquote r d1">
+    "El proyecto no apareció de golpe: fue el resultado de un
+    <em>camino progresivo</em>, donde cada sprint nos permitió
+    avanzar, corregir y construir una versión más completa."
+  </p>
+
+  <div class="csep r d2"></div>
+  <p class="csig r d3">CityLive · Grupo de desarrollo · 2025 – 2026</p>
+</section>
+
+
+<script>
+// Barra de progreso
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+});
+
+// Reveal on scroll
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.r').forEach(el => obs.observe(el));
+
+// Hero visible desde el inicio
+window.addEventListener('load', () => {
+  document.querySelectorAll('#hero .r').forEach((el, i) => {
+    setTimeout(() => el.classList.add('in'), 200 + i * 160);
+  });
+});
+</script>
+</body>
+</html>
